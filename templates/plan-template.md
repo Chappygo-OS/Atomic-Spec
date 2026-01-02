@@ -12,6 +12,16 @@
 ## Technical Context
 
 <!--
+  🛑 STOP: BEFORE PLANNING THE ARCHITECTURE
+  The following Stations are CRITICAL for this section. Read them as needed:
+  - Station 04: `.specify/knowledge/stations/04-api-contracts.md` (If API involved)
+  - Station 05: `.specify/knowledge/stations/05-data-architecture.md` (If Database involved)
+  - Station 06: `.specify/knowledge/stations/06-auth-rbac.md` (If Auth involved)
+  - Station 10: `.specify/knowledge/stations/10-cicd-release.md` (For deployment/CI)
+  - Station 11: `.specify/knowledge/stations/11-security.md` (Security Baseline)
+-->
+
+<!--
   ACTION REQUIRED: Replace the content in this section with the technical details
   for the project. The structure here is presented in advisory capacity to guide
   the iteration process.
@@ -29,7 +39,7 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 [Gates determined based on constitution file]
 
@@ -42,12 +52,17 @@ specs/[###-feature]/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
+<!-- See Station 05: `.specify/knowledge/stations/05-data-architecture.md` -->
 ├── quickstart.md        # Phase 1 output (/speckit.plan command)
 ├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+<!-- See Station 04: `.specify/knowledge/stations/04-api-contracts.md` -->
+<!-- See Station 07: `.specify/knowledge/stations/07-billing.md` (If billing involved) -->
+<!-- See Station 09: `.specify/knowledge/stations/09-observability.md` -->
+├── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -98,7 +113,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
