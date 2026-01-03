@@ -1,6 +1,6 @@
 ---
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
-handoffs: 
+description: Generate atomic task files in tasks/ directory with index.md and traceability.md (Atomic Traceability Model)
+handoffs:
   - label: Analyze For Consistency
     agent: speckit.analyze
     prompt: Run a project analysis for consistency
@@ -22,119 +22,227 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+<!--
+  ============================================================================
+  CONSTITUTION ARTICLE IX COMPLIANCE: ATOMIC TRACEABILITY MODEL
+
+  This command is FORBIDDEN from creating a single tasks.md file.
+
+  Per Directive 2 (Atomic Injunction), you MUST create:
+  - tasks/ directory with individual T-XXX-[name].md files
+  - index.md (feature dashboard)
+  - traceability.md (requirement-to-task matrix)
+
+  Each atomic task file MUST contain:
+  1. ID: Unique task identifier
+  2. Requirement Mapping: Link to FR-XXX from spec.md
+  3. Technical Implementation Detail: Specific code actions
+  4. Verification Command: Exact test/command to verify completion
+  ============================================================================
+-->
+
 ## Outline
 
-1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+### 1. Setup & Gate Compliance Check
 
-2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
-   - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
-   - Note: Not all projects have all documents. Generate tasks based on what's available.
+Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list.
 
-3. **Execute task generation workflow**:
-   - Load plan.md and extract tech stack, libraries, project structure
-   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
-   - If data-model.md exists: Extract entities and map to user stories
-   - If contracts/ exists: Map endpoints to user stories
-   - If research.md exists: Extract decisions for setup tasks
-   - Generate tasks organized by user story (see Task Generation Rules below)
-   - Generate dependency graph showing user story completion order
-   - Create parallel execution examples per user story
-   - Validate task completeness (each user story has all needed tasks, independently testable)
+**🛑 GATE CHECK - Article IX, Directive 4**:
 
-4. **Generate tasks.md**: Use `templates/tasks-template.md` as structure, fill with:
-   - Correct feature name from plan.md
-   - Phase 1: Setup tasks (project initialization)
-   - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
-   - Phase 3+: One phase per user story (in priority order from spec.md)
-   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
-   - Final Phase: Polish & cross-cutting concerns
-   - All tasks must follow the strict checklist format (see Task Generation Rules below)
-   - Clear file paths for each task
-   - Dependencies section showing story completion order
-   - Parallel execution examples per story
-   - Implementation strategy section (MVP first, incremental delivery)
+Before proceeding, verify Plan → Tasks gate criteria from Knowledge Stations:
+- Read `.specify/knowledge/stations/04-api-contracts.md` - verify OpenAPI covers MVP
+- Read `.specify/knowledge/stations/05-data-architecture.md` - verify tenancy model documented
+- Read `.specify/knowledge/stations/06-auth-rbac.md` - verify permission matrix exists
+- Read `.specify/knowledge/stations/10-cicd-release.md` - verify environments spec exists
+- Read `.specify/knowledge/stations/11-security.md` - verify threat model MVP exists
 
-5. **Report**: Output path to generated tasks.md and summary:
-   - Total task count
-   - Task count per user story
-   - Parallel opportunities identified
-   - Independent test criteria for each story
-   - Suggested MVP scope (typically just User Story 1)
-   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+If any gate fails: **STOP** and report which gates need attention.
 
-Context for task generation: {ARGS}
+### 2. Load Design Documents
 
-The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
+Read from FEATURE_DIR:
+- **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+- **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions)
 
-## Task Generation Rules
+### 3. Extract Requirements Inventory
 
-**CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
+From `spec.md`, create a requirements table:
 
-**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+| Req ID | Requirement | User Story | Priority | Acceptance Criteria |
+|--------|-------------|------------|----------|---------------------|
+| FR-001 | ... | US1 | P1 | Given/When/Then |
+| FR-002 | ... | US1 | P1 | Given/When/Then |
 
-### Checklist Format (REQUIRED)
+### 4. Create Atomic Task Structure
 
-Every task MUST strictly follow this format:
+**CRITICAL: Do NOT create a single tasks.md file.**
 
-```text
-- [ ] [TaskID] [P?] [Story?] Description with file path
+#### 4.1 Create tasks/ Directory
+
+```bash
+mkdir -p "$FEATURE_DIR/tasks"
 ```
 
-**Format Components**:
+#### 4.2 Generate Individual Task Files
 
-1. **Checkbox**: ALWAYS start with `- [ ]` (markdown checkbox)
-2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
-3. **[P] marker**: Include ONLY if task is parallelizable (different files, no dependencies on incomplete tasks)
-4. **[Story] label**: REQUIRED for user story phase tasks only
-   - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
-   - Setup phase: NO story label
-   - Foundational phase: NO story label  
-   - User Story phases: MUST have story label
-   - Polish phase: NO story label
-5. **Description**: Clear action with exact file path
+For EACH task, create a separate file in `tasks/`:
 
-**Examples**:
+**File naming**: `T-XXX-[action]-[subject].md`
 
-- ✅ CORRECT: `- [ ] T001 Create project structure per implementation plan`
-- ✅ CORRECT: `- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py`
-- ✅ CORRECT: `- [ ] T012 [P] [US1] Create User model in src/models/user.py`
-- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`
-- ❌ WRONG: `- [ ] Create User model` (missing ID and Story label)
-- ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
-- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID)
-- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing file path)
+**Task number ranges**:
+| Phase | Range | Purpose |
+|-------|-------|---------|
+| Setup | T-001 to T-009 | Project initialization |
+| Foundation | T-010 to T-019 | Core models, base infrastructure |
+| US1 (P1) | T-020 to T-039 | User Story 1 - MVP |
+| US2 (P2) | T-040 to T-059 | User Story 2 |
+| US3 (P3) | T-060 to T-079 | User Story 3 |
+| Integration | T-080 to T-089 | Cross-cutting concerns |
+| Verification | T-090 to T-099 | Final verification |
 
-### Task Organization
+**Each task file MUST contain**:
 
-1. **From User Stories (spec.md)** - PRIMARY ORGANIZATION:
-   - Each user story (P1, P2, P3...) gets its own phase
-   - Map all related components to their story:
-     - Models needed for that story
-     - Services needed for that story
-     - Endpoints/UI needed for that story
-     - If tests requested: Tests specific to that story
-   - Mark story dependencies (most stories should be independent)
+```markdown
+# T-XXX-[task-name]
 
-2. **From Contracts**:
-   - Map each contract/endpoint → to the user story it serves
-   - If tests requested: Each contract → contract test task [P] before implementation in that story's phase
+**Status**: Pending
+**Created**: [DATE] | **Completed**: N/A
 
-3. **From Data Model**:
-   - Map each entity to the user story(ies) that need it
-   - If entity serves multiple stories: Put in earliest story or Setup phase
-   - Relationships → service layer tasks in appropriate story phase
+## Requirement Mapping
 
-4. **From Setup/Infrastructure**:
-   - Shared infrastructure → Setup phase (Phase 1)
-   - Foundational/blocking tasks → Foundational phase (Phase 2)
-   - Story-specific setup → within that story's phase
+| Requirement | Description | Priority |
+|-------------|-------------|----------|
+| FR-XXX | [Exact text from spec.md] | P[N] |
 
-### Phase Structure
+**User Story**: US-X: [Story title]
 
-- **Phase 1**: Setup (project initialization)
-- **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
-- **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
-  - Each phase should be a complete, independently testable increment
-- **Final Phase**: Polish & Cross-Cutting Concerns
+## Task Objective
+
+[Single sentence objective]
+
+## Technical Implementation Detail
+
+### Files to Modify/Create
+- `[exact/path/to/file.ext]` - [what changes]
+
+### Dependencies
+- [T-XXX-dep](./T-XXX-dep.md) - [why needed]
+
+### Implementation Steps
+1. [Specific action]
+2. [Next action]
+3. [Final action]
+
+### Acceptance Criteria
+- [ ] [Testable criterion]
+
+## Verification Command
+
+\`\`\`bash
+[EXACT executable command - NO placeholders]
+\`\`\`
+
+**Expected Output**:
+\`\`\`
+[What success looks like]
+\`\`\`
+
+## Completion Checklist
+- [ ] Implementation complete
+- [ ] Acceptance criteria met
+- [ ] Verification passes
+- [ ] Updated traceability.md
+```
+
+#### 4.3 Generate index.md
+
+Create `FEATURE_DIR/index.md` using `templates/index-template.md`:
+- Feature name and branch
+- Quick Navigation table with all documents
+- Requirements summary table
+- Current phase set to "Implementation"
+- Task progress (Total/Completed/In Progress)
+- Task queue listing
+
+#### 4.4 Generate traceability.md
+
+Create `FEATURE_DIR/traceability.md` using `templates/traceability-template.md`:
+- Map every FR-XXX to its task ID(s)
+- Map every task to its requirement(s)
+- Initialize all statuses to "Pending"
+- Calculate coverage metrics (MUST be 100%)
+
+### 5. Validation
+
+Before completing, verify:
+
+- [ ] `index.md` exists with complete navigation
+- [ ] `traceability.md` exists with 100% requirement coverage
+- [ ] `tasks/` directory exists with individual task files
+- [ ] Each task file has all 4 required elements:
+  - [ ] ID (T-XXX-name format)
+  - [ ] Requirement Mapping (FR-XXX)
+  - [ ] Technical Implementation Detail (file paths)
+  - [ ] Verification Command (executable, no placeholders)
+- [ ] No orphan tasks (all tasks map to requirements)
+- [ ] No uncovered requirements (all requirements have tasks)
+- [ ] All verification commands are executable
+
+### 6. Report
+
+Output summary:
+- Path to index.md
+- Total task count
+- Task count per user story
+- Coverage percentage (should be 100%)
+- List of task files created
+
+**FORBIDDEN outputs** (Constitution violation):
+- ❌ A single tasks.md file with checkbox lists
+- ❌ Tasks without verification commands
+- ❌ Tasks without requirement mappings
+
+## Verification Command Requirements
+
+**Every task MUST have an executable verification command.**
+
+### Good Examples
+
+```bash
+# Specific test
+npm test -- --grep "UserModel creates valid user"
+
+# API test
+curl -s -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com"}' | jq '.id != null'
+
+# Type check
+npx tsc --noEmit src/models/user.ts
+
+# Lint check
+npm run lint -- src/services/auth.ts
+```
+
+### Forbidden Patterns
+
+```bash
+# TOO VAGUE
+npm test
+
+# MANUAL
+"Check the UI manually"
+
+# PLACEHOLDER
+[TODO: add verification]
+```
+
+## Context Pinning Reminder
+
+Per Constitution Article IX, Directive 3, the subsequent `/speckit.implement` command will:
+- Read ONLY `index.md` for navigation
+- Read ONLY the specific `T-XXX-[name].md` for the current task
+- Update `traceability.md` after each completion
+- **NEVER** read the full `plan.md` during implementation
+
+Context for task generation: {ARGS}

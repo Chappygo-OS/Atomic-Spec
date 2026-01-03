@@ -1,5 +1,5 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+description: Execute implementation by processing atomic task files one at a time with Context Pinning (Atomic Traceability Model)
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
   ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
@@ -13,126 +13,215 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+<!--
+  ============================================================================
+  CONSTITUTION ARTICLE IX COMPLIANCE: CONTEXT PINNING
+
+  Per Directive 3 (Context Pinning), during implementation you are:
+
+  ALLOWED to read:
+  - index.md (for navigation and context)
+  - The specific T-XXX-[name].md file for the CURRENT task only
+  - traceability.md (to update status after completion)
+
+  FORBIDDEN from reading:
+  - plan.md (full technical plan)
+  - spec.md (full specification)
+  - Other task files not currently being executed
+
+  This prevents context pollution and ensures focused, verifiable execution.
+  ============================================================================
+-->
+
 ## Outline
 
-1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+### 1. Setup & Structure Verification
 
-2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
-   - Scan all checklist files in the checklists/ directory
-   - For each checklist, count:
-     - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
-     - Completed items: Lines matching `- [X]` or `- [x]`
-     - Incomplete items: Lines matching `- [ ]`
-   - Create a status table:
+Run `{SCRIPT}` from repo root and parse FEATURE_DIR.
 
-     ```text
-     | Checklist | Total | Completed | Incomplete | Status |
-     |-----------|-------|-----------|------------|--------|
-     | ux.md     | 12    | 12        | 0          | ✓ PASS |
-     | test.md   | 8     | 5         | 3          | ✗ FAIL |
-     | security.md | 6   | 6         | 0          | ✓ PASS |
-     ```
+**Verify Atomic Traceability structure exists**:
+- [ ] `FEATURE_DIR/index.md` exists
+- [ ] `FEATURE_DIR/traceability.md` exists
+- [ ] `FEATURE_DIR/tasks/` directory exists with T-XXX-*.md files
 
-   - Calculate overall status:
-     - **PASS**: All checklists have 0 incomplete items
-     - **FAIL**: One or more checklists have incomplete items
+If structure is missing: **STOP** and instruct user to run `/speckit.tasks` first.
 
-   - **If any checklist is incomplete**:
-     - Display the table with incomplete item counts
-     - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
-     - Wait for user response before continuing
-     - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
+### 2. Check Checklists Status
 
-   - **If all checklists are complete**:
-     - Display the table showing all checklists passed
-     - Automatically proceed to step 3
+If `FEATURE_DIR/checklists/` exists:
+- Scan all checklist files
+- Count completed vs incomplete items
+- Display status table:
 
-3. Load and analyze the implementation context:
-   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
-   - **IF EXISTS**: Read data-model.md for entities and relationships
-   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
-   - **IF EXISTS**: Read research.md for technical decisions and constraints
-   - **IF EXISTS**: Read quickstart.md for integration scenarios
+```text
+| Checklist | Total | Completed | Incomplete | Status |
+|-----------|-------|-----------|------------|--------|
+| ux.md     | 12    | 12        | 0          | ✓ PASS |
+| test.md   | 8     | 5         | 3          | ✗ FAIL |
+```
 
-4. **Project Setup Verification**:
-   - **REQUIRED**: Create/verify ignore files based on actual project setup:
+If any incomplete: Ask user to proceed or wait.
 
-   **Detection & Creation Logic**:
-   - Check if the following command succeeds to determine if the repository is a git repo (create/verify .gitignore if so):
+### 3. Load Navigation Context (Context Pinning)
 
-     ```sh
-     git rev-parse --git-dir 2>/dev/null
-     ```
+**🛑 CONTEXT PINNING ENFORCED**
 
-   - Check if Dockerfile* exists or Docker in plan.md → create/verify .dockerignore
-   - Check if .eslintrc* exists → create/verify .eslintignore
-   - Check if eslint.config.* exists → ensure the config's `ignores` entries cover required patterns
-   - Check if .prettierrc* exists → create/verify .prettierignore
-   - Check if .npmrc or package.json exists → create/verify .npmignore (if publishing)
-   - Check if terraform files (*.tf) exist → create/verify .terraformignore
-   - Check if .helmignore needed (helm charts present) → create/verify .helmignore
+Read ONLY these files for context:
 
-   **If ignore file already exists**: Verify it contains essential patterns, append missing critical patterns only
-   **If ignore file missing**: Create with full pattern set for detected technology
+1. **Read `index.md`** - Get:
+   - Feature summary
+   - Current phase
+   - Task progress (Total/Completed/In Progress)
+   - Active task ID
+   - Task queue
 
-   **Common Patterns by Technology** (from plan.md tech stack):
-   - **Node.js/JavaScript/TypeScript**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
-   - **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `dist/`, `*.egg-info/`
-   - **Java**: `target/`, `*.class`, `*.jar`, `.gradle/`, `build/`
-   - **C#/.NET**: `bin/`, `obj/`, `*.user`, `*.suo`, `packages/`
-   - **Go**: `*.exe`, `*.test`, `vendor/`, `*.out`
-   - **Ruby**: `.bundle/`, `log/`, `tmp/`, `*.gem`, `vendor/bundle/`
-   - **PHP**: `vendor/`, `*.log`, `*.cache`, `*.env`
-   - **Rust**: `target/`, `debug/`, `release/`, `*.rs.bk`, `*.rlib`, `*.prof*`, `.idea/`, `*.log`, `.env*`
-   - **Kotlin**: `build/`, `out/`, `.gradle/`, `.idea/`, `*.class`, `*.jar`, `*.iml`, `*.log`, `.env*`
-   - **C++**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.so`, `*.a`, `*.exe`, `*.dll`, `.idea/`, `*.log`, `.env*`
-   - **C**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.a`, `*.so`, `*.exe`, `Makefile`, `config.log`, `.idea/`, `*.log`, `.env*`
-   - **Swift**: `.build/`, `DerivedData/`, `*.swiftpm/`, `Packages/`
-   - **R**: `.Rproj.user/`, `.Rhistory`, `.RData`, `.Ruserdata`, `*.Rproj`, `packrat/`, `renv/`
-   - **Universal**: `.DS_Store`, `Thumbs.db`, `*.tmp`, `*.swp`, `.vscode/`, `.idea/`
+2. **Read `traceability.md`** - Get:
+   - Pending tasks list
+   - Task → Requirement mapping
+   - Current coverage status
 
-   **Tool-Specific Patterns**:
-   - **Docker**: `node_modules/`, `.git/`, `Dockerfile*`, `.dockerignore`, `*.log*`, `.env*`, `coverage/`
-   - **ESLint**: `node_modules/`, `dist/`, `build/`, `coverage/`, `*.min.js`
-   - **Prettier**: `node_modules/`, `dist/`, `build/`, `coverage/`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
-   - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
-   - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
+**DO NOT READ**:
+- ❌ `plan.md` - Forbidden during implementation
+- ❌ `spec.md` - Forbidden during implementation
+- ❌ Other task files - Only read current task
 
-5. Parse tasks.md structure and extract:
-   - **Task phases**: Setup, Tests, Core, Integration, Polish
-   - **Task dependencies**: Sequential vs parallel execution rules
-   - **Task details**: ID, description, file paths, parallel markers [P]
-   - **Execution flow**: Order and dependency requirements
+### 4. Task Execution Loop
 
-6. Execute implementation following the task plan:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
+For each pending task in order:
 
-7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
+#### 4.1 Load Current Task
 
-8. Progress tracking and error handling:
-   - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
-   - Provide clear error messages with context for debugging
-   - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+Read ONLY `tasks/T-XXX-[name].md` for the current task.
 
-9. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
+Extract from task file:
+- **Task ID**: T-XXX
+- **Requirement Mapping**: FR-XXX links
+- **Files to modify**: Exact paths
+- **Dependencies**: Prerequisite tasks
+- **Implementation Steps**: Specific actions
+- **Verification Command**: Exact command to run
+- **Acceptance Criteria**: Checklist items
 
-Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
+#### 4.2 Verify Dependencies
+
+Check `traceability.md` to confirm all dependency tasks are marked "Done".
+
+If dependencies not met: **SKIP** task, move to next, report blocked status.
+
+#### 4.3 Execute Implementation
+
+Follow the Implementation Steps from the task file:
+1. Create/modify files as specified
+2. Follow exact paths provided
+3. Implement according to acceptance criteria
+
+#### 4.4 Run Verification
+
+Execute the **Verification Command** from the task file.
+
+```bash
+# Example: Run the exact command specified in the task
+npm test -- --grep "UserModel creates valid user"
+```
+
+**If verification passes**:
+- Mark task as complete
+- Update traceability.md
+- Proceed to next task
+
+**If verification fails**:
+- Report failure with output
+- Ask user: Fix and retry, or skip?
+- Do NOT mark as complete
+
+#### 4.5 Update Traceability
+
+After each task completion, update `traceability.md`:
+- Set task Status to "Done"
+- Set Verified to "Y"
+- Add entry to Verification Log
+- Update parent Requirement status if all tasks complete
+
+#### 4.6 Update Index
+
+After each task, update `index.md`:
+- Increment Completed count
+- Update Active Task to next in queue
+- Move completed task from queue
+
+### 5. Project Setup Verification
+
+During first Setup phase task, create/verify ignore files:
+
+**Detection & Creation**:
+- Git repo → `.gitignore`
+- Dockerfile → `.dockerignore`
+- ESLint → `.eslintignore`
+- Prettier → `.prettierignore`
+
+**Common Patterns by Technology**:
+- **Node.js**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
+- **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `dist/`
+- **Go**: `*.exe`, `*.test`, `vendor/`
+- **Rust**: `target/`, `debug/`, `release/`
+
+### 6. Error Handling
+
+**Task Failure**:
+- Report which task failed
+- Show verification command output
+- Offer options: Retry, Skip, Abort
+
+**Dependency Blocked**:
+- List blocked tasks
+- Show which dependencies are incomplete
+- Suggest completing dependencies first
+
+**Context Pinning Violation**:
+- If tempted to read plan.md or spec.md: **STOP**
+- All needed context is in the current task file
+- If task file is insufficient: Report as task quality issue
+
+### 7. Progress Reporting
+
+After each task, report:
+```text
+✓ T-XXX-[name] completed
+  Verification: PASSED
+  Progress: [X/N] tasks complete
+  Next: T-YYY-[next-task]
+```
+
+### 8. Completion
+
+When all tasks in `traceability.md` are "Done":
+
+1. **Final Verification**:
+   - All verification commands passed
+   - All acceptance criteria met
+   - 100% task completion
+
+2. **Update index.md**:
+   - Set phase to "Complete"
+   - Final task counts
+
+3. **Report Summary**:
+   - Total tasks completed
+   - Total time (if tracked)
+   - Any skipped/blocked tasks
+   - Feature ready for review
+
+## Context Pinning Reminder
+
+**During implementation, you may ONLY read**:
+- `index.md` - Navigation and status
+- Current `T-XXX-[name].md` - Active task details
+- `traceability.md` - To update completion status
+
+**FORBIDDEN**:
+- Reading `plan.md` during implementation
+- Reading `spec.md` during implementation
+- Reading task files other than the current one
+- Making architectural decisions not in the task file
+
+If you need information not in the current task file, the task file is incomplete. Report this as a task quality issue rather than reading forbidden files.

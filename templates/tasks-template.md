@@ -1,251 +1,272 @@
 ---
-
-description: "Task list template for feature implementation"
+description: "Atomic Task Factory - generates tasks/ directory with individual task files, index.md, and traceability.md"
 ---
 
-# Tasks: [FEATURE NAME]
+# Atomic Task Factory: [FEATURE NAME]
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
-
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
-
-## Format: `[ID] [P?] [Story] Description`
-
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- Include exact file paths in descriptions
-
-## Path Conventions
-
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
-
-<!-- 
+<!--
   ============================================================================
-  IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
-  
-  The /speckit.tasks command MUST replace these with actual tasks based on:
-  - User stories from spec.md (with their priorities P1, P2, P3...)
-  - Feature requirements from plan.md
-  - Entities from data-model.md
-  - Endpoints from contracts/
-  
-  Tasks MUST be organized by user story so each story can be:
-  - Implemented independently
-  - Tested independently
-  - Delivered as an MVP increment
-  
-  DO NOT keep these sample tasks in the generated tasks.md file.
+  ATOMIC TRACEABILITY MODEL - CONSTITUTION ARTICLE IX COMPLIANCE
+
+  Per the Atomic Injunction (Directive 2), this template generates a tasks/
+  DIRECTORY with individual task files, NOT a single tasks.md file.
+
+  Output Structure:
+  specs/[###-feature-name]/
+  ├── index.md              # Feature dashboard (navigation & status)
+  ├── traceability.md       # Requirement-to-task matrix
+  └── tasks/                # Atomic task directory
+      ├── T-001-[name].md   # Individual task files
+      ├── T-002-[name].md
+      └── ...
+
+  Each atomic task file MUST contain:
+  1. ID: Unique task identifier
+  2. Requirement Mapping: Link to FR-XXX from spec.md
+  3. Technical Implementation Detail: Specific code actions with file paths
+  4. Verification Command: Exact, executable command to verify completion
+
+  FORBIDDEN: Creating a single tasks.md file with checkbox lists
   ============================================================================
 -->
 
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Extract & Analyze
 
-**Purpose**: Project initialization and basic structure
+### 1.1 Requirements Extraction
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+From `spec.md`, extract:
 
----
+| Req ID | Requirement | User Story | Priority |
+|--------|-------------|------------|----------|
+| FR-001 | [Extract from spec] | US1 | P1 |
+| FR-002 | [Extract from spec] | US1 | P1 |
+| FR-003 | [Extract from spec] | US2 | P2 |
 
-## Phase 2: Foundational (Blocking Prerequisites)
+### 1.2 Technical Components
 
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+From `plan.md`, extract:
 
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+- **Data Models**: [List entities from data-model.md]
+- **API Endpoints**: [List from contracts/]
+- **Infrastructure**: [List setup requirements]
+- **Dependencies**: [List external dependencies]
 
-Examples of foundational tasks (adjust based on your project):
+## Phase 2: Task Decomposition
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+### Task Naming Convention
 
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+```
+T-[XXX]-[action]-[subject].md
 
----
+Format:
+- XXX = Sequential 3-digit number (001, 002, 003...)
+- action = verb (setup, create, implement, integrate, verify)
+- subject = noun (project, model, service, endpoint, auth)
 
-## Phase 3: User Story 1 - [Title] (Priority: P1) 🎯 MVP
-
-**Goal**: [Brief description of what this story delivers]
-
-**Independent Test**: [How to verify this story works on its own]
-
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
-
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
-
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
-
-### Implementation for User Story 1
-
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
-
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
-
----
-
-## Phase 4: User Story 2 - [Title] (Priority: P2)
-
-**Goal**: [Brief description of what this story delivers]
-
-**Independent Test**: [How to verify this story works on its own]
-
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
-
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
-
-### Implementation for User Story 2
-
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
-
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
-
----
-
-## Phase 5: User Story 3 - [Title] (Priority: P3)
-
-**Goal**: [Brief description of what this story delivers]
-
-**Independent Test**: [How to verify this story works on its own]
-
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
-
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
-
-### Implementation for User Story 3
-
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
-
-**Checkpoint**: All user stories should now be independently functional
-
----
-
-[Add more user story phases as needed, following the same pattern]
-
----
-
-## Phase N: Polish & Cross-Cutting Concerns
-
-**Purpose**: Improvements that affect multiple user stories
-
-- [ ] TXXX [P] Documentation updates in docs/
-- [ ] TXXX Code cleanup and refactoring
-- [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
-- [ ] TXXX Security hardening
-- [ ] TXXX Run quickstart.md validation
-
----
-
-## Dependencies & Execution Order
-
-### Phase Dependencies
-
-- **Setup (Phase 1)**: No dependencies - can start immediately
-- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3+)**: All depend on Foundational phase completion
-  - User stories can then proceed in parallel (if staffed)
-  - Or sequentially in priority order (P1 → P2 → P3)
-- **Polish (Final Phase)**: Depends on all desired user stories being complete
-
-### User Story Dependencies
-
-- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
-- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable
-
-### Within Each User Story
-
-- Tests (if included) MUST be written and FAIL before implementation
-- Models before services
-- Services before endpoints
-- Core implementation before integration
-- Story complete before moving to next priority
-
-### Parallel Opportunities
-
-- All Setup tasks marked [P] can run in parallel
-- All Foundational tasks marked [P] can run in parallel (within Phase 2)
-- Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
-- All tests for a user story marked [P] can run in parallel
-- Models within a story marked [P] can run in parallel
-- Different user stories can be worked on in parallel by different team members
-
----
-
-## Parallel Example: User Story 1
-
-```bash
-# Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
-
-# Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+Examples:
+- T-001-setup-project.md
+- T-010-create-user-model.md
+- T-020-implement-login-endpoint.md
+- T-030-integrate-auth-middleware.md
+- T-090-verify-user-registration.md
 ```
 
----
+### Task Number Ranges
 
-## Implementation Strategy
+| Phase | Range | Purpose |
+|-------|-------|---------|
+| Setup | T-001 to T-009 | Project initialization, dependencies |
+| Foundation | T-010 to T-019 | Core models, base infrastructure |
+| US1 (P1) | T-020 to T-039 | User Story 1 - MVP implementation |
+| US2 (P2) | T-040 to T-059 | User Story 2 implementation |
+| US3 (P3) | T-060 to T-079 | User Story 3 implementation |
+| Integration | T-080 to T-089 | Cross-cutting concerns |
+| Verification | T-090 to T-099 | Final verification & polish |
 
-### MVP First (User Story 1 Only)
+## Phase 3: Generate Atomic Structure
 
-1. Complete Phase 1: Setup
-2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
-3. Complete Phase 3: User Story 1
-4. **STOP and VALIDATE**: Test User Story 1 independently
-5. Deploy/demo if ready
+### Directory Creation Script
 
-### Incremental Delivery
+Execute this script to create the atomic task structure:
 
-1. Complete Setup + Foundational → Foundation ready
-2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
-3. Add User Story 2 → Test independently → Deploy/Demo
-4. Add User Story 3 → Test independently → Deploy/Demo
-5. Each story adds value without breaking previous stories
+```bash
+#!/bin/bash
+# Atomic Task Factory - Directory Creation
+# Run from repository root
 
-### Parallel Team Strategy
+FEATURE_DIR="specs/[###-feature-name]"
+TASKS_DIR="$FEATURE_DIR/tasks"
 
-With multiple developers:
+# Create tasks directory
+mkdir -p "$TASKS_DIR"
 
-1. Team completes Setup + Foundational together
-2. Once Foundational is done:
-   - Developer A: User Story 1
-   - Developer B: User Story 2
-   - Developer C: User Story 3
-3. Stories complete and integrate independently
+echo "Created: $TASKS_DIR"
+echo "Now generate individual task files..."
+```
 
----
+### Individual Task File Template
 
-## Notes
+For EACH task, create a file in `tasks/` using this structure:
 
-- [P] tasks = different files, no dependencies
-- [Story] label maps task to specific user story for traceability
-- Each user story should be independently completable and testable
-- Verify tests fail before implementing
-- Commit after each task or logical group
-- Stop at any checkpoint to validate story independently
-- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+```markdown
+# T-[XXX]-[task-name]
+
+**Status**: Pending
+**Created**: [DATE] | **Completed**: N/A
+
+## Requirement Mapping
+
+| Requirement | Description | Priority |
+|-------------|-------------|----------|
+| FR-[XXX] | [Exact text from spec.md] | P[N] |
+
+**User Story**: US-[X]: [Story title from spec.md]
+
+## Task Objective
+
+[Single sentence: what this task accomplishes]
+
+## Technical Implementation Detail
+
+### Files to Modify/Create
+
+- `[path/to/file.ext]` - [what changes]
+- `[path/to/another.ext]` - [what changes]
+
+### Dependencies
+
+- [T-XXX-dependency](./T-XXX-dependency.md) - [why needed]
+- Or: None (if no dependencies)
+
+### Implementation Steps
+
+1. [Specific action with code location]
+2. [Next action]
+3. [Final action]
+
+### Acceptance Criteria
+
+- [ ] [Testable criterion from spec.md]
+- [ ] [Another criterion]
+
+## Verification Command
+
+```bash
+[EXACT executable command - no placeholders]
+```
+
+**Expected Output**:
+```
+[What success looks like]
+```
+
+## Completion Checklist
+
+- [ ] Implementation complete
+- [ ] Acceptance criteria met
+- [ ] Verification command passes
+- [ ] Updated traceability.md
+```
+
+## Phase 4: Generate Support Files
+
+### 4.1 Generate index.md
+
+Create `index.md` in the feature directory using `templates/index-template.md`:
+
+- Fill in feature name and branch
+- Populate Quick Navigation table
+- List all requirements with status
+- Set initial phase to "Task Generation"
+- List all tasks in Task Queue
+
+### 4.2 Generate traceability.md
+
+Create `traceability.md` using `templates/traceability-template.md`:
+
+- Map every FR-XXX to its task(s)
+- Map every task to its requirement(s)
+- Initialize all statuses to "Pending"
+- Calculate coverage metrics (should be 100%)
+
+## Verification Command Requirements
+
+**Every task MUST have an executable verification command.**
+
+### Good Examples
+
+```bash
+# Run specific test
+npm test -- --grep "UserModel creates valid user"
+
+# API endpoint test
+curl -s -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com"}' | jq '.id != null'
+
+# Type checking
+npx tsc --noEmit src/models/user.ts
+
+# Lint specific file
+npm run lint -- src/services/auth.ts
+
+# Database migration check
+npm run db:migrate:status | grep "up-to-date"
+
+# Integration test
+npm run test:integration -- --filter="user-registration"
+```
+
+### Forbidden Patterns
+
+```bash
+# TOO VAGUE - no specific target
+npm test
+
+# MANUAL - not executable
+"Visually verify the UI renders correctly"
+
+# PLACEHOLDER - not complete
+[TODO: add verification]
+
+# DEPENDENT ON HUMAN - not automatable
+"Ask QA to verify"
+```
+
+## Output Validation Checklist
+
+After generating the atomic structure, validate:
+
+- [ ] `index.md` exists with complete navigation
+- [ ] `traceability.md` exists with 100% coverage
+- [ ] `tasks/` directory exists
+- [ ] Each task file has:
+  - [ ] Unique ID (T-XXX-name format)
+  - [ ] Requirement Mapping (FR-XXX reference)
+  - [ ] Technical Implementation Detail (file paths)
+  - [ ] Verification Command (executable, no placeholders)
+- [ ] No orphan tasks (every task maps to a requirement)
+- [ ] No uncovered requirements (every requirement has tasks)
+- [ ] Task dependencies form a valid DAG (no cycles)
+
+## Handoff to Implementation
+
+When task generation is complete:
+
+1. **Update index.md**: Set phase to "Implementation", populate task counts
+2. **Verify traceability.md**: Confirm 100% coverage
+3. **Ready for `/speckit.implement`**
+
+### Context Pinning Reminder
+
+Per Constitution Article IX, Directive 3:
+
+During implementation, the AI may ONLY read:
+- `index.md` (for navigation)
+- The specific `T-XXX-[name].md` file for the current task
+- `traceability.md` (to update status)
+
+**FORBIDDEN**: Reading `plan.md` during implementation phase.

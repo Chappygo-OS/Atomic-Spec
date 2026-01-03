@@ -68,6 +68,77 @@
 
 <!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
 
+### Article IX: Prime Directives (Atomic Traceability)
+
+The following directives are **NON-NEGOTIABLE** and enforce the "Atomic Traceability" model:
+
+#### Directive 1: Directory Supremacy
+
+Every feature MUST have:
+
+- An `index.md` entry point (the feature dashboard)
+- A `traceability.md` matrix (requirement-to-task mapping)
+
+**Violation**: Any feature lacking these files is considered incomplete and CANNOT proceed to implementation.
+
+#### Directive 2: Atomic Injunction
+
+The `/speckit.tasks` command is **FORBIDDEN** from creating a single `tasks.md` file.
+
+It MUST create:
+
+```
+specs/[###-feature-name]/
+├── index.md              # Feature dashboard
+├── traceability.md       # Requirement-to-task matrix
+└── tasks/                # Atomic task directory
+    ├── T-001-[name].md
+    ├── T-002-[name].md
+    └── ...
+```
+
+Each atomic task file MUST contain:
+
+1. **ID**: Unique task identifier
+2. **Requirement Mapping**: Link to FR-XXX from spec.md
+3. **Technical Implementation Detail**: Specific code actions
+4. **Verification Command**: The exact test/command to verify completion
+
+#### Directive 3: Context Pinning
+
+During the implementation phase (`/speckit.implement`):
+
+- You are **FORBIDDEN** from reading the full `plan.md`
+- You may **ONLY** read:
+  - `index.md` (for navigation and context)
+  - The specific `T-XXX-[name].md` file assigned to the current task loop
+  - `traceability.md` (to update status after completion)
+
+**Rationale**: This prevents context pollution and ensures focused, verifiable execution.
+
+#### Directive 4: Gate Compliance
+
+You MUST strictly follow the "Gate Criteria" defined in `.specify/knowledge/stations/` before transitioning between phases:
+
+| Transition        | Required Gates                                   |
+| ----------------- | ------------------------------------------------ |
+| Spec → Plan       | Stations 01, 02, 03 gates must pass              |
+| Plan → Tasks      | Stations 04, 05, 06, 10, 11 gates must pass      |
+| Tasks → Implement | All atomic tasks must have verification commands |
+
+**Violation**: Proceeding without passing gates is a Constitution violation.
+
+#### Directive 5: Knowledge Routing (The Map)
+
+If you encounter a technical decision or edge case not covered by the current Task/Plan:
+
+1. You MUST read `.specify/knowledge/stations/00-station-map.md` first.
+2. Locate the correct Station ID for your problem.
+3. Read ONLY that specific Station file.
+4. Apply the rules found there.
+
+**Rationale**: Do not guess. Do not read random files. Go to the authoritative source.
+
 ### Article X: The Assembly Line Manual
 
 The **Assembly Line Manual** (located in `.specify/knowledge/stations/`) is the authoritative procedural guide for all implementation details.

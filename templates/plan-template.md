@@ -5,6 +5,23 @@
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
+<!--
+  ============================================================================
+  CONSTITUTION ARTICLE IX COMPLIANCE: GATE COMPLIANCE (Directive 4)
+
+  Before this plan can proceed to task generation, the following Knowledge
+  Station gates MUST be verified:
+
+  - Station 04 (API Contracts): OpenAPI covers MVP, error schema standardized
+  - Station 05 (Data Architecture): Tenancy model documented, isolation plan exists
+  - Station 06 (Auth & RBAC): ADRs exist, permission matrix defined
+  - Station 10 (CI/CD): Environments spec exists, release checklist defined
+  - Station 11 (Security): Threat model MVP exists, security baseline checked
+
+  This is NON-NEGOTIABLE per the Constitution.
+  ============================================================================
+-->
+
 ## Summary
 
 [Extract from feature spec: primary requirement + technical approach from research]
@@ -12,13 +29,49 @@
 ## Technical Context
 
 <!--
-  🛑 STOP: BEFORE PLANNING THE ARCHITECTURE
-  The following Stations are CRITICAL for this section. Read them as needed:
-  - Station 04: `.specify/knowledge/stations/04-api-contracts.md` (If API involved)
-  - Station 05: `.specify/knowledge/stations/05-data-architecture.md` (If Database involved)
-  - Station 06: `.specify/knowledge/stations/06-auth-rbac.md` (If Auth involved)
-  - Station 10: `.specify/knowledge/stations/10-cicd-release.md` (For deployment/CI)
-  - Station 11: `.specify/knowledge/stations/11-security.md` (Security Baseline)
+  🛑 STOP: MANDATORY GATES - ARCHITECTURE STATIONS
+
+  BEFORE planning the architecture, you MUST read and verify gates for ALL relevant stations:
+
+  📋 STATION 04 - API Contracts (IF API involved)
+  READ: `.specify/knowledge/stations/04-api-contracts.md`
+  GATES:
+  - [ ] OpenAPI/contract covers all MVP endpoints
+  - [ ] Error schema is standardized (error.code, error.message, requestId)
+  - [ ] Tenant scoping is consistent across all endpoints
+  - [ ] Idempotency strategy defined for mutations
+
+  📋 STATION 05 - Data Architecture (IF Database involved)
+  READ: `.specify/knowledge/stations/05-data-architecture.md`
+  GATES:
+  - [ ] Tenancy model documented (Shared DB/Schema, Shared DB/Sep Schema, Sep DB)
+  - [ ] Enforcement pattern defined (server-side only, no naked queries)
+  - [ ] Baseline entities included (Tenant, User, Membership, Role, etc.)
+  - [ ] Isolation test plan exists
+
+  📋 STATION 06 - Auth & RBAC (IF Auth involved)
+  READ: `.specify/knowledge/stations/06-auth-rbac.md`
+  GATES:
+  - [ ] ADRs exist for auth decisions (Session vs JWT)
+  - [ ] Permission Matrix defined (Roles → Permissions)
+  - [ ] Membership requirement documented
+  - [ ] Billing/Limit integration into auth flow specified
+
+  📋 STATION 10 - CI/CD & Release (ALWAYS)
+  READ: `.specify/knowledge/stations/10-cicd-release.md`
+  GATES:
+  - [ ] Environments Spec defined (Local, Dev, Staging, Prod)
+  - [ ] CI Pipeline Spec defined (Lint, Tests, Security scans)
+  - [ ] Release Checklist exists (migrations, feature flags, monitoring)
+
+  📋 STATION 11 - Security Baseline (ALWAYS)
+  READ: `.specify/knowledge/stations/11-security.md`
+  GATES:
+  - [ ] Threat Model MVP defined (top threats identified)
+  - [ ] Security Baseline Checklist completed
+  - [ ] Rate limiting strategy defined for auth endpoints
+
+  If ANY gate cannot be satisfied, STOP and document what's missing.
 -->
 
 <!--
@@ -49,17 +102,30 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-<!-- See Station 05: `.specify/knowledge/stations/05-data-architecture.md` -->
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-<!-- See Station 04: `.specify/knowledge/stations/04-api-contracts.md` -->
-<!-- See Station 07: `.specify/knowledge/stations/07-billing.md` (If billing involved) -->
-<!-- See Station 09: `.specify/knowledge/stations/09-observability.md` -->
-├── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+├── spec.md              # Feature specification (/speckit.specify output)
+├── plan.md              # This file (/speckit.plan output)
+├── research.md          # Phase 0 output (/speckit.plan)
+├── data-model.md        # Phase 1 output (/speckit.plan)
+├── quickstart.md        # Phase 1 output (/speckit.plan)
+├── contracts/           # Phase 1 output (/speckit.plan)
+│
+│   🆕 ATOMIC TRACEABILITY STRUCTURE (created by /speckit.tasks):
+│
+├── index.md             # Feature dashboard - entry point
+├── traceability.md      # Requirement-to-task mapping matrix
+└── tasks/               # Atomic task directory (NOT a single tasks.md!)
+    ├── T-001-setup-project.md
+    ├── T-010-create-user-model.md
+    ├── T-020-implement-endpoint.md
+    └── ...
 ```
+
+<!--
+  Per Constitution Article IX (Atomic Injunction):
+  - The /speckit.tasks command MUST create a tasks/ directory
+  - It is FORBIDDEN to create a single tasks.md file
+  - Each task is an individual T-XXX-[name].md file
+-->
 
 ### Source Code (repository root)
 

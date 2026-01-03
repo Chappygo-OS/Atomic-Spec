@@ -1,22 +1,55 @@
 # Feature Specification: [FEATURE NAME]
 
-**Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
-**Status**: Draft  
+**Feature Branch**: `[###-feature-name]`
+**Created**: [DATE]
+**Status**: Draft
 **Input**: User description: "$ARGUMENTS"
+
+<!--
+  ============================================================================
+  CONSTITUTION ARTICLE IX COMPLIANCE: GATE COMPLIANCE (Directive 4)
+
+  Before this specification can proceed to planning, the following Knowledge
+  Station gates MUST be satisfied:
+
+  - Station 01 (Discovery): ICP defined, Wedge defined, JTBD captured
+  - Station 02 (PRD): SaaS Rules defined, Acceptance Criteria complete
+  - Station 03 (User Flows): Edge State Checklist covered
+
+  This is NON-NEGOTIABLE per the Constitution.
+  ============================================================================
+-->
 
 ## User Scenarios & Testing _(mandatory)_
 
 <!--
-  🛑 STOP: BEFORE WRITING THIS SECTION
-  1. Read the file: `.specify/knowledge/stations/01-discovery.md`
-  2. Ensure the user scenarios align with the "Wedge" and "JTBD" defined in Station 01.
+  🛑 STOP: MANDATORY GATE - STATION 01
+
+  BEFORE writing this section, you MUST:
+  1. READ: `.specify/knowledge/stations/01-discovery.md`
+  2. VERIFY these Gate Criteria are addressed:
+     - [ ] ICP (Ideal Customer Profile) is defined or assumed
+     - [ ] Anti-ICP (who NOT to target) is considered
+     - [ ] Wedge (entry point value proposition) is clear
+     - [ ] JTBD (Jobs To Be Done) are captured in user stories
+
+  If gates cannot be satisfied, STOP and document what's missing.
 -->
 
 <!--
-  🛑 STOP: BEFORE WRITING THIS SECTION
-  1. Read the file: `.specify/knowledge/stations/03-user-flows.md`
-  2. Ensure the user flows cover the "Edge State Checklist" (RBAC, Limits, Billing).
+  🛑 STOP: MANDATORY GATE - STATION 03
+
+  BEFORE writing this section, you MUST:
+  1. READ: `.specify/knowledge/stations/03-user-flows.md`
+  2. VERIFY these Gate Criteria are addressed:
+     - [ ] User flows cover the Edge State Checklist:
+           - RBAC (who can do what)
+           - Tenant boundary (multi-tenancy considerations)
+           - Limit-hit behavior (what happens at quotas)
+           - Billing state (trial/paid/expired impacts)
+           - Empty/Error/Loading states
+
+  If gates cannot be satisfied, STOP and document what's missing.
 -->
 
 <!--
@@ -90,10 +123,21 @@
 ## Requirements _(mandatory)_
 
 <!--
-  🛑 STOP: BEFORE WRITING THIS SECTION
-  1. Read the file: `.specify/knowledge/stations/02-prd-spec.md`
-  2. Ensure requirements cover "SaaS Rules" (Tenancy, RBAC, Limits).
-  3. Ensure Gate Criteria from Station 02 are met.
+  🛑 STOP: MANDATORY GATE - STATION 02
+
+  BEFORE writing this section, you MUST:
+  1. READ: `.specify/knowledge/stations/02-prd-spec.md`
+  2. VERIFY these Gate Criteria are addressed:
+     - [ ] MVP scope is explicit (Goals + Non-goals defined)
+     - [ ] Every "Must" story has testable Acceptance Criteria
+     - [ ] SaaS Rules are defined:
+           - Tenancy: Boundary definition
+           - RBAC: Roles/permissions
+           - Limits: Meters/tiers
+           - Billing impact: Trial/payment failure behavior
+     - [ ] All open questions are resolved or have owners
+
+  If gates cannot be satisfied, STOP and document what's missing.
 -->
 
 <!--

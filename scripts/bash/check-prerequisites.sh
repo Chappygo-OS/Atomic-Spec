@@ -9,8 +9,8 @@
 #
 # OPTIONS:
 #   --json              Output in JSON format
-#   --require-tasks     Require tasks.md to exist (for implementation phase)
-#   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
+#   --require-tasks     Require tasks/ directory to exist (for implementation phase)
+#   --include-tasks     Include tasks/ in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
 #   --help, -h          Show help message
 #
@@ -18,6 +18,9 @@
 #   JSON mode: {"FEATURE_DIR":"...", "AVAILABLE_DOCS":["..."]}
 #   Text mode: FEATURE_DIR:... \n AVAILABLE_DOCS: \n ✓/✗ file.md
 #   Paths only: REPO_ROOT: ... \n BRANCH: ... \n FEATURE_DIR: ... etc.
+#
+# NOTE: Per Constitution Article IX (Atomic Injunction), tasks are now stored in
+#       a tasks/ directory with individual T-XXX-[name].md files, not tasks.md
 
 set -e
 
@@ -112,11 +115,30 @@ if [[ ! -f "$IMPL_PLAN" ]]; then
     exit 1
 fi
 
-# Check for tasks.md if required
-if $REQUIRE_TASKS && [[ ! -f "$TASKS" ]]; then
-    echo "ERROR: tasks.md not found in $FEATURE_DIR" >&2
-    echo "Run /speckit.tasks first to create the task list." >&2
-    exit 1
+# Check for atomic task structure if required (Constitution Article IX compliance)
+if $REQUIRE_TASKS; then
+    # Check for tasks/ directory (Atomic Traceability Model)
+    if [[ -d "$TASKS_DIR" ]] && [[ -n "$(ls -A "$TASKS_DIR" 2>/dev/null)" ]]; then
+        # Atomic structure exists - this is the correct format
+        :
+    elif [[ -f "$TASKS" ]]; then
+        # Legacy tasks.md exists - warn about migration
+        echo "WARNING: Found legacy tasks.md file. Per Constitution Article IX," >&2
+        echo "tasks should be in tasks/ directory with individual T-XXX-[name].md files." >&2
+        echo "Consider running /speckit.tasks to migrate to atomic task structure." >&2
+    else
+        echo "ERROR: No task structure found in $FEATURE_DIR" >&2
+        echo "Run /speckit.tasks first to create atomic task files." >&2
+        exit 1
+    fi
+
+    # Also check for required Atomic Traceability files
+    if [[ ! -f "$INDEX" ]]; then
+        echo "WARNING: index.md not found. Required for Atomic Traceability Model." >&2
+    fi
+    if [[ ! -f "$TRACEABILITY" ]]; then
+        echo "WARNING: traceability.md not found. Required for Atomic Traceability Model." >&2
+    fi
 fi
 
 # Build list of available documents
@@ -133,9 +155,18 @@ fi
 
 [[ -f "$QUICKSTART" ]] && docs+=("quickstart.md")
 
-# Include tasks.md if requested and it exists
-if $INCLUDE_TASKS && [[ -f "$TASKS" ]]; then
-    docs+=("tasks.md")
+# Include atomic traceability files if they exist
+[[ -f "$INDEX" ]] && docs+=("index.md")
+[[ -f "$TRACEABILITY" ]] && docs+=("traceability.md")
+
+# Include tasks/ directory if requested and it exists (Atomic Traceability Model)
+if $INCLUDE_TASKS; then
+    if [[ -d "$TASKS_DIR" ]] && [[ -n "$(ls -A "$TASKS_DIR" 2>/dev/null)" ]]; then
+        docs+=("tasks/")
+    elif [[ -f "$TASKS" ]]; then
+        # Legacy support
+        docs+=("tasks.md")
+    fi
 fi
 
 # Output results
@@ -160,7 +191,15 @@ else
     check_dir "$CONTRACTS_DIR" "contracts/"
     check_file "$QUICKSTART" "quickstart.md"
     
+    # Check atomic traceability files
+    check_file "$INDEX" "index.md"
+    check_file "$TRACEABILITY" "traceability.md"
+
     if $INCLUDE_TASKS; then
-        check_file "$TASKS" "tasks.md"
+        check_dir "$TASKS_DIR" "tasks/"
+        # Legacy fallback
+        if [[ ! -d "$TASKS_DIR" ]]; then
+            check_file "$TASKS" "tasks.md (legacy)"
+        fi
     fi
 fi
