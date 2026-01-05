@@ -129,22 +129,28 @@ This prevents "kitchen sink" implementations and ensures focused, atomic executi
 
 ## Knowledge Stations
 
-Custom Speckit - Exact Assembly Line includes 12 Knowledge Stations in `.specify/knowledge/stations/`:
+Custom Speckit - Exact Assembly Line includes 18 Knowledge Stations in `.specify/knowledge/stations/`:
 
 | # | Station | Purpose | Gate Phase |
 |---|---------|---------|------------|
-| 01 | Discovery | ICP, Wedge, JTBD | Specify |
-| 02 | PRD Spec | MVP scope, SaaS rules | Specify |
-| 03 | User Flows | Edge states, RBAC | Specify |
-| 04 | API Contracts | OpenAPI, error schema | Plan |
-| 05 | Data Architecture | Tenancy model, isolation | Plan |
-| 06 | Auth & RBAC | Session/JWT, permissions | Plan |
-| 07 | Billing & Metering | Subscription models | Plan |
-| 08 | Metering | Usage tracking | Plan |
-| 09 | Observability | Logging, tracing | Plan |
-| 10 | CI/CD & Release | Environments, pipelines | Plan |
-| 11 | Security | Threat model, baseline | Plan |
-| 12 | Data Lifecycle | Retention, compliance | Plan |
+| 01 | Introduction | Manual overview, Assembly Line concept | Foundation |
+| 02 | Roles & Ownership | RACI matrix, Gate responsibilities | Foundation |
+| 03 | Discovery | ICP, Wedge, JTBD, Competitors | Specify |
+| 04 | PRD Spec | MVP scope, SaaS rules, Acceptance criteria | Specify |
+| 05 | User Flows | Edge states, RBAC, Information Architecture | Specify |
+| 06 | API Contracts | OpenAPI, error schema, Idempotency | Plan |
+| 07 | Data Architecture | Tenancy model, isolation, ADRs | Plan |
+| 08 | Auth & RBAC | Session/JWT, permissions, Security hardening | Plan |
+| 09 | Billing | Stripe integration, Webhooks, State machine | Plan |
+| 10 | Metering & Limits | Usage tracking, Quotas, Cost control | Plan |
+| 11 | Observability | Logging, tracing, Alerting, Runbooks | Plan |
+| 12 | CI/CD & Release | Environments, pipelines, Migrations | Plan |
+| 13 | Security | Threat model, baseline, AppSec workflow | Plan |
+| 14 | Data Lifecycle | Retention, GDPR, Backups, Deletion | Plan |
+| 15 | Performance | Latency targets, Caching, Load testing | Scale |
+| 16 | Analytics | Event tracking, Funnels, Dashboards | Scale |
+| 17 | Admin Tooling | Support panel, Playbooks, Audit logging | Scale |
+| 18 | Documentation | PRD/ADR templates, Repo structure | Scale |
 
 ---
 
