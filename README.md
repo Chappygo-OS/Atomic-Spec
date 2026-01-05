@@ -14,12 +14,13 @@
 
 This fork implements the **Atomic Traceability Model**, a governance upgrade based on the "Andre/Mable AI workflow" that enforces:
 
-1. **Constitutional Prime Directives** - Four non-negotiable rules in `memory/constitution.md` (Article IX)
+1. **Constitutional Prime Directives** - Six non-negotiable rules in `memory/constitution.md` (Article IX)
 2. **Knowledge Station Gates** - 18 governance checkpoints that MUST pass before phase transitions
 3. **Atomic Task Structure** - Individual task files instead of a single `tasks.md`
 4. **Context Pinning** - During implementation, AI can ONLY read `index.md` + current task file
+5. **Human-In-The-Loop** - Mandatory tech stack review checkpoint before design phase
 
-### The Four Prime Directives
+### The Six Prime Directives
 
 | Directive | Rule |
 |-----------|------|
@@ -27,6 +28,8 @@ This fork implements the **Atomic Traceability Model**, a governance upgrade bas
 | **Atomic Injunction** | `/speckit.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
 | **Context Pinning** | During `/speckit.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
 | **Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
+| **Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then specific station |
+| **Human-In-The-Loop** | During `/speckit.plan`, AI MUST pause after Phase 0 to present tech stack decisions for user approval before proceeding to Phase 1 |
 
 ---
 
@@ -89,14 +92,42 @@ git checkout -b 001-your-feature-name
 ### Phase Flow
 
 ```
-/speckit.specify  -->  /speckit.plan  -->  /speckit.tasks  -->  /speckit.implement
-     |                      |                    |                     |
-     v                      v                    v                     v
-  spec.md              plan.md             tasks/               Execute with
-  + Gates 03-05        + Gates 06-13       T-XXX-*.md           Context Pinning
-                                           index.md
-                                           traceability.md
+/speckit.specify  -->  /speckit.plan  ----------------------->  /speckit.tasks  -->  /speckit.implement
+     |                      |                                        |                     |
+     v                      v                                        v                     v
+  spec.md              Phase 0: Research                         tasks/               Execute with
+  + Gates 03-05             |                                    T-XXX-*.md           Context Pinning
+                            v                                    index.md
+                       Phase 0.5: HITL Checkpoint                traceability.md
+                       🛑 PAUSE for user approval
+                            |
+                            v
+                       Phase 1: Design
+                       + Gates 06-13
+                       plan.md, data-model.md
 ```
+
+### Human-In-The-Loop Checkpoint (Phase 0.5)
+
+During `/speckit.plan`, after Phase 0 (Research) completes, the AI **MUST PAUSE** and present all tech stack decisions for user approval:
+
+```
+══════════════════════════════════════════════════════════════
+🛑 TECH STACK REVIEW - Phase 0.5 Checkpoint
+══════════════════════════════════════════════════════════════
+
+| Decision          | Value             | Source   |
+|-------------------|-------------------|----------|
+| Language/Version  | Python 3.11       | Spec     |
+| Storage           | PostgreSQL        | Assumed  |
+
+⚠️ ASSUMPTIONS: Storage was assumed based on SaaS patterns.
+
+Reply "proceed", "revise: [changes]", or ask questions.
+══════════════════════════════════════════════════════════════
+```
+
+**Why this matters:** Tech stack decisions are expensive to change post-implementation. This checkpoint prevents AI from making assumptions that lead to rework.
 
 ### Gate Checkpoints
 

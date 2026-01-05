@@ -139,6 +139,38 @@ If you encounter a technical decision or edge case not covered by the current Ta
 
 **Rationale**: Do not guess. Do not read random files. Go to the authoritative source.
 
+#### Directive 6: Human-In-The-Loop Checkpoints
+
+During `/speckit.plan`, the AI MUST pause for user approval at critical decision points:
+
+**Phase 0.5 Checkpoint (Tech Stack Review)**:
+
+After Phase 0 (Research) completes and before Phase 1 (Design) begins:
+
+1. **Present all resolved technical decisions** in a table format:
+   - Decisions explicitly from spec (marked "Spec")
+   - Decisions assumed by AI (marked "Assumed")
+
+2. **Highlight assumptions** that were NOT explicit in the spec but were inferred from:
+   - Knowledge Station defaults
+   - Best practices research
+   - Domain patterns
+
+3. **PAUSE and wait for user response**:
+   - `"proceed"` → Continue to Phase 1 with current decisions
+   - `"revise: [specifics]"` → Update decisions and re-present checkpoint
+   - Questions → Answer and re-present checkpoint
+
+4. **Record approval** in plan.md with timestamp
+
+**Rationale**: Tech stack decisions are expensive to change post-implementation. Explicit user approval prevents rework and ensures alignment.
+
+**Violation**: Proceeding to Phase 1 without user confirmation is a Constitution violation.
+
+**Skip conditions** (checkpoint may be abbreviated):
+- All Technical Context fields were explicit in spec (no assumptions)
+- User passes `--no-review` flag (expert mode, assumes full responsibility)
+
 ### Article X: The Assembly Line Manual
 
 The **Assembly Line Manual** (located in `.specify/knowledge/stations/`) is the authoritative procedural guide for all implementation details.

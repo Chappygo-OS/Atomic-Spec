@@ -66,6 +66,62 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 **Output**: research.md with all NEEDS CLARIFICATION resolved
 
+### Phase 0.5: Tech Stack Review Checkpoint (HITL)
+
+**Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY.**
+
+After Phase 0 completes, you MUST pause and present decisions for user approval:
+
+1. **Present the Tech Stack Review**:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   🛑 TECH STACK REVIEW - Phase 0.5 Checkpoint
+   ══════════════════════════════════════════════════════════════
+
+   Based on your spec and research, here are the resolved technical decisions:
+
+   | Decision          | Value             | Source   |
+   |-------------------|-------------------|----------|
+   | Language/Version  | [value]           | Spec/Assumed |
+   | Primary Framework | [value]           | Spec/Assumed |
+   | Storage           | [value]           | Spec/Assumed |
+   | ORM/Data Layer    | [value]           | Spec/Assumed |
+   | Testing Framework | [value]           | Spec/Assumed |
+   | Target Platform   | [value]           | Spec/Assumed |
+
+   ⚠️ ASSUMPTIONS (not explicit in spec):
+
+   | Item              | Assumed Value     | Rationale                    |
+   |-------------------|-------------------|------------------------------|
+   | [item]            | [value]           | [why this was assumed]       |
+
+   **Your options:**
+   - Reply "proceed" to accept all decisions and continue to Phase 1
+   - Reply "revise: [specifics]" to change any decision
+   - Ask questions about any decision
+
+   ══════════════════════════════════════════════════════════════
+   ```
+
+2. **Wait for user response**:
+   - `"proceed"` → Update plan.md with approval timestamp, continue to Phase 1
+   - `"revise: [specifics]"` → Update the specified decisions, re-present checkpoint
+   - Questions → Answer, then re-present checkpoint
+   - Do NOT proceed until explicit approval received
+
+3. **Record approval** in plan.md `## Tech Stack Approval` section:
+   - Mark all decisions as approved
+   - Add approval timestamp
+   - Note any revisions made
+
+4. **Skip conditions** (if ALL are true, checkpoint may be abbreviated):
+   - Every Technical Context field was explicit in spec (Source = "Spec" for all)
+   - No assumptions were made
+   - User passed `--no-review` flag
+
+**Output**: User-approved technical decisions recorded in plan.md
+
 ### Phase 1: Design & Contracts
 
 **Prerequisites:** `research.md` complete
