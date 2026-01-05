@@ -1,6 +1,6 @@
 <div align="center">
     <img src="./media/logo_large.webp" alt="Spec Kit Logo" width="200" height="200"/>
-    <h1>Custom Speckit</h1>
+    <h1>Custom Speckit - Exact Assembly Line</h1>
     <h3><em>Atomic Traceability Model for AI-Driven Development</em></h3>
 </div>
 
@@ -10,7 +10,7 @@
 
 ---
 
-## What's Different in Custom Speckit?
+## What's Different in Custom Speckit - Exact Assembly Line?
 
 This fork implements the **Atomic Traceability Model**, a governance upgrade based on the "Andre/Mable AI workflow" that enforces:
 
@@ -32,7 +32,7 @@ This fork implements the **Atomic Traceability Model**, a governance upgrade bas
 
 ## Table of Contents
 
-- [Quick Start (Custom Speckit)](#quick-start-custom-speckit)
+- [Quick Start (Custom Speckit - Exact Assembly Line)](#quick-start-custom-speckit---exact-assembly-line)
 - [Atomic Traceability Workflow](#atomic-traceability-workflow)
 - [Knowledge Stations](#knowledge-stations)
 - [Feature Directory Structure](#feature-directory-structure)
@@ -41,11 +41,11 @@ This fork implements the **Atomic Traceability Model**, a governance upgrade bas
 
 ---
 
-## Quick Start (Custom Speckit)
+## Quick Start (Custom Speckit - Exact Assembly Line)
 
 ### Option 1: Initialize Script (Recommended)
 
-Use the initialization scripts to bootstrap a new project with Custom Speckit:
+Use the initialization scripts to bootstrap a new project with Custom Speckit - Exact Assembly Line:
 
 **PowerShell (Windows):**
 ```powershell
@@ -129,7 +129,7 @@ This prevents "kitchen sink" implementations and ensures focused, atomic executi
 
 ## Knowledge Stations
 
-Custom Speckit includes 12 Knowledge Stations in `.specify/knowledge/stations/`:
+Custom Speckit - Exact Assembly Line includes 12 Knowledge Stations in `.specify/knowledge/stations/`:
 
 | # | Station | Purpose | Gate Phase |
 |---|---------|---------|------------|
@@ -212,7 +212,7 @@ Tasks follow a numbering scheme by phase:
 
 ## Two-Tier Governance System
 
-Custom Speckit implements a two-tier governance hierarchy:
+Custom Speckit - Exact Assembly Line implements a two-tier governance hierarchy:
 
 ### Tier 1: Constitution (`memory/constitution.md`)
 - Immutable project principles
