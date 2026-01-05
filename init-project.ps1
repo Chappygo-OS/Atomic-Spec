@@ -17,21 +17,21 @@ param(
 $ErrorActionPreference = "Stop"
 $SourcePath = $PSScriptRoot
 
-Write-Host "🚀 Initializing Custom Speckit (Atomic Traceability Model)" -ForegroundColor Cyan
-Write-Host "   Source: $SourcePath" -ForegroundColor Gray
-Write-Host "   Target: $TargetPath" -ForegroundColor Gray
+Write-Host "[INIT] Initializing Custom Speckit (Atomic Traceability Model)" -ForegroundColor Cyan
+Write-Host "       Source: $SourcePath" -ForegroundColor Gray
+Write-Host "       Target: $TargetPath" -ForegroundColor Gray
 Write-Host ""
 
 # Create target directory if it doesn't exist
 if (-not (Test-Path $TargetPath)) {
-    Write-Host "📁 Creating directory: $TargetPath" -ForegroundColor Yellow
+    Write-Host "[DIR]  Creating directory: $TargetPath" -ForegroundColor Yellow
     New-Item -ItemType Directory -Path $TargetPath -Force | Out-Null
 }
 
 # Initialize git if not already a repo
 $gitDir = Join-Path $TargetPath ".git"
 if (-not (Test-Path $gitDir)) {
-    Write-Host "📦 Initializing git repository..." -ForegroundColor Yellow
+    Write-Host "[GIT]  Initializing git repository..." -ForegroundColor Yellow
     Push-Location $TargetPath
     git init
     Pop-Location
@@ -50,7 +50,7 @@ foreach ($dir in $directories) {
     $targetDirPath = Join-Path $TargetPath $dir
 
     if (Test-Path $sourceDirPath) {
-        Write-Host "📋 Copying $dir..." -ForegroundColor Green
+        Write-Host "[COPY] Copying $dir..." -ForegroundColor Green
         if (Test-Path $targetDirPath) {
             Remove-Item $targetDirPath -Recurse -Force
         }
@@ -58,38 +58,63 @@ foreach ($dir in $directories) {
     }
 }
 
-# Copy agent-specific command files based on selected AI agent
-$agentDirs = @{
-    "claude" = ".claude"
-    "gemini" = ".gemini"
-    "copilot" = ".github"
-    "cursor" = ".cursor"
-    "windsurf" = ".windsurf"
-}
+# Set up agent-specific commands based on selected AI agent
+# For Claude: Create .claude/commands/ with speckit.* prefixed commands
+# For others: Copy from existing agent directories if they exist
 
-$agentDir = $agentDirs[$AIAgent]
-$sourceAgentPath = Join-Path $SourcePath $agentDir
-$targetAgentPath = Join-Path $TargetPath $agentDir
+$sourceCommandsPath = Join-Path $SourcePath "templates\commands"
 
-if (Test-Path $sourceAgentPath) {
-    Write-Host "🤖 Copying $AIAgent agent configuration..." -ForegroundColor Green
-    if (Test-Path $targetAgentPath) {
-        Remove-Item $targetAgentPath -Recurse -Force
+if ($AIAgent -eq "claude") {
+    Write-Host "[AGENT] Setting up Claude Code commands..." -ForegroundColor Green
+    $claudeCommandsPath = Join-Path $TargetPath ".claude\commands"
+
+    # Create .claude/commands directory
+    if (-not (Test-Path $claudeCommandsPath)) {
+        New-Item -ItemType Directory -Path $claudeCommandsPath -Force | Out-Null
     }
-    Copy-Item $sourceAgentPath -Destination $targetAgentPath -Recurse
+
+    # Copy command files with speckit. prefix
+    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "checklist", "clarify", "constitution", "taskstoissues")
+    foreach ($cmd in $commandFiles) {
+        $sourceFile = Join-Path $sourceCommandsPath "$cmd.md"
+        $targetFile = Join-Path $claudeCommandsPath "speckit.$cmd.md"
+        if (Test-Path $sourceFile) {
+            Copy-Item $sourceFile -Destination $targetFile
+        }
+    }
+} else {
+    # For other agents, copy from existing agent directories if they exist
+    $agentDirs = @{
+        "gemini" = ".gemini"
+        "copilot" = ".github"
+        "cursor" = ".cursor"
+        "windsurf" = ".windsurf"
+    }
+
+    $agentDir = $agentDirs[$AIAgent]
+    $sourceAgentPath = Join-Path $SourcePath $agentDir
+    $targetAgentPath = Join-Path $TargetPath $agentDir
+
+    if (Test-Path $sourceAgentPath) {
+        Write-Host "[AGENT] Copying $AIAgent agent configuration..." -ForegroundColor Green
+        if (Test-Path $targetAgentPath) {
+            Remove-Item $targetAgentPath -Recurse -Force
+        }
+        Copy-Item $sourceAgentPath -Destination $targetAgentPath -Recurse
+    }
 }
 
 # Create specs directory
 $specsDir = Join-Path $TargetPath "specs"
 if (-not (Test-Path $specsDir)) {
-    Write-Host "📁 Creating specs directory..." -ForegroundColor Yellow
+    Write-Host "[DIR]  Creating specs directory..." -ForegroundColor Yellow
     New-Item -ItemType Directory -Path $specsDir | Out-Null
 }
 
 # Create a basic .gitignore if it doesn't exist
 $gitignorePath = Join-Path $TargetPath ".gitignore"
 if (-not (Test-Path $gitignorePath)) {
-    Write-Host "📝 Creating .gitignore..." -ForegroundColor Yellow
+    Write-Host "[FILE] Creating .gitignore..." -ForegroundColor Yellow
     @"
 # Dependencies
 node_modules/
@@ -124,16 +149,16 @@ logs/
 }
 
 Write-Host ""
-Write-Host "✅ Custom Speckit initialized successfully!" -ForegroundColor Green
+Write-Host "[OK] Custom Speckit initialized successfully!" -ForegroundColor Green
 Write-Host ""
-Write-Host "📋 Next steps:" -ForegroundColor Cyan
+Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "   1. cd `"$TargetPath`"" -ForegroundColor White
 Write-Host "   2. git checkout -b 001-your-feature-name" -ForegroundColor White
 Write-Host "   3. Run: /speckit.specify `"Your feature description`"" -ForegroundColor White
 Write-Host ""
-Write-Host "📚 Available commands:" -ForegroundColor Cyan
-Write-Host "   /speckit.specify  - Create feature specification" -ForegroundColor Gray
-Write-Host "   /speckit.plan     - Create implementation plan" -ForegroundColor Gray
-Write-Host "   /speckit.tasks    - Generate atomic task files" -ForegroundColor Gray
+Write-Host "Available commands:" -ForegroundColor Cyan
+Write-Host "   /speckit.specify   - Create feature specification" -ForegroundColor Gray
+Write-Host "   /speckit.plan      - Create implementation plan" -ForegroundColor Gray
+Write-Host "   /speckit.tasks     - Generate atomic task files" -ForegroundColor Gray
 Write-Host "   /speckit.implement - Execute with Context Pinning" -ForegroundColor Gray
 Write-Host ""

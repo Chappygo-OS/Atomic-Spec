@@ -70,20 +70,35 @@ for dir in ".specify" "templates" "memory" "scripts"; do
     fi
 done
 
-# Copy agent-specific command files
-declare -A agent_dirs=(
-    ["claude"]=".claude"
-    ["gemini"]=".gemini"
-    ["copilot"]=".github"
-    ["cursor"]=".cursor"
-    ["windsurf"]=".windsurf"
-)
+# Set up agent-specific commands based on selected AI agent
+# For Claude: Create .claude/commands/ with speckit.* prefixed commands
+# For others: Copy from existing agent directories if they exist
 
-agent_dir="${agent_dirs[$AI_AGENT]}"
-if [[ -n "$agent_dir" && -d "$SOURCE_DIR/$agent_dir" ]]; then
-    echo "🤖 Copying $AI_AGENT agent configuration..."
-    rm -rf "$TARGET_PATH/$agent_dir"
-    cp -r "$SOURCE_DIR/$agent_dir" "$TARGET_PATH/$agent_dir"
+if [[ "$AI_AGENT" == "claude" ]]; then
+    echo "🤖 Setting up Claude Code commands..."
+    mkdir -p "$TARGET_PATH/.claude/commands"
+
+    # Copy command files with speckit. prefix
+    for cmd in specify plan tasks implement analyze checklist clarify constitution taskstoissues; do
+        if [[ -f "$SOURCE_DIR/templates/commands/$cmd.md" ]]; then
+            cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/speckit.$cmd.md"
+        fi
+    done
+else
+    # For other agents, copy from existing agent directories if they exist
+    declare -A agent_dirs=(
+        ["gemini"]=".gemini"
+        ["copilot"]=".github"
+        ["cursor"]=".cursor"
+        ["windsurf"]=".windsurf"
+    )
+
+    agent_dir="${agent_dirs[$AI_AGENT]}"
+    if [[ -n "$agent_dir" && -d "$SOURCE_DIR/$agent_dir" ]]; then
+        echo "🤖 Copying $AI_AGENT agent configuration..."
+        rm -rf "$TARGET_PATH/$agent_dir"
+        cp -r "$SOURCE_DIR/$agent_dir" "$TARGET_PATH/$agent_dir"
+    fi
 fi
 
 # Create specs directory
