@@ -122,8 +122,8 @@ You MUST strictly follow the "Gate Criteria" defined in `.specify/knowledge/stat
 
 | Transition        | Required Gates                                   |
 | ----------------- | ------------------------------------------------ |
-| Spec → Plan       | Stations 01, 02, 03 gates must pass              |
-| Plan → Tasks      | Stations 04, 05, 06, 10, 11 gates must pass      |
+| Spec → Plan       | Stations 03, 04, 05 gates must pass              |
+| Plan → Tasks      | Stations 06, 07, 08, 12, 13 gates must pass      |
 | Tasks → Implement | All atomic tasks must have verification commands |
 
 **Violation**: Proceeding without passing gates is a Constitution violation.

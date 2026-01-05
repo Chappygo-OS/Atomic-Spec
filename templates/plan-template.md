@@ -12,11 +12,11 @@
   Before this plan can proceed to task generation, the following Knowledge
   Station gates MUST be verified:
 
-  - Station 04 (API Contracts): OpenAPI covers MVP, error schema standardized
-  - Station 05 (Data Architecture): Tenancy model documented, isolation plan exists
-  - Station 06 (Auth & RBAC): ADRs exist, permission matrix defined
-  - Station 10 (CI/CD): Environments spec exists, release checklist defined
-  - Station 11 (Security): Threat model MVP exists, security baseline checked
+  - Station 06 (API Contracts): OpenAPI covers MVP, error schema standardized
+  - Station 07 (Data Architecture): Tenancy model documented, isolation plan exists
+  - Station 08 (Auth & RBAC): ADRs exist, permission matrix defined
+  - Station 12 (CI/CD): Environments spec exists, release checklist defined
+  - Station 13 (Security): Threat model MVP exists, security baseline checked
 
   This is NON-NEGOTIABLE per the Constitution.
   ============================================================================
@@ -33,39 +33,39 @@
 
   BEFORE planning the architecture, you MUST read and verify gates for ALL relevant stations:
 
-  📋 STATION 04 - API Contracts (IF API involved)
-  READ: `.specify/knowledge/stations/04-api-contracts.md`
+  📋 STATION 06 - API Contracts (IF API involved)
+  READ: `.specify/knowledge/stations/06-api-contracts.md`
   GATES:
   - [ ] OpenAPI/contract covers all MVP endpoints
   - [ ] Error schema is standardized (error.code, error.message, requestId)
   - [ ] Tenant scoping is consistent across all endpoints
   - [ ] Idempotency strategy defined for mutations
 
-  📋 STATION 05 - Data Architecture (IF Database involved)
-  READ: `.specify/knowledge/stations/05-data-architecture.md`
+  📋 STATION 07 - Data Architecture (IF Database involved)
+  READ: `.specify/knowledge/stations/07-data-architecture.md`
   GATES:
   - [ ] Tenancy model documented (Shared DB/Schema, Shared DB/Sep Schema, Sep DB)
   - [ ] Enforcement pattern defined (server-side only, no naked queries)
   - [ ] Baseline entities included (Tenant, User, Membership, Role, etc.)
   - [ ] Isolation test plan exists
 
-  📋 STATION 06 - Auth & RBAC (IF Auth involved)
-  READ: `.specify/knowledge/stations/06-auth-rbac.md`
+  📋 STATION 08 - Auth & RBAC (IF Auth involved)
+  READ: `.specify/knowledge/stations/08-auth-rbac.md`
   GATES:
   - [ ] ADRs exist for auth decisions (Session vs JWT)
   - [ ] Permission Matrix defined (Roles → Permissions)
   - [ ] Membership requirement documented
   - [ ] Billing/Limit integration into auth flow specified
 
-  📋 STATION 10 - CI/CD & Release (ALWAYS)
-  READ: `.specify/knowledge/stations/10-cicd-release.md`
+  📋 STATION 12 - CI/CD & Release (ALWAYS)
+  READ: `.specify/knowledge/stations/12-cicd-release.md`
   GATES:
   - [ ] Environments Spec defined (Local, Dev, Staging, Prod)
   - [ ] CI Pipeline Spec defined (Lint, Tests, Security scans)
   - [ ] Release Checklist exists (migrations, feature flags, monitoring)
 
-  📋 STATION 11 - Security Baseline (ALWAYS)
-  READ: `.specify/knowledge/stations/11-security.md`
+  📋 STATION 13 - Security Baseline (ALWAYS)
+  READ: `.specify/knowledge/stations/13-security.md`
   GATES:
   - [ ] Threat Model MVP defined (top threats identified)
   - [ ] Security Baseline Checklist completed

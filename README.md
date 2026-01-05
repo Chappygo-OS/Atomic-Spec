@@ -15,7 +15,7 @@
 This fork implements the **Atomic Traceability Model**, a governance upgrade based on the "Andre/Mable AI workflow" that enforces:
 
 1. **Constitutional Prime Directives** - Four non-negotiable rules in `memory/constitution.md` (Article IX)
-2. **Knowledge Station Gates** - 12 governance checkpoints that MUST pass before phase transitions
+2. **Knowledge Station Gates** - 18 governance checkpoints that MUST pass before phase transitions
 3. **Atomic Task Structure** - Individual task files instead of a single `tasks.md`
 4. **Context Pinning** - During implementation, AI can ONLY read `index.md` + current task file
 
@@ -93,7 +93,7 @@ git checkout -b 001-your-feature-name
      |                      |                    |                     |
      v                      v                    v                     v
   spec.md              plan.md             tasks/               Execute with
-  + Gates 01-03        + Gates 04-11       T-XXX-*.md           Context Pinning
+  + Gates 03-05        + Gates 06-13       T-XXX-*.md           Context Pinning
                                            index.md
                                            traceability.md
 ```
@@ -104,8 +104,8 @@ Each phase requires passing specific Knowledge Station gates:
 
 | Phase | Command | Required Gates |
 |-------|---------|----------------|
-| Specification | `/speckit.specify` | Station 01 (Discovery), 02 (PRD), 03 (User Flows) |
-| Planning | `/speckit.plan` | Station 04 (API), 05 (Data), 06 (Auth), 10 (CI/CD), 11 (Security) |
+| Specification | `/speckit.specify` | Station 03 (Discovery), 04 (PRD), 05 (User Flows) |
+| Planning | `/speckit.plan` | Station 06 (API), 07 (Data), 08 (Auth), 12 (CI/CD), 13 (Security) |
 | Task Generation | `/speckit.tasks` | Validates all prior gates, creates atomic structure |
 | Implementation | `/speckit.implement` | Context Pinning enforced - reads only current task |
 

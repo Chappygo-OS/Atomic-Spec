@@ -50,11 +50,11 @@ Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list.
 **🛑 GATE CHECK - Article IX, Directive 4**:
 
 Before proceeding, verify Plan → Tasks gate criteria from Knowledge Stations:
-- Read `.specify/knowledge/stations/04-api-contracts.md` - verify OpenAPI covers MVP
-- Read `.specify/knowledge/stations/05-data-architecture.md` - verify tenancy model documented
-- Read `.specify/knowledge/stations/06-auth-rbac.md` - verify permission matrix exists
-- Read `.specify/knowledge/stations/10-cicd-release.md` - verify environments spec exists
-- Read `.specify/knowledge/stations/11-security.md` - verify threat model MVP exists
+- Read `.specify/knowledge/stations/06-api-contracts.md` - verify OpenAPI covers MVP
+- Read `.specify/knowledge/stations/07-data-architecture.md` - verify tenancy model documented
+- Read `.specify/knowledge/stations/08-auth-rbac.md` - verify permission matrix exists
+- Read `.specify/knowledge/stations/12-cicd-release.md` - verify environments spec exists
+- Read `.specify/knowledge/stations/13-security.md` - verify threat model MVP exists
 
 If any gate fails: **STOP** and report which gates need attention.
 
