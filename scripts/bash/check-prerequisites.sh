@@ -12,6 +12,8 @@
 #   --require-tasks     Require tasks/ directory to exist (for implementation phase)
 #   --include-tasks     Include tasks/ in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
+#   --check-gates       Validate Knowledge Station gate criteria (blocks on failure)
+#   --gate-context CTX  Gate context: 'tasks' or 'implement' (determines which gates to check)
 #   --help, -h          Show help message
 #
 # OUTPUTS:
@@ -29,8 +31,12 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
+CHECK_GATES=false
+GATE_CONTEXT=""
 
-for arg in "$@"; do
+i=1
+while [ $i -le $# ]; do
+    arg="${!i}"
     case "$arg" in
         --json)
             JSON_MODE=true
@@ -44,6 +50,13 @@ for arg in "$@"; do
         --paths-only)
             PATHS_ONLY=true
             ;;
+        --check-gates)
+            CHECK_GATES=true
+            ;;
+        --gate-context)
+            i=$((i + 1))
+            GATE_CONTEXT="${!i}"
+            ;;
         --help|-h)
             cat << 'EOF'
 Usage: check-prerequisites.sh [OPTIONS]
@@ -52,18 +65,23 @@ Consolidated prerequisite checking for Spec-Driven Development workflow.
 
 OPTIONS:
   --json              Output in JSON format
-  --require-tasks     Require tasks.md to exist (for implementation phase)
-  --include-tasks     Include tasks.md in AVAILABLE_DOCS list
+  --require-tasks     Require tasks/ directory to exist (for implementation phase)
+  --include-tasks     Include tasks/ in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
+  --check-gates       Validate Knowledge Station gate criteria (blocks on failure)
+  --gate-context CTX  Gate context: 'tasks' or 'implement' (which gates to check)
   --help, -h          Show this help message
 
 EXAMPLES:
   # Check task prerequisites (plan.md required)
   ./check-prerequisites.sh --json
-  
-  # Check implementation prerequisites (plan.md + tasks.md required)
+
+  # Check with gate validation (Plan → Tasks transition)
+  ./check-prerequisites.sh --json --check-gates --gate-context tasks
+
+  # Check implementation prerequisites (plan.md + tasks/ required)
   ./check-prerequisites.sh --json --require-tasks --include-tasks
-  
+
   # Get feature paths only (no validation)
   ./check-prerequisites.sh --paths-only
   
@@ -75,6 +93,7 @@ EOF
             exit 1
             ;;
     esac
+    i=$((i + 1))
 done
 
 # Source common functions
@@ -114,6 +133,137 @@ if [[ ! -f "$IMPL_PLAN" ]]; then
     echo "Run /speckit.plan first to create the implementation plan." >&2
     exit 1
 fi
+
+#==============================================================================
+# Gate Validation (Knowledge Station Prerequisites)
+#==============================================================================
+
+check_gate_file() {
+    local station_file="$1"
+    local gate_name="$2"
+    local required_pattern="$3"
+
+    if [[ ! -f "$station_file" ]]; then
+        echo "⚠ GATE SKIP: $gate_name - Station file not found" >&2
+        return 0  # Don't fail if station doesn't exist (might be optional)
+    fi
+
+    # Check if the file has been customized (not just template content)
+    if grep -q "$required_pattern" "$station_file" 2>/dev/null; then
+        echo "✓ GATE PASS: $gate_name" >&2
+        return 0
+    else
+        echo "✗ GATE FAIL: $gate_name" >&2
+        echo "  → Review: $station_file" >&2
+        return 1
+    fi
+}
+
+validate_gates() {
+    local context="$1"
+    local gate_failures=0
+    local stations_dir="$REPO_ROOT/.specify/knowledge/stations"
+
+    echo "" >&2
+    echo "════════════════════════════════════════════════════════════" >&2
+    echo "🛑 GATE VALIDATION - $context" >&2
+    echo "════════════════════════════════════════════════════════════" >&2
+
+    case "$context" in
+        tasks)
+            # Plan → Tasks gate criteria
+            # These are the gates that should be satisfied before generating tasks
+
+            # Check if spec.md exists and has requirements
+            if [[ -f "$FEATURE_SPEC" ]] && grep -qE "^## (Functional Requirements|User Stories)" "$FEATURE_SPEC" 2>/dev/null; then
+                echo "✓ GATE PASS: spec.md has requirements defined" >&2
+            else
+                echo "✗ GATE FAIL: spec.md missing or lacks requirements section" >&2
+                ((gate_failures++))
+            fi
+
+            # Check if plan.md has tech stack defined
+            if [[ -f "$IMPL_PLAN" ]] && grep -qE "^\*\*Language/Version\*\*:" "$IMPL_PLAN" 2>/dev/null; then
+                echo "✓ GATE PASS: plan.md has tech stack defined" >&2
+            else
+                echo "✗ GATE FAIL: plan.md missing tech stack (Language/Version)" >&2
+                ((gate_failures++))
+            fi
+
+            # Check Tech Stack Approval (HITL checkpoint)
+            if [[ -f "$IMPL_PLAN" ]] && grep -qE "^\*\*Approval Status\*\*: Approved" "$IMPL_PLAN" 2>/dev/null; then
+                echo "✓ GATE PASS: Tech Stack approved by user" >&2
+            else
+                echo "✗ GATE FAIL: Tech Stack not approved (HITL checkpoint)" >&2
+                echo "  → Run /speckit.plan and complete Phase 0.5 approval" >&2
+                ((gate_failures++))
+            fi
+            ;;
+
+        implement)
+            # Tasks → Implementation gate criteria
+
+            # Check for atomic task structure
+            if [[ -d "$TASKS_DIR" ]] && [[ -n "$(ls -A "$TASKS_DIR" 2>/dev/null)" ]]; then
+                echo "✓ GATE PASS: tasks/ directory exists with task files" >&2
+            else
+                echo "✗ GATE FAIL: tasks/ directory missing or empty" >&2
+                ((gate_failures++))
+            fi
+
+            # Check for index.md
+            if [[ -f "$INDEX" ]]; then
+                echo "✓ GATE PASS: index.md exists" >&2
+            else
+                echo "✗ GATE FAIL: index.md missing (required for navigation)" >&2
+                ((gate_failures++))
+            fi
+
+            # Check for traceability.md
+            if [[ -f "$TRACEABILITY" ]]; then
+                echo "✓ GATE PASS: traceability.md exists" >&2
+            else
+                echo "✗ GATE FAIL: traceability.md missing (required for coverage)" >&2
+                ((gate_failures++))
+            fi
+            ;;
+
+        *)
+            echo "WARNING: Unknown gate context '$context'. Skipping validation." >&2
+            return 0
+            ;;
+    esac
+
+    echo "════════════════════════════════════════════════════════════" >&2
+
+    if [[ $gate_failures -gt 0 ]]; then
+        echo "" >&2
+        echo "❌ BLOCKED: $gate_failures gate(s) failed. Fix issues before proceeding." >&2
+        echo "" >&2
+        return 1
+    else
+        echo "" >&2
+        echo "✅ All gates passed. Proceeding..." >&2
+        echo "" >&2
+        return 0
+    fi
+}
+
+# Run gate validation if requested
+if $CHECK_GATES; then
+    if [[ -z "$GATE_CONTEXT" ]]; then
+        echo "ERROR: --check-gates requires --gate-context (tasks|implement)" >&2
+        exit 1
+    fi
+
+    if ! validate_gates "$GATE_CONTEXT"; then
+        exit 1
+    fi
+fi
+
+#==============================================================================
+# Task Structure Validation
+#==============================================================================
 
 # Check for atomic task structure if required (Constitution Article IX compliance)
 if $REQUIRE_TASKS; then

@@ -10,8 +10,8 @@ handoffs:
     prompt: Start the implementation in phases
     send: true
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json
-  ps: scripts/powershell/check-prerequisites.ps1 -Json
+  sh: scripts/bash/check-prerequisites.sh --json --check-gates --gate-context tasks
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -CheckGates -GateContext tasks
 ---
 
 ## User Input
@@ -22,41 +22,31 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-<!--
-  ============================================================================
-  CONSTITUTION ARTICLE IX COMPLIANCE: ATOMIC TRACEABILITY MODEL
+## ⛔ MANDATORY STRUCTURAL REQUIREMENTS
 
-  This command is FORBIDDEN from creating a single tasks.md file.
+**STOP. Read this section before generating ANY output.**
 
-  Per Directive 2 (Atomic Injunction), you MUST create:
-  - tasks/ directory with individual T-XXX-[name].md files
-  - index.md (feature dashboard)
-  - traceability.md (requirement-to-task matrix)
+Per Constitution Article IX, this command has NON-NEGOTIABLE constraints:
 
-  Each atomic task file MUST contain:
-  1. ID: Unique task identifier
-  2. Requirement Mapping: Link to FR-XXX from spec.md
-  3. Technical Implementation Detail: Specific code actions
-  4. Verification Command: Exact test/command to verify completion
-  ============================================================================
--->
+| Constraint | Required | Forbidden |
+|------------|----------|-----------|
+| Task storage | `tasks/` directory with `T-XXX-[name].md` files | Single `tasks.md` file |
+| Dashboard | `index.md` in FEATURE_DIR | No navigation file |
+| Traceability | `traceability.md` mapping requirements ↔ tasks | Unmapped tasks |
+| Task content | All 4 elements (ID, Mapping, Detail, Verification) | Incomplete tasks |
+
+**If you are about to create a file called `tasks.md`, STOP. You are violating the Constitution.**
 
 ## Outline
 
 ### 1. Setup & Gate Compliance Check
 
-Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list.
+Run `{SCRIPT}` from repo root. This script will:
+1. Parse FEATURE_DIR and AVAILABLE_DOCS list
+2. **Automatically validate gate criteria** (spec.md, plan.md, HITL approval)
+3. **BLOCK execution if gates fail** - you will see error output
 
-**🛑 GATE CHECK - Article IX, Directive 4**:
-
-Before proceeding, verify Plan → Tasks gate criteria from Knowledge Stations:
-- Read `.specify/knowledge/stations/06-api-contracts.md` - verify OpenAPI covers MVP
-- Read `.specify/knowledge/stations/07-data-architecture.md` - verify tenancy model documented
-- Read `.specify/knowledge/stations/08-auth-rbac.md` - verify permission matrix exists
-- Read `.specify/knowledge/stations/12-cicd-release.md` - verify environments spec exists
-- Read `.specify/knowledge/stations/13-security.md` - verify threat model MVP exists
-
-If any gate fails: **STOP** and report which gates need attention.
+If the script outputs gate failures, report them to the user and **DO NOT PROCEED**.
 
 ### 2. Load Design Documents
 

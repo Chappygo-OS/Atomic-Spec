@@ -1,8 +1,8 @@
 ---
 description: Execute implementation by processing atomic task files one at a time with Context Pinning (Atomic Traceability Model)
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
-  ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
+  sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks --check-gates --gate-context implement
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks -CheckGates -GateContext implement
 ---
 
 ## User Input
@@ -13,38 +13,31 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-<!--
-  ============================================================================
-  CONSTITUTION ARTICLE IX COMPLIANCE: CONTEXT PINNING
+## ⛔ CONTEXT PINNING RULES
 
-  Per Directive 3 (Context Pinning), during implementation you are:
+**STOP. Read this section before reading ANY files.**
 
-  ALLOWED to read:
-  - index.md (for navigation and context)
-  - The specific T-XXX-[name].md file for the CURRENT task only
-  - traceability.md (to update status after completion)
+Per Constitution Article IX, Directive 3, during implementation you are:
 
-  FORBIDDEN from reading:
-  - plan.md (full technical plan)
-  - spec.md (full specification)
-  - Other task files not currently being executed
+| Action | Allowed | Forbidden |
+|--------|---------|-----------|
+| Read for navigation | `index.md` | N/A |
+| Read for current task | `T-XXX-[name].md` (ONE file only) | Other task files |
+| Update after completion | `traceability.md` | N/A |
+| Read full specs | ❌ NEVER | `plan.md`, `spec.md` |
 
-  This prevents context pollution and ensures focused, verifiable execution.
-  ============================================================================
--->
+**If you are about to read plan.md or spec.md, STOP. You are violating Context Pinning.**
 
 ## Outline
 
 ### 1. Setup & Structure Verification
 
-Run `{SCRIPT}` from repo root and parse FEATURE_DIR.
+Run `{SCRIPT}` from repo root. This script will:
+1. Parse FEATURE_DIR and available documents
+2. **Automatically validate gate criteria** (tasks/, index.md, traceability.md)
+3. **BLOCK execution if gates fail** - you will see error output
 
-**Verify Atomic Traceability structure exists**:
-- [ ] `FEATURE_DIR/index.md` exists
-- [ ] `FEATURE_DIR/traceability.md` exists
-- [ ] `FEATURE_DIR/tasks/` directory exists with T-XXX-*.md files
-
-If structure is missing: **STOP** and instruct user to run `/speckit.tasks` first.
+If the script outputs gate failures, report them to the user and **DO NOT PROCEED**.
 
 ### 2. Check Checklists Status
 
