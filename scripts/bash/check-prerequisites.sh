@@ -198,6 +198,15 @@ validate_gates() {
                 echo "  → Run /speckit.plan and complete Phase 0.5 approval" >&2
                 ((gate_failures++))
             fi
+
+            # Check Tech Stack Validation (Phase 0.6/0.7)
+            if [[ -f "$IMPL_PLAN" ]] && grep -qE "^\*\*Validation Status\*\*: (PASS|PASS_WITH_WARNINGS|PASS_WITH_OVERRIDES)" "$IMPL_PLAN" 2>/dev/null; then
+                echo "✓ GATE PASS: Tech Stack validation completed" >&2
+            else
+                echo "✗ GATE FAIL: Tech Stack validation not completed" >&2
+                echo "  → Run /speckit.plan and complete Phase 0.6/0.7 validation" >&2
+                ((gate_failures++))
+            fi
             ;;
 
         implement)

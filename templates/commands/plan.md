@@ -11,6 +11,9 @@ handoffs:
 scripts:
   sh: scripts/bash/setup-plan.sh --json
   ps: scripts/powershell/setup-plan.ps1 -Json
+validation_scripts:
+  sh: scripts/bash/validate-tech-stack.sh --json
+  ps: scripts/powershell/validate-tech-stack.ps1 -Json
 agent_scripts:
   sh: scripts/bash/update-agent-context.sh __AGENT__
   ps: scripts/powershell/update-agent-context.ps1 -AgentType __AGENT__
@@ -122,9 +125,95 @@ After Phase 0 completes, you MUST pause and present decisions for user approval:
 
 **Output**: User-approved technical decisions recorded in plan.md
 
+### Phase 0.6: Tech Stack Validation
+
+**Per Constitution Article IX, Directive 6 - This validation is MANDATORY after HITL #1.**
+
+After the user approves tech stack CHOICES (Phase 0.5), run compatibility validation:
+
+1. **Run validation script**:
+
+   Run `{VALIDATION_SCRIPT}` to check:
+   - Package freshness (last publish date)
+   - Deprecation notices
+   - Peer dependency conflicts
+   - Version compatibility
+   - Known issues
+
+2. **Parse validation results**:
+
+   The script returns JSON with status and findings:
+   ```json
+   {
+     "status": "PASS | PASS_WITH_WARNINGS | FAIL",
+     "packages": [...],
+     "warnings": [...]
+   }
+   ```
+
+3. **Update plan.md** `## Tech Stack Validation` section with results.
+
+**Output**: Validation results populated in plan.md
+
+### Phase 0.7: Validation Review Checkpoint (HITL #2)
+
+**Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if warnings exist.**
+
+If validation found warnings or issues, present them for user review:
+
+1. **Present the Validation Review**:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   🔍 TECH STACK VALIDATION - Phase 0.7 Checkpoint
+   ══════════════════════════════════════════════════════════════
+
+   Validation Status: [PASS_WITH_WARNINGS]
+
+   | Package       | Proposed | Validated | Status | Notes              |
+   |---------------|----------|-----------|--------|--------------------|
+   | [package]     | latest   | 5.7.1     | WARN   | [issue found]      |
+
+   ⚠️ WARNINGS REQUIRING DECISION:
+
+   | Package       | Issue                        | Recommendation        |
+   |---------------|------------------------------|----------------------|
+   | [package]     | [description of issue]       | [what to do]         |
+
+   **Your options:**
+   - Reply "accept" to proceed with current versions (warnings documented)
+   - Reply "change: [package] to [alternative]" to use a different package
+   - Reply "override: [package] reason: [your reason]" to accept risk with documented reason
+   - Ask questions about any warning
+
+   ══════════════════════════════════════════════════════════════
+   ```
+
+2. **Handle user response**:
+   - `"accept"` → Document as PASS_WITH_WARNINGS, continue
+   - `"change: X to Y"` → Update tech stack, re-run validation (return to 0.6)
+   - `"override: X reason: R"` → Document override with user's reason, continue
+   - Questions → Answer, then re-present checkpoint
+
+3. **Record in plan.md** `## Tech Stack Validation` section:
+   - Update Validation Status
+   - Add any user overrides with their reasons
+   - Add validation approval timestamp
+
+4. **Loop handling**:
+   - If user changes packages, re-run Phase 0.6 validation
+   - Continue until user accepts or overrides all warnings
+   - There is no cap on iterations - user must reach agreement
+
+5. **Skip conditions** (validation review may be skipped if):
+   - Validation status is PASS (no warnings)
+   - User passed `--skip-validation` flag (not recommended)
+
+**Output**: User-reviewed validation with documented decisions
+
 ### Phase 1: Design & Contracts
 
-**Prerequisites:** `research.md` complete
+**Prerequisites:** `research.md` complete, Tech Stack Validation complete
 
 1. **Extract entities from feature spec** → `data-model.md`:
    - Entity name, fields, relationships

@@ -122,6 +122,57 @@
 **Approved At**: [timestamp]
 **Revisions**: [none / list any changes made during review]
 
+## Tech Stack Validation
+
+<!--
+  CONSTITUTION ARTICLE IX, DIRECTIVE 6: Human-In-The-Loop Checkpoints
+
+  This section is filled during Phase 0.6 (Compatibility Validation).
+  After the user approves tech stack CHOICES (Phase 0.5), the system validates:
+  - Package freshness (last publish date)
+  - Deprecation notices
+  - Peer dependency conflicts
+  - Version compatibility
+  - Security advisories
+
+  The user then reviews findings in Phase 0.7 and either:
+  - Accepts recommendations
+  - Provides alternatives
+  - Overrides with documented reason
+
+  DO NOT proceed to Phase 1 until validation is complete.
+-->
+
+**Validation Date**: [timestamp]
+**Validation Status**: [NOT_RUN | PASS | PASS_WITH_WARNINGS | PASS_WITH_OVERRIDES | FAIL]
+
+### Validation Results
+
+| Package | Proposed | Validated | Status | Notes |
+|---------|----------|-----------|--------|-------|
+| [package] | [version] | [resolved] | [PASS/WARN/FAIL] | [notes] |
+
+### Warnings
+
+| Package | Issue | Recommendation |
+|---------|-------|----------------|
+| [package] | [issue found] | [what to do] |
+
+### User Overrides
+
+<!--
+  Document any warnings the user chose to accept despite recommendations.
+  This creates an audit trail for future debugging.
+-->
+
+| Package | Issue | User Decision | Reason |
+|---------|-------|---------------|--------|
+| [package] | [issue] | [Accept/Change to X] | [user's reason] |
+
+**Validation Approval**: Pending
+**Validated By**: [awaiting user confirmation]
+**Validated At**: [timestamp]
+
 ## Constitution Check
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._

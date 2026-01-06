@@ -158,6 +158,16 @@ function Test-Gates {
                 Write-Host "  → Run /speckit.plan and complete Phase 0.5 approval"
                 $gateFailures++
             }
+
+            # Check Tech Stack Validation (Phase 0.6/0.7)
+            if ((Test-Path $Paths.IMPL_PLAN) -and
+                (Select-String -Path $Paths.IMPL_PLAN -Pattern "^\*\*Validation Status\*\*: (PASS|PASS_WITH_WARNINGS|PASS_WITH_OVERRIDES)" -Quiet)) {
+                Write-Host "✓ GATE PASS: Tech Stack validation completed"
+            } else {
+                Write-Host "✗ GATE FAIL: Tech Stack validation not completed"
+                Write-Host "  → Run /speckit.plan and complete Phase 0.6/0.7 validation"
+                $gateFailures++
+            }
         }
 
         'implement' {
