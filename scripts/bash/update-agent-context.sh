@@ -76,8 +76,8 @@ SHAI_FILE="$REPO_ROOT/SHAI.md"
 Q_FILE="$REPO_ROOT/AGENTS.md"
 BOB_FILE="$REPO_ROOT/AGENTS.md"
 
-# Template file
-TEMPLATE_FILE="$REPO_ROOT/.specify/templates/agent-file-template.md"
+# Resolve template using fail-safe function (checks templates/ first, then .specify/templates/)
+TEMPLATE_FILE=$(resolve_template "agent-file-template.md")
 
 # Global variables for parsed plan data
 NEW_LANG=""
@@ -143,8 +143,8 @@ validate_environment() {
     fi
     
     # Check if template exists (needed for new files)
-    if [[ ! -f "$TEMPLATE_FILE" ]]; then
-        log_warning "Template file not found at $TEMPLATE_FILE"
+    if [[ -z "$TEMPLATE_FILE" ]]; then
+        log_warning "Template 'agent-file-template.md' not found at templates/ or .specify/templates/"
         log_warning "Creating new agent files will fail"
     fi
 }

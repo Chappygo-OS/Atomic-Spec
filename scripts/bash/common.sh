@@ -154,6 +154,83 @@ CONTRACTS_DIR='$feature_dir/contracts'
 EOF
 }
 
+#==============================================================================
+# Template Resolution Functions
+#==============================================================================
+
+resolve_template() {
+    # Resolves template path, checking primary then legacy locations.
+    # Returns empty string if neither exists.
+    local template_name="$1"
+    local repo_root
+    repo_root=$(get_repo_root)
+
+    local primary_path="$repo_root/templates/$template_name"
+    local legacy_path="$repo_root/.specify/templates/$template_name"
+
+    if [[ -f "$primary_path" ]]; then
+        echo "$primary_path"
+    elif [[ -f "$legacy_path" ]]; then
+        echo "$legacy_path"
+    else
+        echo ""
+    fi
+}
+
+copy_template_with_guard() {
+    # Safely copies a template to target, with fail-safe guards.
+    #
+    # BEHAVIOR:
+    # - NEVER overwrites a file that has content with empty content
+    # - If template found and target empty/missing: copies template
+    # - If template found and target has content: warns, keeps existing
+    # - If template missing and target has content: warns, keeps existing
+    # - If template missing and target empty/missing: ERROR, returns 1
+    #
+    # Args:
+    #   $1 - template_name (e.g., "plan-template.md")
+    #   $2 - target_path (full path to target file)
+    #   $3 - context (for error messages, e.g., "setup-plan")
+    #
+    # Returns: 0 on success (including skip), 1 on failure
+
+    local template_name="$1"
+    local target_path="$2"
+    local context="$3"
+
+    local template_path
+    template_path=$(resolve_template "$template_name")
+
+    local target_has_content=false
+    if [[ -f "$target_path" && -s "$target_path" ]]; then
+        target_has_content=true
+    fi
+
+    if [[ -n "$template_path" ]]; then
+        if $target_has_content; then
+            echo "WARNING: [$context] Target already has content at $target_path. Skipping template copy." >&2
+            return 0  # Success - preserved existing
+        fi
+        cp "$template_path" "$target_path"
+        echo "[$context] Copied template to $target_path"
+        return 0
+    else
+        # Template not found
+        if $target_has_content; then
+            echo "WARNING: [$context] Template '$template_name' not found, but target has content. Keeping existing file." >&2
+            return 0  # Success - preserved existing
+        else
+            echo "ERROR: [$context] Template '$template_name' not found at templates/ or .specify/templates/" >&2
+            echo "ERROR: [$context] Cannot create $target_path without template. Aborting." >&2
+            return 1  # Failure - would create empty file
+        fi
+    fi
+}
+
+#==============================================================================
+# File/Directory Check Functions
+#==============================================================================
+
 check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 

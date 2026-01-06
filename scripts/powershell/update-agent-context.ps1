@@ -61,7 +61,8 @@ $SHAI_FILE     = Join-Path $REPO_ROOT 'SHAI.md'
 $Q_FILE        = Join-Path $REPO_ROOT 'AGENTS.md'
 $BOB_FILE      = Join-Path $REPO_ROOT 'AGENTS.md'
 
-$TEMPLATE_FILE = Join-Path $REPO_ROOT '.specify/templates/agent-file-template.md'
+# Resolve template using fail-safe function (checks templates/ first, then .specify/templates/)
+$TEMPLATE_FILE = Resolve-Template "agent-file-template.md"
 
 # Parsed plan data placeholders
 $script:NEW_LANG = ''
@@ -113,9 +114,9 @@ function Validate-Environment {
         if (-not $HAS_GIT) { Write-Info 'Use: $env:SPECIFY_FEATURE=your-feature-name or create a new feature first' }
         exit 1
     }
-    if (-not (Test-Path $TEMPLATE_FILE)) {
-        Write-Err "Template file not found at $TEMPLATE_FILE"
-        Write-Info 'Run specify init to scaffold .specify/templates, or add agent-file-template.md there.'
+    if (-not $TEMPLATE_FILE) {
+        Write-Err "Template 'agent-file-template.md' not found at templates/ or .specify/templates/"
+        Write-Info 'Run specify init to scaffold templates, or add agent-file-template.md there.'
         exit 1
     }
 }

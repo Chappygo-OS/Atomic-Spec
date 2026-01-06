@@ -254,12 +254,12 @@ if ($hasGit) {
 $featureDir = Join-Path $specsDir $branchName
 New-Item -ItemType Directory -Path $featureDir -Force | Out-Null
 
-$template = Join-Path $repoRoot '.specify/templates/spec-template.md'
+# Load common functions for template resolution
+. "$PSScriptRoot/common.ps1"
+
 $specFile = Join-Path $featureDir 'spec.md'
-if (Test-Path $template) { 
-    Copy-Item $template $specFile -Force 
-} else { 
-    New-Item -ItemType File -Path $specFile | Out-Null 
+if (-not (Copy-TemplateWithGuard -TemplateName "spec-template.md" -TargetPath $specFile -Context "create-feature")) {
+    exit 1
 }
 
 # Set the SPECIFY_FEATURE environment variable for the current session

@@ -116,6 +116,96 @@ function Get-FeaturePathsEnv {
     }
 }
 
+#==============================================================================
+# Template Resolution Functions
+#==============================================================================
+
+function Resolve-Template {
+    <#
+    .SYNOPSIS
+    Resolves template path, checking primary then legacy locations.
+
+    .DESCRIPTION
+    Checks templates/<name> first, falls back to .specify/templates/<name>.
+    Returns $null if neither exists.
+    #>
+    param([string]$TemplateName)
+
+    $repoRoot = Get-RepoRoot
+    $primaryPath = Join-Path $repoRoot "templates/$TemplateName"
+    $legacyPath = Join-Path $repoRoot ".specify/templates/$TemplateName"
+
+    if (Test-Path $primaryPath) { return $primaryPath }
+    if (Test-Path $legacyPath) { return $legacyPath }
+    return $null
+}
+
+function Copy-TemplateWithGuard {
+    <#
+    .SYNOPSIS
+    Safely copies a template to target, with fail-safe guards.
+
+    .DESCRIPTION
+    - NEVER overwrites a file that has content with empty content
+    - If template found and target empty/missing: copies template
+    - If template found and target has content: warns, keeps existing
+    - If template missing and target has content: warns, keeps existing
+    - If template missing and target empty/missing: ERROR, returns false
+
+    .PARAMETER TemplateName
+    Name of template file (e.g., "plan-template.md")
+
+    .PARAMETER TargetPath
+    Full path to target file
+
+    .PARAMETER Context
+    Context string for error messages (e.g., "setup-plan")
+
+    .OUTPUTS
+    $true on success (including skip), $false on failure
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$TemplateName,
+
+        [Parameter(Mandatory=$true)]
+        [string]$TargetPath,
+
+        [Parameter(Mandatory=$true)]
+        [string]$Context
+    )
+
+    $templatePath = Resolve-Template $TemplateName
+    $targetExists = Test-Path $TargetPath
+    $targetHasContent = $targetExists -and ((Get-Item $TargetPath).Length -gt 0)
+
+    if ($templatePath) {
+        if ($targetHasContent) {
+            Write-Warning "[$Context] Target already has content at $TargetPath. Skipping template copy."
+            return $true  # Success - preserved existing
+        }
+        Copy-Item $templatePath $TargetPath -Force
+        Write-Output "[$Context] Copied template to $TargetPath"
+        return $true
+    }
+    else {
+        # Template not found
+        if ($targetHasContent) {
+            Write-Warning "[$Context] Template '$TemplateName' not found, but target has content. Keeping existing file."
+            return $true  # Success - preserved existing
+        }
+        else {
+            Write-Error "[$Context] Template '$TemplateName' not found at templates/ or .specify/templates/"
+            Write-Error "[$Context] Cannot create $TargetPath without template. Aborting."
+            return $false  # Failure - would create empty file
+        }
+    }
+}
+
+#==============================================================================
+# File/Directory Check Functions
+#==============================================================================
+
 function Test-FileExists {
     param([string]$Path, [string]$Description)
     if (Test-Path -Path $Path -PathType Leaf) {
