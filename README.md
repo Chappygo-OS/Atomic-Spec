@@ -92,20 +92,44 @@ git checkout -b 001-your-feature-name
 ### Phase Flow
 
 ```
-/speckit.specify  -->  /speckit.plan  ----------------------->  /speckit.tasks  -->  /speckit.implement
-     |                      |                                        |                     |
-     v                      v                                        v                     v
-  spec.md              Phase 0: Research                         tasks/               Execute with
-  + Gates 03-05             |                                    T-XXX-*.md           Context Pinning
-                            v                                    index.md
-                       Phase 0.5: HITL Checkpoint                traceability.md
-                       🛑 PAUSE for user approval
-                            |
-                            v
-                       Phase 1: Design
-                       + Gates 06-13
-                       plan.md, data-model.md
+/speckit.specify  -->  /speckit.AnalyzeCompetitors (optional)  -->  /speckit.plan  -->  /speckit.tasks  -->  /speckit.implement
+     |                           |                                       |                    |                     |
+     v                           v                                       v                    v                     v
+  spec.md                  competitive-analysis/                   Phase 0: Research      tasks/               Execute with
+  + Gates 03-05            summary.md + competitors/               Phase 0.5: HITL #1     T-XXX-*.md           Context Pinning
+                           🛑 User review                          Phase 0.6: Validate    index.md
+                           (accept/revise/reject)                  Phase 0.7: HITL #2     traceability.md
+                                                                   Phase 1: Design
+                                                                   + Gates 06-13
 ```
+
+### Competitive Analysis (Optional)
+
+The `/speckit.AnalyzeCompetitors` command is **optional** but recommended for customer-facing products. It follows Station 03 (Discovery) procedures:
+
+1. **User Research Check** - Asks if you have existing competitive research to share
+2. **Search Frame** - Defines primary, adjacent, and substitute categories
+3. **Competitor Benchmarking** - Analyzes 5-15 competitors on positioning, pricing, workflows, integrations, and weak points
+4. **Pain Mining** - Extracts user complaints from reviews, forums, and support docs
+5. **Synthesis** - Produces wedge candidates and recommends a differentiation strategy
+
+**Output Structure:**
+```
+specs/[feature]/competitive-analysis/
+├── summary.md              # Main reference for downstream commands
+├── user-research/          # Your existing research (if provided)
+└── competitors/
+    ├── competitor-1.md
+    ├── competitor-2.md
+    └── ...
+```
+
+**HITL Review:** After analysis, you review the summary and can:
+- **Accept** - Keep for use in `/speckit.plan`
+- **Revise** - Request changes
+- **Reject** - Delete entirely (downstream commands proceed without competitive context)
+
+**Why "Reject" Deletes Everything:** If you don't want competitive analysis influencing decisions, the folder is deleted. This signals to `/speckit.plan` that no competitive context exists, so it makes decisions based on general knowledge only. This is intentional - no analysis means no competitive influence.
 
 ### Human-In-The-Loop Checkpoint (Phase 0.5)
 
@@ -192,7 +216,19 @@ After running the full workflow, your feature directory looks like:
 ```
 specs/001-feature-name/
 ├── spec.md              # Feature specification (/speckit.specify)
-├── plan.md              # Implementation plan (/speckit.plan)
+│
+│   COMPETITIVE ANALYSIS (optional, /speckit.AnalyzeCompetitors):
+│
+├── competitive-analysis/
+│   ├── summary.md       # Main reference doc (patterns, pains, wedge)
+│   ├── user-research/   # User's custom materials (if provided)
+│   └── competitors/     # Individual competitor analyses
+│       ├── competitor-1.md
+│       └── ...
+│
+│   IMPLEMENTATION PLANNING (/speckit.plan):
+│
+├── plan.md              # Implementation plan
 ├── research.md          # Technical research
 ├── data-model.md        # Database schema
 ├── quickstart.md        # Dev setup guide
@@ -231,6 +267,7 @@ Tasks follow a numbering scheme by phase:
 | Command | Description |
 |---------|-------------|
 | `/speckit.specify` | Create feature specification with Knowledge Station gates |
+| `/speckit.AnalyzeCompetitors` | **Optional** - Analyze competitors following Station 03 discovery procedures |
 | `/speckit.plan` | Create implementation plan with architecture gates |
 | `/speckit.tasks` | Generate atomic task files (index.md, traceability.md, tasks/) |
 | `/speckit.implement` | Execute tasks with Context Pinning |
