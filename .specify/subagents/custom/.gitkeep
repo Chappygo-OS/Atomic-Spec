@@ -1,0 +1,9 @@
+# Custom Subagents Directory
+
+Place your project-specific subagent prompts here.
+Follow the template in ../_template.md
+
+Examples:
+- stripe-integration.md - For Stripe billing integration
+- aws-deployment.md - For AWS-specific deployment patterns
+- custom-auth.md - For project-specific authentication requirements

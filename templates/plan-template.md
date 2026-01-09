@@ -5,6 +5,28 @@
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
+## Planning Configuration
+
+<!--
+  This section is filled during the Initial Configuration phase of /speckit.plan.
+  The AI interviews the user using AskUserQuestion to gather preferences.
+-->
+
+**Configured At**: [timestamp]
+
+| Setting | Value |
+|---------|-------|
+| Subagents | [Enabled/Disabled] |
+| Available Subagents | [list or "None"] |
+| Competitive Analysis | [Yes/No/Pending] |
+| Review Depth | [Full/Quick/Auto] |
+
+**Subagent Details** (if enabled):
+- [ ] api-contracts.md - API design, OpenAPI
+- [ ] data-architecture.md - Database, tenancy
+- [ ] auth-rbac.md - Authentication, permissions
+- [ ] [custom subagents...]
+
 <!--
   ============================================================================
   CONSTITUTION ARTICLE IX COMPLIANCE: GATE COMPLIANCE (Directive 4)
@@ -121,6 +143,47 @@
 **Approved By**: [awaiting user confirmation]
 **Approved At**: [timestamp]
 **Revisions**: [none / list any changes made during review]
+
+## Coding Standards
+
+<!--
+  This section is filled during Phase 0.5 (Tech Stack Review Checkpoint).
+  The user selects coding conventions via AskUserQuestion.
+  These conventions MUST be followed in all task files and implementation.
+-->
+
+### Naming Conventions
+
+| Context | Convention | Example |
+|---------|------------|---------|
+| Variables | [camelCase/snake_case] | `userName` / `user_name` |
+| Functions | [camelCase/snake_case] | `getUserById()` / `get_user_by_id()` |
+| Classes | PascalCase | `UserService` |
+| Constants | SCREAMING_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Files (components) | [PascalCase/kebab-case] | `UserProfile.tsx` / `user-profile.tsx` |
+| Files (utilities) | kebab-case | `date-utils.ts` |
+| Database tables | snake_case | `user_profiles` |
+| Database columns | snake_case | `created_at` |
+| API endpoints | kebab-case | `/api/user-profiles` |
+| CSS classes | kebab-case | `user-profile-card` |
+| Environment vars | SCREAMING_SNAKE_CASE | `DATABASE_URL` |
+
+### Tooling
+
+| Tool | Configuration | Command |
+|------|---------------|---------|
+| Linter | [config file path] | `[lint command]` |
+| Formatter | [config file path] | `[format command]` |
+| Type Checker | [config file path] | `[type check command]` |
+
+### Agreed Standards
+
+- **Language Style Guide**: [link or name, e.g., "Airbnb JavaScript Style Guide"]
+- **Pre-commit Hooks**: [Yes/No]
+- **Enforced in CI**: [Yes/No]
+
+**Standards Approved By**: [user]
+**Standards Approved At**: [timestamp]
 
 ## Tech Stack Validation
 
