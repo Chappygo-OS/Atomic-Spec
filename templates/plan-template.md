@@ -236,6 +236,84 @@
 **Validated By**: [awaiting user confirmation]
 **Validated At**: [timestamp]
 
+## Frontend/UI Specifications
+
+<!--
+  CONSTITUTION ARTICLE IX, DIRECTIVE 6: Human-In-The-Loop Checkpoints
+
+  This section is filled during Phase 0.8 (Frontend/UI Specifications Checkpoint).
+  ONLY applies if the feature involves frontend/UI work.
+
+  The AI interviews the user using AskUserQuestion to gather UI preferences.
+  All UI implementation MUST follow these specifications.
+
+  Skip this section if:
+  - Feature is backend-only (API, CLI, worker)
+  - No frontend framework in tech stack
+-->
+
+**UI Specifications Status**: [N/A - Backend Only | Pending | Approved]
+
+### Core UI Stack
+
+| Setting          | Value                          | Notes                |
+|------------------|--------------------------------|----------------------|
+| UI Library       | [e.g., Tailwind + Headless UI] | [why chosen]         |
+| Design System    | [Existing tokens/Minimal/None] | [token source]       |
+| State Management | [Context/Zustand/Redux/TanStack] | [scope notes]      |
+| Form Handling    | [RHF + Zod/Formik/Native]      | [validation approach]|
+
+### UI Features
+
+| Feature              | Enabled | Implementation Notes            |
+|----------------------|---------|---------------------------------|
+| Dark Mode            | [ ]     | [theme provider, storage]       |
+| Responsive/Mobile    | [ ]     | [breakpoints strategy]          |
+| Accessibility (WCAG) | [ ]     | [compliance level, testing]     |
+| Animations           | [ ]     | [library, motion guidelines]    |
+
+### Design Tokens
+
+<!--
+  If using existing design tokens, document the source and format.
+-->
+
+| Token Category | Source         | Format     | Location          |
+|----------------|----------------|------------|-------------------|
+| Colors         | [Figma/Manual] | [CSS/JSON] | [path to tokens]  |
+| Typography     | [Figma/Manual] | [CSS/JSON] | [path to tokens]  |
+| Spacing        | [Figma/Manual] | [CSS/JSON] | [path to tokens]  |
+| Breakpoints    | [Figma/Manual] | [CSS/JSON] | [path to tokens]  |
+
+### Component Standards
+
+<!--
+  Rules that ALL components must follow. Enforced during code review.
+-->
+
+| Standard              | Rule                                         |
+|-----------------------|----------------------------------------------|
+| Component naming      | [PascalCase/kebab-case]                      |
+| File structure        | [component per file / feature folders]       |
+| Props interface       | [TypeScript interface / PropTypes]           |
+| Default exports       | [Yes/No - named exports preferred]           |
+| Styling approach      | [CSS modules / Tailwind / styled-components] |
+| Test file location    | [alongside / __tests__ folder]               |
+
+### Additional UI Requirements
+
+<!--
+  Any custom specifications provided by the user during Phase 0.8.
+-->
+
+[List any additional UI rules, constraints, or preferences specified by user]
+
+### UI Specifications Approval
+
+**Approved By**: [awaiting user confirmation]
+**Approved At**: [timestamp]
+**Revisions**: [none / list changes made during review]
+
 ## Constitution Check
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._

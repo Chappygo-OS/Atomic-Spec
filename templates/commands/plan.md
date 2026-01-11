@@ -321,6 +321,192 @@ If validation found warnings or issues, use AskUserQuestion for structured decis
 
 **Output**: User-reviewed validation with documented decisions
 
+### Phase 0.8: Frontend/UI Specifications Checkpoint (HITL #3)
+
+**Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if feature has UI.**
+
+After tech stack validation, if the feature involves frontend/UI, use AskUserQuestion to gather UI specifications:
+
+1. **Check if UI is involved**:
+
+   Skip this phase if:
+   - Feature is backend-only (API, CLI, worker)
+   - No frontend framework in tech stack
+   - User explicitly marked "No UI" in spec
+
+2. **Present UI context** (as text):
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   🎨 FRONTEND/UI SPECIFICATIONS - Phase 0.8 Checkpoint
+   ══════════════════════════════════════════════════════════════
+
+   Your tech stack includes frontend work. Let's define UI standards
+   to ensure consistent implementation across all components.
+
+   Detected frontend: [React/Vue/Angular/Svelte/Other]
+   ══════════════════════════════════════════════════════════════
+   ```
+
+3. **Use AskUserQuestion for UI framework choices**:
+
+   ```
+   Question 1: "Which UI component library/framework?"
+   Header: "UI Library"
+   Options:
+     - Label: "Tailwind CSS + Headless UI (Recommended)"
+       Description: "Utility-first CSS with accessible headless components"
+     - Label: "Material UI / MUI"
+       Description: "Google's Material Design components for React"
+     - Label: "Shadcn/ui"
+       Description: "Re-usable components built with Radix and Tailwind"
+     - Label: "Chakra UI"
+       Description: "Simple, modular and accessible component library"
+
+   Question 2: "Design system approach?"
+   Header: "Design System"
+   Options:
+     - Label: "Use existing design tokens (Recommended)"
+       Description: "I have design tokens/Figma variables to import"
+     - Label: "Create minimal tokens"
+       Description: "Define basic colors, spacing, typography from scratch"
+     - Label: "No design system"
+       Description: "Use library defaults, customize as needed"
+
+   Question 3: "State management approach?"
+   Header: "State Mgmt"
+   Options:
+     - Label: "React Context + hooks (Recommended for MVP)"
+       Description: "Built-in React state, good for small-medium apps"
+     - Label: "Zustand"
+       Description: "Lightweight, minimal boilerplate state management"
+     - Label: "Redux Toolkit"
+       Description: "Full-featured state management with dev tools"
+     - Label: "TanStack Query only"
+       Description: "Server state management, minimal client state"
+
+   Question 4: "Form handling approach?"
+   Header: "Forms"
+   Options:
+     - Label: "React Hook Form + Zod (Recommended)"
+       Description: "Performant forms with schema validation"
+     - Label: "Formik + Yup"
+       Description: "Popular form library with Yup validation"
+     - Label: "Native form handling"
+       Description: "Manual form state, custom validation"
+   ```
+
+4. **Follow-up for design tokens** (if "Use existing design tokens" selected):
+
+   ```
+   Question: "Where are your design tokens located?"
+   Header: "Tokens"
+   Options:
+     - Label: "Figma Variables (will export)"
+       Description: "I'll export from Figma to JSON/CSS"
+     - Label: "CSS custom properties file"
+       Description: "Already have :root variables defined"
+     - Label: "tokens.json / design-tokens.json"
+       Description: "Have a JSON token file ready"
+     - Label: "I'll provide the path"
+       Description: "Tokens are in a custom location"
+   ```
+
+5. **Additional UI specifications** (multiSelect):
+
+   ```
+   Question: "Select additional UI requirements" (multiSelect: true)
+   Header: "UI Features"
+   Options:
+     - Label: "Dark mode support"
+       Description: "Theme switching between light and dark"
+     - Label: "Responsive/mobile-first"
+       Description: "Must work well on mobile devices"
+     - Label: "Accessibility (WCAG 2.1 AA)"
+       Description: "Full keyboard nav, screen reader support"
+     - Label: "Animation/transitions"
+       Description: "Smooth animations with Framer Motion or similar"
+   ```
+
+6. **Custom UI specifications prompt**:
+
+   After structured questions, always ask:
+
+   ```
+   Question: "Do you have additional UI specifications to add?"
+   Header: "Custom UI"
+   Options:
+     - Label: "Yes, I have more requirements"
+       Description: "I'll describe additional UI rules/constraints"
+     - Label: "No, these choices are complete"
+       Description: "Proceed with the selections above"
+   ```
+
+   If "Yes", use follow-up AskUserQuestion:
+
+   ```
+   Question: "What additional UI specifications should we follow?"
+   Header: "Extra specs"
+   Options:
+     - Label: "Specific breakpoints"
+       Description: "Custom responsive breakpoints (I'll specify)"
+     - Label: "Icon library preference"
+       Description: "Specific icon set to use (Lucide, Heroicons, etc.)"
+     - Label: "Animation guidelines"
+       Description: "Specific timing, easing, or motion rules"
+     - Label: "Multiple specifications"
+       Description: "I'll describe all additional requirements"
+   ```
+
+7. **Final UI confirmation**:
+
+   Present summary and confirm:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   📋 UI SPECIFICATIONS SUMMARY
+   ══════════════════════════════════════════════════════════════
+
+   | Setting          | Value                    |
+   |------------------|--------------------------|
+   | UI Library       | [selected]               |
+   | Design System    | [selected]               |
+   | State Management | [selected]               |
+   | Form Handling    | [selected]               |
+   | Dark Mode        | [Yes/No]                 |
+   | Responsive       | [Yes/No]                 |
+   | Accessibility    | [Yes/No]                 |
+   | Animations       | [Yes/No]                 |
+
+   Additional specifications:
+   [any custom specs provided]
+   ══════════════════════════════════════════════════════════════
+   ```
+
+   ```
+   Question: "Confirm these UI specifications?"
+   Header: "Confirm UI"
+   Options:
+     - Label: "Approve all (Recommended)"
+       Description: "These specifications are correct"
+     - Label: "Make changes"
+       Description: "I need to modify some choices"
+     - Label: "Add more specifications"
+       Description: "I have additional requirements to add"
+   ```
+
+8. **Record in plan.md** `## Frontend/UI Specifications` section:
+   - All selected options
+   - Design token source (if applicable)
+   - Additional requirements
+   - Approval timestamp
+
+9. **Skip conditions**:
+   - Feature has no UI (backend-only)
+   - Review Depth = "Auto-approve" (log choices automatically)
+
+**Output**: User-approved UI specifications recorded in plan.md
+
 ### Phase 1: Design & Contracts
 
 **Prerequisites:** `research.md` complete, Tech Stack Validation complete
