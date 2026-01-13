@@ -137,9 +137,11 @@ Store configuration in plan.md:
 
 **Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY.**
 
-After Phase 0 completes, use AskUserQuestion to get structured approval:
+After Phase 0 completes, present the tech stack and get approval:
 
-1. **Present summary first** (as text, not question):
+⚠️ **CRITICAL EXECUTION ORDER - YOU MUST FOLLOW THESE STEPS EXACTLY:**
+
+1. **FIRST: Output the summary table as plain text** (DO NOT use AskUserQuestion yet!):
 
    ```
    ══════════════════════════════════════════════════════════════
@@ -162,7 +164,10 @@ After Phase 0 completes, use AskUserQuestion to get structured approval:
    ══════════════════════════════════════════════════════════════
    ```
 
-2. **Use AskUserQuestion for approval**:
+   **YOU MUST OUTPUT THIS TABLE TO THE USER BEFORE PROCEEDING.**
+   The user cannot approve something they haven't seen.
+
+2. **THEN: Use AskUserQuestion for approval** (only AFTER showing the table above):
 
    ```
    Question 1: "Do you approve this tech stack?"
@@ -254,9 +259,11 @@ After the user approves tech stack CHOICES (Phase 0.5), run compatibility valida
 
 **Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if warnings exist.**
 
-If validation found warnings or issues, use AskUserQuestion for structured decisions:
+If validation found warnings or issues, present them and get decisions:
 
-1. **Present validation summary** (as text):
+⚠️ **CRITICAL EXECUTION ORDER - YOU MUST FOLLOW THESE STEPS EXACTLY:**
+
+1. **FIRST: Output the validation summary as plain text** (DO NOT use AskUserQuestion yet!):
 
    ```
    ══════════════════════════════════════════════════════════════
@@ -273,7 +280,10 @@ If validation found warnings or issues, use AskUserQuestion for structured decis
    ══════════════════════════════════════════════════════════════
    ```
 
-2. **Use AskUserQuestion for each warning** (or batch if similar):
+   **YOU MUST OUTPUT THIS TABLE TO THE USER BEFORE PROCEEDING.**
+   The user cannot make decisions about warnings they haven't seen.
+
+2. **THEN: Use AskUserQuestion for each warning** (only AFTER showing the table above):
 
    ```
    Question: "[Package] has compatibility warning: [issue]. How should we proceed?"
@@ -325,7 +335,9 @@ If validation found warnings or issues, use AskUserQuestion for structured decis
 
 **Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if feature has UI.**
 
-After tech stack validation, if the feature involves frontend/UI, use AskUserQuestion to gather UI specifications:
+After tech stack validation, if the feature involves frontend/UI, present context and gather UI specifications:
+
+⚠️ **CRITICAL EXECUTION ORDER - YOU MUST FOLLOW THESE STEPS EXACTLY:**
 
 1. **Check if UI is involved**:
 
@@ -348,7 +360,9 @@ After tech stack validation, if the feature involves frontend/UI, use AskUserQue
    ══════════════════════════════════════════════════════════════
    ```
 
-3. **Use AskUserQuestion for UI framework choices**:
+   **YOU MUST OUTPUT THIS CONTEXT TO THE USER BEFORE PROCEEDING.**
+
+3. **THEN: Use AskUserQuestion for UI framework choices** (only AFTER showing context above):
 
    ```
    Question 1: "Which UI component library/framework?"
