@@ -79,7 +79,7 @@ if [[ "$AI_AGENT" == "claude" ]]; then
     mkdir -p "$TARGET_PATH/.claude/commands"
 
     # Copy command files with speckit. prefix
-    for cmd in specify plan tasks implement analyze checklist clarify constitution taskstoissues; do
+    for cmd in specify plan tasks implement analyze checklist clarify constitution taskstoissues cleanup; do
         if [[ -f "$SOURCE_DIR/templates/commands/$cmd.md" ]]; then
             cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/speckit.$cmd.md"
         fi
@@ -152,8 +152,9 @@ echo "   2. git checkout -b 001-your-feature-name"
 echo "   3. Run: /speckit.specify \"Your feature description\""
 echo ""
 echo "📚 Available commands:"
-echo "   /speckit.specify  - Create feature specification"
-echo "   /speckit.plan     - Create implementation plan"
-echo "   /speckit.tasks    - Generate atomic task files"
+echo "   /speckit.specify   - Create feature specification"
+echo "   /speckit.plan      - Create implementation plan"
+echo "   /speckit.tasks     - Generate atomic task files"
 echo "   /speckit.implement - Execute with Context Pinning"
+echo "   /speckit.cleanup   - Detect and remove orphaned code"
 echo ""

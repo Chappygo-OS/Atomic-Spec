@@ -84,11 +84,20 @@ For EACH task, create a separate file in `tasks/`:
 |-------|-------|---------|
 | Setup | T-001 to T-009 | Project initialization |
 | Foundation | T-010 to T-019 | Core models, base infrastructure |
-| US1 (P1) | T-020 to T-039 | User Story 1 - MVP |
-| US2 (P2) | T-040 to T-059 | User Story 2 |
-| US3 (P3) | T-060 to T-079 | User Story 3 |
-| Integration | T-080 to T-089 | Cross-cutting concerns |
-| Verification | T-090 to T-099 | Final verification |
+| US1 (P1) | T-020 to T-036 | User Story 1 - MVP features |
+| US1 Wiring | T-037 to T-039 | **Wire US1: routes, nav, stores** |
+| US2 (P2) | T-040 to T-056 | User Story 2 features |
+| US2 Wiring | T-057 to T-059 | **Wire US2: routes, nav, stores** |
+| US3 (P3) | T-060 to T-076 | User Story 3 features |
+| US3 Wiring | T-077 to T-079 | **Wire US3: routes, nav, stores** |
+| Cross-cutting | T-080 to T-089 | Shared concerns (auth, error handling) |
+| Final Verification | T-090 to T-099 | End-to-end integration tests |
+
+**⚠️ WIRING TASKS ARE MANDATORY** - Every user story MUST have wiring tasks that:
+- Register backend routes in the main app file
+- Add frontend routes to the app router
+- Add navigation links to sidebar/nav components
+- Connect frontend stores/hooks to backend endpoints
 
 **Each task file MUST contain**:
 
@@ -126,6 +135,19 @@ For EACH task, create a separate file in `tasks/`:
 ### Acceptance Criteria
 - [ ] [Testable criterion]
 
+### Wiring Checklist (if applicable)
+
+<!--
+  CRITICAL: If this task creates a new file, it MUST specify what existing files
+  need to be updated to "wire" the new file into the application.
+-->
+
+- [ ] Route registered in main app file (if backend route)
+- [ ] Page added to app router (if frontend page)
+- [ ] Navigation link added (if user-facing page)
+- [ ] Store/hook connected to API endpoint (if API endpoint)
+- [ ] Component rendered by parent (if new component)
+
 ## Verification Command
 
 \`\`\`bash
@@ -141,8 +163,65 @@ For EACH task, create a separate file in `tasks/`:
 - [ ] Implementation complete
 - [ ] Acceptance criteria met
 - [ ] Verification passes
+- [ ] Wiring checklist complete (if applicable)
 - [ ] Updated traceability.md
 ```
+
+#### 4.2.1 Wiring Requirements (MANDATORY)
+
+⚠️ **CRITICAL: This section prevents the #1 cause of incomplete implementations.**
+
+For EVERY task that creates a new artifact, you MUST either:
+1. Include wiring steps in the same task, OR
+2. Create a dedicated wiring task that depends on it
+
+**Wiring Matrix - What Creates What Updates:**
+
+| When You Create... | You MUST Also Update... |
+|-------------------|------------------------|
+| Backend route file (`routes/clients.py`) | Main app file to register router (`main.py`, `app.py`) |
+| Frontend page (`pages/clients/page.tsx`) | App router config, navigation component |
+| API endpoint | Frontend store/hook to call it |
+| New component | Parent component to render it |
+| Database model | Migration file, optionally seed data |
+| New service | Dependency injection / service registry |
+| Environment variable usage | `.env.example`, deployment configs |
+
+**Wiring Task Template:**
+
+For each User Story, the LAST task(s) in its range (T-X37 to T-X39) should be wiring tasks:
+
+```markdown
+# T-037-wire-us1-backend
+
+## Task Objective
+Register all US1 backend routes and verify API accessibility.
+
+## Files to Update (NOT create)
+- `backend/main.py` - Add: `app.include_router(feature_router, prefix="/api/feature")`
+- `backend/app/routes/__init__.py` - Export new router
+
+## Verification Command
+curl -s http://localhost:8000/api/feature/health | jq '.status == "ok"'
+```
+
+```markdown
+# T-038-wire-us1-frontend
+
+## Task Objective
+Add US1 pages to router and navigation.
+
+## Files to Update (NOT create)
+- `frontend/src/App.tsx` - Add Route for /feature
+- `frontend/src/components/Sidebar.tsx` - Add "Feature" nav link
+- `frontend/src/stores/featureStore.ts` - Connect to /api/feature endpoint
+
+## Verification Command
+# Start frontend, navigate to /feature, verify page loads
+npm run dev & sleep 5 && curl -s http://localhost:3000/feature | grep -q "Feature Page"
+```
+
+**DO NOT proceed to Section 4.3 until every User Story has wiring tasks.**
 
 #### 4.3 Generate index.md
 

@@ -254,9 +254,20 @@ Tasks follow a numbering scheme by phase:
 |-------|-------|
 | T-001 to T-009 | Setup & Configuration |
 | T-010 to T-019 | Foundation (models, core) |
-| T-020 to T-039 | User Story 1 |
-| T-040 to T-059 | User Story 2 |
-| T-060+ | Additional stories |
+| T-020 to T-036 | User Story 1 - Features |
+| T-037 to T-039 | **User Story 1 - Wiring** (routes, nav, stores) |
+| T-040 to T-056 | User Story 2 - Features |
+| T-057 to T-059 | **User Story 2 - Wiring** |
+| T-060 to T-076 | User Story 3 - Features |
+| T-077 to T-079 | **User Story 3 - Wiring** |
+| T-080 to T-089 | Cross-cutting concerns |
+| T-090 to T-099 | Final verification |
+
+**⚠️ Wiring Tasks are MANDATORY** - Every user story must include wiring tasks that:
+- Register backend routes in the main app file
+- Add frontend routes to the app router
+- Add navigation links to sidebar/nav components
+- Connect frontend stores/hooks to backend endpoints
 
 ---
 
@@ -271,6 +282,7 @@ Tasks follow a numbering scheme by phase:
 | `/speckit.plan` | Create implementation plan with architecture gates |
 | `/speckit.tasks` | Generate atomic task files (index.md, traceability.md, tasks/) |
 | `/speckit.implement` | Execute tasks with Context Pinning |
+| `/speckit.cleanup` | Detect and remove orphaned code, unused components, dead routes |
 
 ### Supporting Commands
 
@@ -281,6 +293,30 @@ Tasks follow a numbering scheme by phase:
 | `/speckit.analyze` | Cross-artifact consistency analysis |
 | `/speckit.checklist` | Generate quality validation checklists |
 | `/speckit.taskstoissues` | Convert tasks to GitHub issues |
+
+### Cleanup Command Details
+
+The `/speckit.cleanup` command helps maintain a clean codebase by detecting:
+
+- **Frontend**: Orphan components, dead routes, unused stores
+- **Backend**: Unregistered routes, unused services, dead endpoints
+- **Database**: Orphan tables, unused columns, stale migrations
+
+**Key Features:**
+- **Tech-stack adaptive** - Detects your stack (React, FastAPI, etc.) and offers appropriate tools
+- **Per-domain control** - Choose detection method for each domain independently
+- **External tools optional** - Use tools like `knip` (JS/TS) or `vulture` (Python), or AI-based detection
+- **Feature history aware** - AI-based detection uses previous SpecKit features to boost confidence (e.g., "file created in 001, spec says 003 replaces it")
+- **Report first, delete later** - Never auto-deletes; generates report, asks for approval
+- **Database schema audit** - Compares schema against codebase to find unused tables/columns
+
+**Workflow:**
+1. Detect project structure (frontend/backend/database)
+2. For each domain: ask user to choose detection method (tool / AI / skip)
+3. Run detection and categorize findings (SAFE / REVIEW / KEEP)
+4. Generate `cleanup-report.md` with findings
+5. User reviews and approves deletions
+6. Execute cleanup with test verification
 
 ---
 

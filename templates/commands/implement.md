@@ -189,7 +189,47 @@ After each task, report:
 
 When all tasks in `traceability.md` are "Done":
 
-1. **Final Verification**:
+#### 8.1 Integration Verification (MANDATORY)
+
+⚠️ **CRITICAL: This step prevents the #1 cause of "feature done but not working" issues.**
+
+Before marking the feature complete, run these integration checks:
+
+**Backend Integration:**
+```bash
+# Verify all routes are registered (Python/FastAPI example)
+grep -r "include_router\|app.add_api_route" backend/main.py backend/app.py 2>/dev/null
+
+# Verify all routes are accessible
+# For each route file created, the corresponding endpoint should respond
+curl -s http://localhost:8000/api/docs | grep -q "openapi" && echo "API docs accessible"
+```
+
+**Frontend Integration:**
+```bash
+# Verify all pages are in router
+grep -r "Route\|path:" frontend/src/App.tsx frontend/src/router 2>/dev/null
+
+# Verify navigation has links to new pages
+grep -r "href=\|to=\|navigate(" frontend/src/components/*Nav* frontend/src/components/*Sidebar* 2>/dev/null
+```
+
+**Wiring Verification Checklist:**
+- [ ] All backend routes registered in main app file
+- [ ] All frontend pages accessible via navigation
+- [ ] All API endpoints callable from frontend stores/hooks
+- [ ] No orphan components (everything rendered somewhere)
+- [ ] No dead routes (all routes lead to working pages)
+- [ ] Navigation reflects all user-facing features
+
+**If ANY wiring check fails:**
+1. Identify which task should have done the wiring
+2. Create a fix task or update the incomplete task
+3. Do NOT mark feature complete until wiring is verified
+
+#### 8.2 Final Verification
+
+1. **Task Verification**:
    - All verification commands passed
    - All acceptance criteria met
    - 100% task completion
@@ -202,6 +242,7 @@ When all tasks in `traceability.md` are "Done":
    - Total tasks completed
    - Total time (if tracked)
    - Any skipped/blocked tasks
+   - Integration verification status
    - Feature ready for review
 
 ## Context Pinning Reminder

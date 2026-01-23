@@ -74,7 +74,7 @@ if ($AIAgent -eq "claude") {
     }
 
     # Copy command files with speckit. prefix
-    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "checklist", "clarify", "constitution", "taskstoissues")
+    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "checklist", "clarify", "constitution", "taskstoissues", "cleanup")
     foreach ($cmd in $commandFiles) {
         $sourceFile = Join-Path $sourceCommandsPath "$cmd.md"
         $targetFile = Join-Path $claudeCommandsPath "speckit.$cmd.md"
@@ -161,4 +161,5 @@ Write-Host "   /speckit.specify   - Create feature specification" -ForegroundCol
 Write-Host "   /speckit.plan      - Create implementation plan" -ForegroundColor Gray
 Write-Host "   /speckit.tasks     - Generate atomic task files" -ForegroundColor Gray
 Write-Host "   /speckit.implement - Execute with Context Pinning" -ForegroundColor Gray
+Write-Host "   /speckit.cleanup   - Detect and remove orphaned code" -ForegroundColor Gray
 Write-Host ""
