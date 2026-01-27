@@ -81,15 +81,43 @@ Options:
 
 If user selected "Yes, use specialized agents":
 
-1. Check `.specify/subagents/_index.md` for available agents
-2. List available subagents:
+1. **Scan the subagents folder** at `.specify/subagents/`:
+   - List all `*.md` files in the folder
+   - **Exclude** files starting with `_` (e.g., `_index.md`, `_template.md`)
+   - Also scan `.specify/subagents/custom/` for project-specific agents
+
+2. **For each subagent file found**, read the YAML frontmatter to extract:
+   - `name`: The subagent identifier
+   - `description`: What it does and when to use it
+   - `model`: Which model it prefers (if specified)
+
+3. **List discovered subagents to the user**:
    ```
-   Found subagents:
-   - api-contracts.md (API design, OpenAPI)
-   - data-architecture.md (Database, tenancy)
-   - auth-rbac.md (Authentication, permissions)
+   ══════════════════════════════════════════════════════════════
+   📦 DISCOVERED SUBAGENTS
+   ══════════════════════════════════════════════════════════════
+
+   Found [N] specialized subagents in .specify/subagents/:
+
+   | Subagent              | Domain                                    |
+   |-----------------------|-------------------------------------------|
+   | backend-architect     | REST APIs, microservices, DB schemas      |
+   | api-documenter        | OpenAPI specs, SDK generation, dev docs   |
+   | database-optimizer    | SQL optimization, indexes, migrations     |
+   | [...]                 | [...]                                     |
+
+   These agents will be loaded automatically when their domain
+   is relevant to your feature (API design, data model, etc.)
+   ══════════════════════════════════════════════════════════════
    ```
-3. If no subagents found, inform user and fall back to general knowledge
+
+4. **If no subagents found** (empty folder), inform user:
+   ```
+   No subagents found in .specify/subagents/
+   Falling back to general knowledge for all domains.
+   ```
+
+5. **Store discovered agents** in plan.md for later reference during Phase 1
 
 ### Record Configuration
 
