@@ -9,24 +9,99 @@
 # Updates require HITL (Human-In-The-Loop) approval via AskUserQuestion
 # ============================================================================
 
-version: 1
+version: 2
 created: null  # Set when first decision is added
 last_updated: null
 last_updated_by: null
 
 # ============================================================================
-# API CONFIGURATION
+# ARCHITECTURE (How the system is structured)
+# ============================================================================
+# These decisions affect EVERY part of the project and must be set early.
+# Changing architecture mid-project is expensive - get this right first.
+# ============================================================================
+architecture:
+  # Overall system pattern: monolith | modular_monolith | microservices | serverless
+  # monolith = single deployable unit
+  # modular_monolith = single deploy, internal module boundaries
+  # microservices = distributed services
+  # serverless = function-based (Lambda, Cloud Functions)
+  pattern: null
+
+  # Code organization layers: clean | mvc | hexagonal | vertical_slice | none
+  # clean = Use Cases → Entities → Interfaces (Uncle Bob)
+  # mvc = Model-View-Controller
+  # hexagonal = Ports & Adapters
+  # vertical_slice = Feature folders with all layers inside
+  layers: null
+
+  # API paradigm: rest | graphql | grpc | hybrid
+  # hybrid = REST for external, gRPC for internal
+  api_style: null
+
+  # Service communication: sync | async | event_driven | cqrs
+  # sync = Request-response (HTTP/gRPC)
+  # async = Message queues (RabbitMQ, SQS)
+  # event_driven = Event bus (Kafka, EventBridge)
+  # cqrs = Command Query Responsibility Segregation
+  communication: null
+
+  # Monorepo vs polyrepo: monorepo | polyrepo
+  repo_structure: null
+
+# ============================================================================
+# CODE PATTERNS (How code is written)
+# ============================================================================
+# These patterns ensure consistency in HOW developers write code.
+# ============================================================================
+code_patterns:
+  # Data access pattern: repository | active_record | dao | raw_queries
+  # repository = Repository pattern with interfaces
+  # active_record = ORM models with query methods
+  # dao = Data Access Objects
+  # raw_queries = Direct SQL/queries
+  data_access: null
+
+  # Dependency injection: constructor | container | manual | none
+  # constructor = Dependencies passed via constructor
+  # container = IoC container (InversifyJS, tsyringe)
+  # manual = Factory functions
+  dependency_injection: null
+
+  # Error handling strategy: exceptions | result_type | error_codes
+  # exceptions = throw/catch (try-catch)
+  # result_type = Result<T, E> or Either pattern
+  # error_codes = Return codes with error objects
+  error_handling: null
+
+  # Async patterns: promises | async_await | callbacks | rxjs
+  async_pattern: null
+
+  # Validation approach: schema | decorators | manual
+  # schema = Zod, Yup, Joi schemas
+  # decorators = class-validator decorators
+  # manual = Hand-written validation
+  validation_approach: null
+
+  # Null handling: nullable | optional | strict_null
+  # nullable = Allow nulls, check at runtime
+  # optional = Use Option/Maybe types
+  # strict_null = TypeScript strict null checks, no nulls in domain
+  null_handling: null
+
+# ============================================================================
+# API CONFIGURATION (How APIs are designed)
 # ============================================================================
 api:
   # Versioning strategy: url | header | query_param | none
   # url = /api/v1/*, header = X-API-Version, query_param = ?version=1
   versioning: null
 
-  # Pagination strategy: cursor | offset | none
+  # Pagination strategy: cursor | offset | keyset | none
   pagination: null
 
   # Error response format: rfc7807 | custom | simple
-  # rfc7807 = Problem Details (RFC 7807), custom = project-specific schema
+  # rfc7807 = Problem Details (RFC 7807)
   error_format: null
 
   # Rate limiting approach: token_bucket | sliding_window | fixed_window | none
@@ -35,55 +110,93 @@ api:
   # Idempotency requirement: required | optional | none
   idempotency: null
 
+  # Resource naming: plural | singular
+  # plural = /users, /orders
+  # singular = /user, /order
+  resource_naming: null
+
+  # Request body format: json | form | multipart
+  request_format: null
+
+  # Auth header format: bearer | basic | api_key | custom
+  auth_header: null
+
+  # Response envelope: wrapped | flat
+  # wrapped = { data: {...}, meta: {...} }
+  # flat = { ...fields directly }
+  response_envelope: null
+
+  # Date format in API: iso8601 | unix_timestamp | custom
+  date_format: null
+
 # ============================================================================
 # BACKEND CONFIGURATION
 # ============================================================================
 backend:
-  # Primary language: typescript | python | go | java | csharp | rust
+  # Primary language: typescript | python | go | java | csharp | rust | php
   language: null
 
-  # Runtime version (e.g., "node:20", "python:3.12")
+  # Runtime version (e.g., "node:20", "python:3.12", "go:1.22")
   runtime_version: null
 
-  # Web framework (e.g., "express", "fastapi", "gin", "spring-boot")
+  # Web framework (e.g., "express", "fastapi", "gin", "spring-boot", "nestjs")
   framework: null
 
-  # ORM / Data layer (e.g., "prisma", "drizzle", "sqlalchemy", "gorm")
+  # ORM / Data layer (e.g., "prisma", "drizzle", "sqlalchemy", "gorm", "typeorm")
   orm: null
 
-  # Authentication method: jwt | session | oauth2 | api_key
+  # Authentication method: jwt | session | oauth2 | api_key | saml
   auth_method: null
 
-  # Authorization pattern: rbac | abac | simple | none
+  # Authorization pattern: rbac | abac | acl | simple | none
   auth_pattern: null
+
+  # Background jobs: bull | celery | sidekiq | none
+  job_queue: null
+
+  # Caching layer: redis | memcached | in_memory | none
+  cache: null
 
 # ============================================================================
 # FRONTEND CONFIGURATION
 # ============================================================================
 frontend:
-  # Framework: react | vue | angular | svelte | nextjs | nuxt | none
+  # Framework: react | vue | angular | svelte | nextjs | nuxt | remix | none
   framework: null
 
-  # UI component library (e.g., "shadcn", "mui", "chakra", "tailwind-headless")
+  # Rendering strategy: spa | ssr | ssg | hybrid
+  # spa = Single Page App (client-side only)
+  # ssr = Server-Side Rendering
+  # ssg = Static Site Generation
+  # hybrid = Mix of SSR and SSG
+  rendering: null
+
+  # UI component library (e.g., "shadcn", "mui", "chakra", "tailwind-headless", "ant")
   ui_library: null
 
-  # Styling approach: tailwind | css-modules | styled-components | scss
+  # Styling approach: tailwind | css-modules | styled-components | scss | emotion
   styling: null
 
-  # State management: zustand | redux | context | tanstack-query | none
+  # State management: zustand | redux | context | tanstack-query | pinia | none
   state_management: null
 
-  # Form handling: react-hook-form | formik | native
+  # Data fetching: tanstack-query | swr | rtk-query | apollo | fetch
+  data_fetching: null
+
+  # Form handling: react-hook-form | formik | vee-validate | native
   form_library: null
 
-  # Validation library: zod | yup | joi | native
+  # Validation library: zod | yup | joi | valibot | native
   validation_library: null
+
+  # Routing: react-router | tanstack-router | next-router | vue-router
+  routing: null
 
 # ============================================================================
 # DATABASE CONFIGURATION
 # ============================================================================
 database:
-  # Database type: postgresql | mysql | mongodb | sqlite
+  # Database type: postgresql | mysql | mongodb | sqlite | sqlserver
   type: null
 
   # Tenancy model: shared_db_tenant_id | shared_db_schema | separate_db | single_tenant
@@ -92,11 +205,53 @@ database:
   # Soft delete enabled: true | false
   soft_delete: null
 
-  # Audit columns (created_at, updated_at, etc.): true | false
+  # Audit columns (created_at, updated_at, created_by, updated_by): true | false
   audit_columns: null
 
   # Migration strategy: expand_contract | direct | versioned
+  # expand_contract = Add new, migrate data, remove old (zero-downtime)
+  # direct = Apply changes directly
+  # versioned = Version-numbered migrations
   migration_strategy: null
+
+  # Connection pooling: orm_default | pgbouncer | external | none
+  connection_pooling: null
+
+  # Query style: orm_only | raw_allowed | query_builder
+  # orm_only = Only ORM methods, no raw SQL
+  # raw_allowed = Raw SQL permitted where needed
+  # query_builder = Use query builders (Knex, etc.)
+  query_style: null
+
+  # Table naming: snake_case | PascalCase | camelCase
+  naming_tables: null
+
+  # Column naming: snake_case | camelCase
+  naming_columns: null
+
+  # Primary key type: uuid | ulid | auto_increment | cuid
+  primary_key_type: null
+
+# ============================================================================
+# ERROR HANDLING & LOGGING
+# ============================================================================
+error_handling:
+  # Logging format: structured | text | both
+  # structured = JSON logs
+  # text = Human-readable text
+  logging_format: null
+
+  # Log level default: debug | info | warn | error
+  log_level: null
+
+  # Error tracking service: sentry | bugsnag | rollbar | none
+  error_tracking: null
+
+  # Request tracing: opentelemetry | jaeger | xray | none
+  tracing: null
+
+  # Correlation ID header: X-Request-ID | X-Correlation-ID | custom
+  correlation_header: null
 
 # ============================================================================
 # TESTING CONFIGURATION
@@ -105,27 +260,47 @@ testing:
   # Unit test framework (e.g., "jest", "vitest", "pytest", "go-test")
   unit_framework: null
 
+  # Integration test framework (e.g., "supertest", "httpx", "testcontainers")
+  integration_framework: null
+
   # E2E test framework (e.g., "playwright", "cypress", "selenium")
   e2e_framework: null
 
   # Minimum coverage target (percentage, e.g., 80)
   coverage_target: null
 
+  # Test organization: colocated | separate
+  # colocated = Tests next to source files
+  # separate = Tests in dedicated test/ folder
+  test_organization: null
+
+  # Mocking approach: vitest_mock | jest_mock | msw | manual
+  mocking: null
+
 # ============================================================================
 # INFRASTRUCTURE CONFIGURATION
 # ============================================================================
 infrastructure:
-  # CI/CD platform: github-actions | gitlab-ci | jenkins | circleci
+  # CI/CD platform: github-actions | gitlab-ci | jenkins | circleci | azure-devops
   ci_cd: null
 
   # Container runtime: docker | podman | none
   container: null
 
-  # Cloud provider: aws | gcp | azure | vercel | railway | none
+  # Container orchestration: kubernetes | ecs | docker-compose | none
+  orchestration: null
+
+  # Cloud provider: aws | gcp | azure | vercel | railway | fly | none
   cloud_provider: null
 
-  # Deployment strategy: rolling | blue_green | canary
+  # Deployment strategy: rolling | blue_green | canary | recreate
   deployment_strategy: null
+
+  # Infrastructure as code: terraform | pulumi | cloudformation | cdk | none
+  iac: null
+
+  # Secret management: vault | aws-secrets | env-files | doppler
+  secrets: null
 
 # ============================================================================
 # CONVENTIONS
@@ -140,8 +315,17 @@ conventions:
   # Class/component naming: PascalCase | camelCase
   classes: null
 
-  # Commit message format: conventional | angular | simple
+  # Constant naming: SCREAMING_SNAKE_CASE | camelCase | PascalCase
+  constants: null
+
+  # Commit message format: conventional | angular | simple | gitmoji
   commits: null
+
+  # Branch naming: feature/xxx | feat/xxx | xxx-description
+  branches: null
+
+  # PR title format: conventional | ticket-prefix | free-form
+  pr_titles: null
 
 # ============================================================================
 # UI/UX SPECIFICATIONS
@@ -156,11 +340,44 @@ ui_specs:
   # Accessibility standard: wcag-aa | wcag-aaa | basic | none
   accessibility: null
 
-  # Animation library: framer-motion | react-spring | css | none
+  # Animation library: framer-motion | react-spring | css | gsap | none
   animations: null
 
-  # Design token source: figma | css-variables | tokens-json | none
+  # Design token source: figma | css-variables | tokens-json | style-dictionary | none
   design_tokens: null
+
+  # Icon library: lucide | heroicons | phosphor | fontawesome | custom
+  icons: null
+
+  # Toast/notification library: sonner | react-hot-toast | notistack | custom
+  notifications: null
+
+# ============================================================================
+# SECURITY CONFIGURATION
+# ============================================================================
+security:
+  # CORS policy: strict | permissive | custom
+  # strict = Only allow specific origins
+  # permissive = Allow all origins (dev only)
+  cors: null
+
+  # CSRF protection: token | double-submit | samesite | none
+  csrf: null
+
+  # Content Security Policy: strict | moderate | none
+  csp: null
+
+  # Rate limiting scope: ip | user | tenant | none
+  rate_limit_scope: null
+
+  # Input sanitization: strict | moderate | none
+  input_sanitization: null
+
+  # Password requirements: strong | moderate | basic
+  # strong = 12+ chars, uppercase, lowercase, number, symbol
+  # moderate = 8+ chars, mixed case, number
+  # basic = 6+ chars
+  password_policy: null
 
 # ============================================================================
 # FEATURE TRACKING

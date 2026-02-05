@@ -71,6 +71,8 @@ Load only the minimal necessary context from each artifact:
 
 - Load `specs/_defaults/registry.yaml` for project defaults validation
 - Extract all non-null values as "expected" tech decisions
+- **Critical sections**: `architecture.*`, `code_patterns.*` - these affect code structure
+- Verify plan.md architecture decisions match registry
 
 ### 3. Build Semantic Models
 

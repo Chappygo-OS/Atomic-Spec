@@ -32,9 +32,11 @@ This command identifies orphaned/unused code across the codebase and helps safel
 Read `specs/_defaults/registry.yaml` to get authoritative tech stack information:
 
 1. **Extract tech stack from registry**:
+   - `architecture.pattern`, `architecture.layers` - System structure
+   - `code_patterns.data_access` - Expected data access patterns
    - `backend.language`, `backend.framework`, `backend.orm`
    - `frontend.framework`, `frontend.ui_library`
-   - `database.type`
+   - `database.type`, `database.query_style`
 
 2. **Registry provides ground truth** for what technologies SHOULD be in use.
    If cleanup finds code using technologies NOT in registry, flag as potential orphan.

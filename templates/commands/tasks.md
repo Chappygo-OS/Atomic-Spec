@@ -55,9 +55,12 @@ If the script outputs gate failures, report them to the user and **DO NOT PROCEE
 Read `specs/_defaults/registry.yaml` to ensure tasks follow project standards:
 
 1. **Extract relevant standards for task generation**:
+   - `architecture.*` - System pattern, layers (determines task structure)
+   - `code_patterns.*` - Data access, DI patterns (affects implementation steps)
    - `conventions.*` - File naming, function naming for task file paths
    - `backend.*` - Language/framework for verification commands
    - `frontend.*` - Framework for component task patterns
+   - `database.*` - Query style, naming for database tasks
    - `testing.*` - Test framework for verification commands
 
 2. **Apply to task generation**:
@@ -68,9 +71,17 @@ Read `specs/_defaults/registry.yaml` to ensure tasks follow project standards:
 3. **Include registry reference in tasks** (when applicable):
    ```markdown
    ### Project Standards (from registry)
+   - Architecture: [architecture.pattern], [architecture.layers]
+   - Code Patterns: [code_patterns.data_access], [code_patterns.error_handling]
    - Naming: [conventions.files] for files, [conventions.variables] for code
    - Testing: [testing.unit_framework]
    ```
+
+4. **Architecture affects task structure**:
+   - `architecture.layers: clean` → Tasks should specify which layer (use case, entity, interface)
+   - `architecture.layers: vertical_slice` → Tasks organized by feature folder
+   - `code_patterns.data_access: repository` → Include repository interface + implementation tasks
+   - `code_patterns.error_handling: result_type` → Verification should check Result returns
 
 ### 2. Load Design Documents
 

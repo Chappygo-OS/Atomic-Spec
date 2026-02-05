@@ -42,9 +42,12 @@ Given that feature description, do this:
 
    | Category | Key Settings |
    |----------|--------------|
+   | Architecture | [pattern], [layers], [api_style] |
+   | Code Patterns | [data_access], [error_handling], [validation] |
    | Backend  | [language], [framework], [orm] |
-   | Frontend | [framework], [ui_library] |
-   | API      | [versioning], [pagination] |
+   | Frontend | [framework], [ui_library], [state_management] |
+   | API      | [versioning], [pagination], [error_format] |
+   | Database | [type], [tenancy_model], [query_style] |
 
    These can be overridden per-feature during /speckit.plan
    with explicit justification.

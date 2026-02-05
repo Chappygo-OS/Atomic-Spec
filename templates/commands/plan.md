@@ -154,12 +154,36 @@ Before any planning work, load the project defaults registry:
    ```
 
 2. **If registry exists**, extract relevant sections for planning:
-   - `api.*` - API versioning, pagination, error format
-   - `backend.*` - Language, framework, ORM, auth
-   - `frontend.*` - Framework, UI library, state management
-   - `database.*` - Type, tenancy model, migrations
-   - `conventions.*` - Naming conventions
+   - `architecture.*` - **CRITICAL**: System pattern, layers, API style, communication
+   - `code_patterns.*` - Data access, DI, error handling, validation approach
+   - `api.*` - API versioning, pagination, error format, resource naming
+   - `backend.*` - Language, framework, ORM, auth, caching
+   - `frontend.*` - Framework, rendering, UI library, state management
+   - `database.*` - Type, tenancy model, migrations, naming conventions
+   - `error_handling.*` - Logging format, error tracking, tracing
+   - `testing.*` - Frameworks, coverage targets
+   - `security.*` - CORS, CSRF, rate limiting
+   - `conventions.*` - Naming conventions, commit format
    - `ui_specs.*` - Dark mode, responsive, accessibility
+
+   **Architecture is foundational** - if `architecture.*` is null, prompt user to set it first:
+   ```
+   ══════════════════════════════════════════════════════════════
+   ⚠️ ARCHITECTURE NOT DEFINED
+   ══════════════════════════════════════════════════════════════
+
+   The project registry has no architecture defined yet.
+   Architecture decisions affect EVERYTHING else.
+
+   We need to establish:
+   - System pattern (monolith vs microservices vs serverless)
+   - Code layers (clean architecture vs MVC vs vertical slice)
+   - API style (REST vs GraphQL vs gRPC)
+   - Communication (sync vs async vs event-driven)
+
+   These will be set during the Tech Stack Review checkpoint.
+   ══════════════════════════════════════════════════════════════
+   ```
 
 3. **If registry doesn't exist**, warn user:
    ```

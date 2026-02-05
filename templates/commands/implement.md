@@ -47,15 +47,26 @@ If the script outputs gate failures, report them to the user and **DO NOT PROCEE
 Read `specs/_defaults/registry.yaml` to get project-wide implementation standards:
 
 1. **Extract relevant implementation defaults**:
+   - `architecture.*` - System pattern, layers (determines code structure)
+   - `code_patterns.*` - **CRITICAL**: Data access, DI, error handling, validation
    - `conventions.*` - Naming conventions for code
    - `backend.*` - Language, framework patterns
    - `frontend.*` - Component patterns, styling approach
+   - `database.*` - Query style, naming conventions
+   - `error_handling.*` - Logging format, correlation headers
    - `testing.*` - Test framework, coverage requirements
 
 2. **Apply during implementation**:
    - Use registry naming conventions for new files/functions
    - Follow registry patterns for code structure
    - If task requires a decision not in task file, check registry first
+
+   **Code patterns drive implementation style**:
+   - `code_patterns.data_access: repository` → Use repository interfaces, not direct ORM calls
+   - `code_patterns.error_handling: result_type` → Return Result<T,E>, don't throw exceptions
+   - `code_patterns.dependency_injection: constructor` → Pass dependencies via constructor
+   - `code_patterns.validation_approach: schema` → Use Zod/Yup schemas, not manual checks
+   - `architecture.layers: clean` → Separate use cases from entities from interfaces
 
 3. **If implementation would deviate from registry**:
    - The task file should contain explicit DEVIATION block

@@ -25,8 +25,8 @@ Ensure consistency across all features by:
 **Before generating any spec, plan, or code:**
 
 1. Read `registry.yaml`
-2. Filter to relevant sections (backend work → read `api`, `backend`, `database`)
-3. Use these values as defaults
+2. Filter to relevant sections (backend work → `architecture`, `api`, `backend`, `database`, `code_patterns`)
+3. Use these values as non-negotiable defaults
 4. If deviating → include explicit `DEVIATION:` block with justification
 
 **When a new decision is detected:**
@@ -52,16 +52,69 @@ Ensure consistency across all features by:
 
 ## Registry Sections
 
+### Core Architecture (Set First!)
+
+| Section | Covers | Impact |
+|---------|--------|--------|
+| `architecture` | System pattern, layers, API style, communication | **HIGHEST** - affects everything |
+| `code_patterns` | Data access, DI, error handling, validation | **HIGH** - affects all code |
+
+### Technology Choices
+
 | Section | Covers |
 |---------|--------|
-| `api` | Versioning, pagination, error format, rate limiting |
-| `backend` | Language, framework, ORM, auth method |
-| `frontend` | Framework, UI library, state management, forms |
-| `database` | Type, tenancy model, soft delete, migrations |
-| `testing` | Frameworks, coverage targets |
-| `infrastructure` | CI/CD, containers, cloud, deployment |
-| `conventions` | Naming conventions, commit format |
-| `ui_specs` | Dark mode, responsive, accessibility, animations |
+| `api` | Versioning, pagination, error format, resource naming, auth headers |
+| `backend` | Language, framework, ORM, auth, caching, job queues |
+| `frontend` | Framework, rendering, UI library, state management, routing |
+| `database` | Type, tenancy, naming conventions, primary keys, query style |
+
+### Quality & Operations
+
+| Section | Covers |
+|---------|--------|
+| `error_handling` | Logging format, error tracking, tracing |
+| `testing` | Frameworks, coverage targets, test organization |
+| `infrastructure` | CI/CD, containers, cloud, deployment, IaC |
+| `security` | CORS, CSRF, CSP, rate limiting, password policy |
+
+### Standards
+
+| Section | Covers |
+|---------|--------|
+| `conventions` | Naming (variables, files, classes), commit format, branches |
+| `ui_specs` | Dark mode, responsive, accessibility, icons, animations |
+
+## Architecture Section (Critical)
+
+The `architecture` section is the **most important** - it must be set before any feature development:
+
+```yaml
+architecture:
+  pattern: modular_monolith    # How the system is structured
+  layers: clean                 # How code is organized
+  api_style: rest               # How APIs are designed
+  communication: sync           # How services communicate
+  repo_structure: monorepo      # How code is stored
+```
+
+**Why this matters:**
+- `pattern: microservices` → Each feature may be a separate service
+- `pattern: monolith` → All features in one codebase
+- `layers: clean` → Use cases, entities, interfaces separation
+- `layers: vertical_slice` → Feature folders with all layers inside
+
+## Code Patterns Section
+
+Defines HOW code is written, not WHAT tools are used:
+
+```yaml
+code_patterns:
+  data_access: repository       # Repository pattern with interfaces
+  dependency_injection: constructor  # Dependencies via constructor
+  error_handling: result_type   # Result<T, E> instead of exceptions
+  validation_approach: schema   # Zod/Yup schemas
+  null_handling: strict_null    # No nulls in domain
+```
 
 ## Deviation Protocol
 
@@ -72,25 +125,41 @@ If a feature MUST deviate from a registry default:
 
 ```markdown
 DEVIATION from project-registry:
-- Key: backend.orm
-- Default: prisma
-- This spec uses: drizzle
-- Reason: Legacy system requires Drizzle for compatibility
+- Key: architecture.layers
+- Default: clean
+- This spec uses: vertical_slice
+- Reason: Self-contained microservice with simple domain
 - Approved: Human (2026-02-05)
 ```
 
 3. Log in `changelog.md` under "Deviation Log"
 
+## Decision Priority
+
+When multiple sources exist:
+
+1. **Registry** - Project-wide default (highest priority)
+2. **Spec** - Feature explicitly states different requirement
+3. **Assumed** - AI inference (must be confirmed)
+
+```
+Registry has api.versioning = url
+Spec says "use header versioning"
+→ Spec wins, but DEVIATION block required
+```
+
 ## Why This Matters
 
 Without a registry:
-- API versioning gets inconsistent (some `/v1/`, some without)
+- API versioning inconsistent (some `/v1/`, some without)
 - Different features use different state management
 - Auth patterns vary across services
-- Debugging becomes harder due to inconsistency
+- Code organization differs per developer
+- Debugging harder due to inconsistency
 
 With a registry:
 - One source of truth
 - Explicit deviations (not accidental drift)
 - Full audit trail
 - Faster onboarding (read registry to understand stack)
+- AI generates consistent code across all features
