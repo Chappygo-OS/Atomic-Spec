@@ -25,9 +25,24 @@ This command identifies orphaned/unused code across the codebase and helps safel
 
 ## Phase 1: Project Analysis
 
+### 1.0 Load Project Defaults Registry
+
+**Per Constitution Article IX, Directive 7 - Load registry first.**
+
+Read `specs/_defaults/registry.yaml` to get authoritative tech stack information:
+
+1. **Extract tech stack from registry**:
+   - `backend.language`, `backend.framework`, `backend.orm`
+   - `frontend.framework`, `frontend.ui_library`
+   - `database.type`
+
+2. **Registry provides ground truth** for what technologies SHOULD be in use.
+   If cleanup finds code using technologies NOT in registry, flag as potential orphan.
+
 ### 1.1 Detect Project Structure
 
 Read `plan.md` from the current feature directory (or project root) to extract tech stack.
+Also cross-reference with `specs/_defaults/registry.yaml` for authoritative defaults.
 
 **Determine which domains exist:**
 

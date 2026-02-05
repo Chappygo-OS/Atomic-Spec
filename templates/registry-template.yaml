@@ -1,0 +1,173 @@
+# ============================================================================
+# PROJECT DEFAULTS REGISTRY
+# ============================================================================
+# This is the single source of truth for project-wide technical decisions.
+# ALL commands, agents, and phases MUST read this file before generating
+# specs, plans, or code. Deviations require explicit justification.
+#
+# DO NOT EDIT MANUALLY without updating changelog.md
+# Updates require HITL (Human-In-The-Loop) approval via AskUserQuestion
+# ============================================================================
+
+version: 1
+created: null  # Set when first decision is added
+last_updated: null
+last_updated_by: null
+
+# ============================================================================
+# API CONFIGURATION
+# ============================================================================
+api:
+  # Versioning strategy: url | header | query_param | none
+  # url = /api/v1/*, header = X-API-Version, query_param = ?version=1
+  versioning: null
+
+  # Pagination strategy: cursor | offset | none
+  pagination: null
+
+  # Error response format: rfc7807 | custom | simple
+  # rfc7807 = Problem Details (RFC 7807), custom = project-specific schema
+  error_format: null
+
+  # Rate limiting approach: token_bucket | sliding_window | fixed_window | none
+  rate_limiting: null
+
+  # Idempotency requirement: required | optional | none
+  idempotency: null
+
+# ============================================================================
+# BACKEND CONFIGURATION
+# ============================================================================
+backend:
+  # Primary language: typescript | python | go | java | csharp | rust
+  language: null
+
+  # Runtime version (e.g., "node:20", "python:3.12")
+  runtime_version: null
+
+  # Web framework (e.g., "express", "fastapi", "gin", "spring-boot")
+  framework: null
+
+  # ORM / Data layer (e.g., "prisma", "drizzle", "sqlalchemy", "gorm")
+  orm: null
+
+  # Authentication method: jwt | session | oauth2 | api_key
+  auth_method: null
+
+  # Authorization pattern: rbac | abac | simple | none
+  auth_pattern: null
+
+# ============================================================================
+# FRONTEND CONFIGURATION
+# ============================================================================
+frontend:
+  # Framework: react | vue | angular | svelte | nextjs | nuxt | none
+  framework: null
+
+  # UI component library (e.g., "shadcn", "mui", "chakra", "tailwind-headless")
+  ui_library: null
+
+  # Styling approach: tailwind | css-modules | styled-components | scss
+  styling: null
+
+  # State management: zustand | redux | context | tanstack-query | none
+  state_management: null
+
+  # Form handling: react-hook-form | formik | native
+  form_library: null
+
+  # Validation library: zod | yup | joi | native
+  validation_library: null
+
+# ============================================================================
+# DATABASE CONFIGURATION
+# ============================================================================
+database:
+  # Database type: postgresql | mysql | mongodb | sqlite
+  type: null
+
+  # Tenancy model: shared_db_tenant_id | shared_db_schema | separate_db | single_tenant
+  tenancy_model: null
+
+  # Soft delete enabled: true | false
+  soft_delete: null
+
+  # Audit columns (created_at, updated_at, etc.): true | false
+  audit_columns: null
+
+  # Migration strategy: expand_contract | direct | versioned
+  migration_strategy: null
+
+# ============================================================================
+# TESTING CONFIGURATION
+# ============================================================================
+testing:
+  # Unit test framework (e.g., "jest", "vitest", "pytest", "go-test")
+  unit_framework: null
+
+  # E2E test framework (e.g., "playwright", "cypress", "selenium")
+  e2e_framework: null
+
+  # Minimum coverage target (percentage, e.g., 80)
+  coverage_target: null
+
+# ============================================================================
+# INFRASTRUCTURE CONFIGURATION
+# ============================================================================
+infrastructure:
+  # CI/CD platform: github-actions | gitlab-ci | jenkins | circleci
+  ci_cd: null
+
+  # Container runtime: docker | podman | none
+  container: null
+
+  # Cloud provider: aws | gcp | azure | vercel | railway | none
+  cloud_provider: null
+
+  # Deployment strategy: rolling | blue_green | canary
+  deployment_strategy: null
+
+# ============================================================================
+# CONVENTIONS
+# ============================================================================
+conventions:
+  # Variable/function naming: camelCase | snake_case | PascalCase
+  variables: null
+
+  # File naming: kebab-case | snake_case | camelCase | PascalCase
+  files: null
+
+  # Class/component naming: PascalCase | camelCase
+  classes: null
+
+  # Commit message format: conventional | angular | simple
+  commits: null
+
+# ============================================================================
+# UI/UX SPECIFICATIONS
+# ============================================================================
+ui_specs:
+  # Dark mode support: true | false
+  dark_mode: null
+
+  # Mobile responsive: true | false
+  responsive: null
+
+  # Accessibility standard: wcag-aa | wcag-aaa | basic | none
+  accessibility: null
+
+  # Animation library: framer-motion | react-spring | css | none
+  animations: null
+
+  # Design token source: figma | css-variables | tokens-json | none
+  design_tokens: null
+
+# ============================================================================
+# FEATURE TRACKING
+# ============================================================================
+# Lists which specs have used these defaults (auto-populated)
+applied_to: []
+# Example:
+# - feature: user-management
+#   spec_path: specs/user-management/spec.md
+#   applied_at: 2026-02-05

@@ -111,6 +111,28 @@ if (-not (Test-Path $specsDir)) {
     New-Item -ItemType Directory -Path $specsDir | Out-Null
 }
 
+# Create specs/_defaults/ with registry files
+Write-Host "[REG]  Setting up Project Defaults Registry..." -ForegroundColor Green
+$defaultsDir = Join-Path $specsDir "_defaults"
+if (-not (Test-Path $defaultsDir)) {
+    New-Item -ItemType Directory -Path $defaultsDir | Out-Null
+}
+
+# Copy registry template files
+$registryTemplate = Join-Path $SourcePath "templates\registry-template.yaml"
+$changelogTemplate = Join-Path $SourcePath "templates\registry-changelog-template.md"
+$readmeTemplate = Join-Path $SourcePath "templates\registry-readme-template.md"
+
+if (Test-Path $registryTemplate) {
+    Copy-Item $registryTemplate -Destination (Join-Path $defaultsDir "registry.yaml")
+}
+if (Test-Path $changelogTemplate) {
+    Copy-Item $changelogTemplate -Destination (Join-Path $defaultsDir "changelog.md")
+}
+if (Test-Path $readmeTemplate) {
+    Copy-Item $readmeTemplate -Destination (Join-Path $defaultsDir "README.md")
+}
+
 # Create a basic .gitignore if it doesn't exist
 $gitignorePath = Join-Path $TargetPath ".gitignore"
 if (-not (Test-Path $gitignorePath)) {

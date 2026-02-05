@@ -67,6 +67,11 @@ Load only the minimal necessary context from each artifact:
 
 - Load `/memory/constitution.md` for principle validation
 
+**From registry (per Constitution Directive 7):**
+
+- Load `specs/_defaults/registry.yaml` for project defaults validation
+- Extract all non-null values as "expected" tech decisions
+
 ### 3. Build Semantic Models
 
 Create internal representations (do not include raw artifacts in output):
@@ -107,6 +112,18 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Tasks with no mapped requirement/story
 - Non-functional requirements not reflected in tasks (e.g., performance, security)
 
+#### E2. Registry Alignment (per Constitution Directive 7)
+
+- Tech decisions in plan.md that differ from registry without DEVIATION block
+- Missing registry values that should have been set during planning
+- Undocumented deviations from project defaults
+- Tasks using technologies not matching registry (e.g., registry says `zustand` but task uses `redux`)
+
+**Registry alignment issues are automatically HIGH severity** - they indicate either:
+1. Plan was created before registry existed (needs sync)
+2. Deviation was made without proper documentation
+3. Registry was updated but plan/tasks weren't
+
 #### F. Inconsistency
 
 - Terminology drift (same concept named differently across files)
@@ -141,6 +158,12 @@ Output a Markdown report (no file writes) with the following structure:
 |-----------------|-----------|----------|-------|
 
 **Constitution Alignment Issues:** (if any)
+
+**Registry Alignment Issues:** (if any - per Directive 7)
+
+| Key | Registry Value | Plan/Task Value | Status |
+|-----|---------------|-----------------|--------|
+| backend.framework | fastapi | express | ⚠️ UNDOCUMENTED DEVIATION |
 
 **Unmapped Tasks:** (if any)
 

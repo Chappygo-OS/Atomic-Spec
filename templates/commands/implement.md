@@ -24,6 +24,7 @@ Per Constitution Article IX, Directive 3, during implementation you are:
 | Read for navigation | `index.md` | N/A |
 | Read for current task | `T-XXX-[name].md` (ONE file only) | Other task files |
 | Update after completion | `traceability.md` | N/A |
+| Read project defaults | `specs/_defaults/registry.yaml` | N/A |
 | Read full specs | ❌ NEVER | `plan.md`, `spec.md` |
 
 **If you are about to read plan.md or spec.md, STOP. You are violating Context Pinning.**
@@ -38,6 +39,30 @@ Run `{SCRIPT}` from repo root. This script will:
 3. **BLOCK execution if gates fail** - you will see error output
 
 If the script outputs gate failures, report them to the user and **DO NOT PROCEED**.
+
+### 1.5 Load Project Defaults Registry
+
+**Per Constitution Article IX, Directive 7 - Load registry before implementation.**
+
+Read `specs/_defaults/registry.yaml` to get project-wide implementation standards:
+
+1. **Extract relevant implementation defaults**:
+   - `conventions.*` - Naming conventions for code
+   - `backend.*` - Language, framework patterns
+   - `frontend.*` - Component patterns, styling approach
+   - `testing.*` - Test framework, coverage requirements
+
+2. **Apply during implementation**:
+   - Use registry naming conventions for new files/functions
+   - Follow registry patterns for code structure
+   - If task requires a decision not in task file, check registry first
+
+3. **If implementation would deviate from registry**:
+   - The task file should contain explicit DEVIATION block
+   - If no DEVIATION block but code pattern differs, flag for review
+   - Do NOT silently deviate from registry standards
+
+**Note**: Context Pinning still applies - registry is a reference document, not a planning document.
 
 ### 2. Check Checklists Status
 

@@ -33,11 +33,15 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 2. **Load context**: Read FEATURE_SPEC and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
 
-3. **Initial Configuration (HITL)**: Use AskUserQuestion to gather preferences before starting work.
+3. **Load Project Defaults Registry**: Read `specs/_defaults/registry.yaml` per Constitution Directive 7. Extract existing defaults to pre-populate decisions.
 
-4. **Execute plan workflow**: Follow the structure in IMPL_PLAN template with configured preferences.
+4. **Initial Configuration (HITL)**: Use AskUserQuestion to gather preferences before starting work.
 
-5. **Stop and report**: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+5. **Execute plan workflow**: Follow the structure in IMPL_PLAN template with configured preferences.
+
+6. **Registry Sync (HITL)**: After all decisions are made, sync new decisions to registry with user approval.
+
+7. **Stop and report**: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
 
 ## Initial Configuration
 
@@ -138,6 +142,49 @@ Store configuration in plan.md:
 
 ## Phases
 
+### Phase 0.0: Load Project Defaults Registry
+
+**Per Constitution Article IX, Directive 7 - This step is MANDATORY.**
+
+Before any planning work, load the project defaults registry:
+
+1. **Read registry file**:
+   ```
+   Read: specs/_defaults/registry.yaml
+   ```
+
+2. **If registry exists**, extract relevant sections for planning:
+   - `api.*` - API versioning, pagination, error format
+   - `backend.*` - Language, framework, ORM, auth
+   - `frontend.*` - Framework, UI library, state management
+   - `database.*` - Type, tenancy model, migrations
+   - `conventions.*` - Naming conventions
+   - `ui_specs.*` - Dark mode, responsive, accessibility
+
+3. **If registry doesn't exist**, warn user:
+   ```
+   ══════════════════════════════════════════════════════════════
+   ⚠️ PROJECT DEFAULTS REGISTRY NOT FOUND
+   ══════════════════════════════════════════════════════════════
+
+   No registry found at specs/_defaults/registry.yaml
+
+   This may mean:
+   - Project was initialized before registry feature was added
+   - Registry was accidentally deleted
+
+   All decisions in this plan will be feature-specific unless
+   you choose to create a registry during this session.
+   ══════════════════════════════════════════════════════════════
+   ```
+
+4. **Store loaded defaults** for use in subsequent phases:
+   - These will pre-populate tech stack decisions
+   - Any decision matching registry = Source: "Registry"
+   - Any decision NOT in registry = Source: "Assumed" (candidate for registry)
+
+**Output**: Registry defaults loaded into planning context
+
 ### Phase 0: Outline & Research
 
 1. **Extract unknowns from Technical Context** above:
@@ -176,19 +223,24 @@ After Phase 0 completes, present the tech stack and get approval:
    🛑 TECH STACK REVIEW - Phase 0.5 Checkpoint
    ══════════════════════════════════════════════════════════════
 
-   Based on your spec and research, here are the resolved technical decisions:
+   Based on your spec, registry defaults, and research:
 
-   | Decision          | Value             | Source   |
-   |-------------------|-------------------|----------|
-   | Language/Version  | [value]           | Spec/Assumed |
-   | Primary Framework | [value]           | Spec/Assumed |
-   | Storage           | [value]           | Spec/Assumed |
-   | ORM/Data Layer    | [value]           | Spec/Assumed |
-   | Testing Framework | [value]           | Spec/Assumed |
-   | Target Platform   | [value]           | Spec/Assumed |
+   | Decision          | Value             | Source       |
+   |-------------------|-------------------|--------------|
+   | Language/Version  | [value]           | Registry/Spec/Assumed |
+   | Primary Framework | [value]           | Registry/Spec/Assumed |
+   | Storage           | [value]           | Registry/Spec/Assumed |
+   | ORM/Data Layer    | [value]           | Registry/Spec/Assumed |
+   | Testing Framework | [value]           | Registry/Spec/Assumed |
+   | Target Platform   | [value]           | Registry/Spec/Assumed |
 
-   ⚠️ ASSUMPTIONS (not explicit in spec):
-   [list assumptions with rationale]
+   Source Legend:
+   - Registry = From specs/_defaults/registry.yaml (project standard)
+   - Spec = Explicitly stated in feature spec
+   - Assumed = Inferred by AI (candidate for registry)
+
+   ⚠️ NEW DECISIONS (not in registry - will prompt to add):
+   [list decisions with Source: "Assumed"]
    ══════════════════════════════════════════════════════════════
    ```
 
@@ -548,6 +600,107 @@ After tech stack validation, if the feature involves frontend/UI, present contex
    - Review Depth = "Auto-approve" (log choices automatically)
 
 **Output**: User-approved UI specifications recorded in plan.md
+
+### Phase 0.9: Registry Sync Checkpoint (HITL #4)
+
+**Per Constitution Article IX, Directive 7 - This checkpoint is MANDATORY.**
+
+After all tech decisions are approved, sync new decisions to the project registry:
+
+1. **Collect all new decisions** that are NOT already in registry:
+   - From Phase 0.5: Language, framework, ORM, database, etc.
+   - From Phase 0.8: UI library, state management, form handling, etc.
+   - Any conventions selected
+
+2. **Present registry sync summary**:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   📋 REGISTRY SYNC - Phase 0.9 Checkpoint
+   ══════════════════════════════════════════════════════════════
+
+   The following decisions were made in this planning session
+   and are NOT yet in the project defaults registry:
+
+   | Key                      | Value           | Add to Registry? |
+   |--------------------------|-----------------|------------------|
+   | backend.language         | typescript      | Candidate        |
+   | backend.framework        | express         | Candidate        |
+   | frontend.ui_library      | shadcn          | Candidate        |
+   | frontend.state_management| zustand         | Candidate        |
+   | api.versioning           | url             | Candidate        |
+
+   Adding these to the registry means ALL future features
+   will use these as defaults (with HITL override option).
+   ══════════════════════════════════════════════════════════════
+   ```
+
+3. **Use AskUserQuestion for each candidate** (batch if many):
+
+   ```
+   Question: "Add these decisions to project defaults registry?"
+   Header: "Registry Sync"
+   Options:
+     - Label: "Add all to registry (Recommended)"
+       Description: "All decisions become project defaults for future features"
+     - Label: "Select which to add"
+       Description: "I'll choose which decisions to add individually"
+     - Label: "Skip - keep feature-specific"
+       Description: "Don't add any to registry, only apply to this feature"
+   ```
+
+4. **If "Select which to add"**, present each decision:
+
+   ```
+   Question: "Add [key] = [value] to project defaults?"
+   Header: "[category]"
+   Options:
+     - Label: "Yes, add to registry"
+       Description: "Future features will use this by default"
+     - Label: "No, feature-specific only"
+       Description: "Only this feature uses this setting"
+   ```
+
+5. **Update registry files** for approved additions:
+
+   a. **Update `specs/_defaults/registry.yaml`**:
+      - Set each approved key to its value
+      - Update `last_updated` to current timestamp
+      - Update `last_updated_by: human`
+      - Add feature to `applied_to` list
+
+   b. **Append to `specs/_defaults/changelog.md`**:
+      ```markdown
+      ### [DATE] | [key.path]
+      - **Changed**: `null` → `[value]`
+      - **Why**: Decided during [feature-name] planning
+      - **Source**: specs/[feature-name]/plan.md
+      - **Approved by**: Human (accept)
+      ```
+
+6. **Report sync results**:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   ✅ REGISTRY SYNC COMPLETE
+   ══════════════════════════════════════════════════════════════
+
+   Added to registry: [count] decisions
+   Kept feature-specific: [count] decisions
+
+   Updated files:
+   - specs/_defaults/registry.yaml
+   - specs/_defaults/changelog.md
+
+   Future features will inherit these project defaults.
+   ══════════════════════════════════════════════════════════════
+   ```
+
+7. **Skip conditions**:
+   - No new decisions were made (all came from registry)
+   - Review Depth = "Auto-approve" (add all automatically, log in changelog)
+
+**Output**: Registry updated with user-approved defaults, changelog appended
 
 ### Phase 1: Design & Contracts
 

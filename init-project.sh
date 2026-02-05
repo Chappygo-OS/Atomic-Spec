@@ -107,6 +107,21 @@ if [[ ! -d "$TARGET_PATH/specs" ]]; then
     mkdir -p "$TARGET_PATH/specs"
 fi
 
+# Create specs/_defaults/ with registry files
+echo "📋 Setting up Project Defaults Registry..."
+mkdir -p "$TARGET_PATH/specs/_defaults"
+
+# Copy registry template files
+if [[ -f "$SOURCE_DIR/templates/registry-template.yaml" ]]; then
+    cp "$SOURCE_DIR/templates/registry-template.yaml" "$TARGET_PATH/specs/_defaults/registry.yaml"
+fi
+if [[ -f "$SOURCE_DIR/templates/registry-changelog-template.md" ]]; then
+    cp "$SOURCE_DIR/templates/registry-changelog-template.md" "$TARGET_PATH/specs/_defaults/changelog.md"
+fi
+if [[ -f "$SOURCE_DIR/templates/registry-readme-template.md" ]]; then
+    cp "$SOURCE_DIR/templates/registry-readme-template.md" "$TARGET_PATH/specs/_defaults/README.md"
+fi
+
 # Create a basic .gitignore if it doesn't exist
 if [[ ! -f "$TARGET_PATH/.gitignore" ]]; then
     echo "📝 Creating .gitignore..."

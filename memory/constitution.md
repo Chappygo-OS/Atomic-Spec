@@ -171,6 +171,67 @@ After Phase 0 (Research) completes and before Phase 1 (Design) begins:
 - All Technical Context fields were explicit in spec (no assumptions)
 - User passes `--no-review` flag (expert mode, assumes full responsibility)
 
+#### Directive 7: Project Defaults Registry (Consistency Enforcement)
+
+The **Project Defaults Registry** at `specs/_defaults/registry.yaml` is the single source of truth for project-wide technical decisions. ALL commands, agents, and phases MUST obey this protocol.
+
+**Registry Location**:
+```
+specs/_defaults/
+├── registry.yaml     # Source of truth (structured defaults)
+├── changelog.md      # Audit trail (what/when/why/who)
+└── README.md         # Documentation
+```
+
+**Protocol - On Entry (Before Any Work)**:
+
+1. **Read** `specs/_defaults/registry.yaml`
+2. **Filter** to relevant sections (backend work → `api`, `backend`, `database`)
+3. **Apply** registry values as non-negotiable defaults
+
+**Protocol - During Work (Decision Detection)**:
+
+| Situation | Action |
+|-----------|--------|
+| Decision EXISTS in registry | Use it. No deviation without HITL approval. |
+| Decision NOT in registry (null) | Ask via `AskUserQuestion`: "Add to project defaults?" |
+| Need to DEVIATE from registry | Ask via `AskUserQuestion`: "Approve deviation?" + document |
+
+**Protocol - On Exit (After Phase Completes)**:
+
+1. **Scan** output for new project-wide decisions
+2. **Prompt** user for each: "Add as project default?"
+3. **Update** registry.yaml AND changelog.md if approved
+
+**HITL Requirements for Registry Updates**:
+
+Every registry change MUST:
+1. Go through `AskUserQuestion` - no silent updates
+2. Provide clear explanation: what's changing, why, impact
+3. Allow user to: Accept / Reject / Provide custom value
+4. Log in `changelog.md` with full audit trail:
+   - **Changed**: old → new
+   - **Why**: rationale
+   - **Source**: which spec/phase
+   - **Approved by**: Human (accept/custom/reject)
+
+**Deviation Documentation**:
+
+If a spec deviates from registry defaults, it MUST include:
+
+```markdown
+DEVIATION from project-registry:
+- Key: [key.path]
+- Default: [registry_value]
+- This spec uses: [different_value]
+- Reason: [justification]
+- Approved: Human (YYYY-MM-DD)
+```
+
+**Violation**: Using a value different from registry without explicit DEVIATION block and HITL approval is a Constitution violation.
+
+**Rationale**: Prevents inconsistency (e.g., some APIs versioned, some not). Ensures all technical decisions are intentional and traceable.
+
 ### Article X: The Assembly Line Manual
 
 The **Assembly Line Manual** (located in `.specify/knowledge/stations/`) is the authoritative procedural guide for all implementation details.

@@ -48,6 +48,30 @@ Run `{SCRIPT}` from repo root. This script will:
 
 If the script outputs gate failures, report them to the user and **DO NOT PROCEED**.
 
+### 1.5 Load Project Defaults Registry
+
+**Per Constitution Article IX, Directive 7 - Load registry before generating tasks.**
+
+Read `specs/_defaults/registry.yaml` to ensure tasks follow project standards:
+
+1. **Extract relevant standards for task generation**:
+   - `conventions.*` - File naming, function naming for task file paths
+   - `backend.*` - Language/framework for verification commands
+   - `frontend.*` - Framework for component task patterns
+   - `testing.*` - Test framework for verification commands
+
+2. **Apply to task generation**:
+   - Use registry conventions for file paths in tasks (e.g., `kebab-case` vs `snake_case`)
+   - Use registry test framework in verification commands (e.g., `npm test` vs `pytest`)
+   - Reference registry patterns when specifying implementation steps
+
+3. **Include registry reference in tasks** (when applicable):
+   ```markdown
+   ### Project Standards (from registry)
+   - Naming: [conventions.files] for files, [conventions.variables] for code
+   - Testing: [testing.unit_framework]
+   ```
+
 ### 2. Load Design Documents
 
 Read from FEATURE_DIR:

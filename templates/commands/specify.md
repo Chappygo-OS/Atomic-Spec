@@ -27,6 +27,32 @@ The text the user typed after `/speckit.specify` in the triggering message **is*
 
 Given that feature description, do this:
 
+0. **Check Project Defaults Registry** (per Constitution Directive 7):
+
+   Read `specs/_defaults/registry.yaml` to check for existing project defaults.
+
+   If registry exists with values set, inform user:
+   ```
+   ══════════════════════════════════════════════════════════════
+   📋 PROJECT DEFAULTS DETECTED
+   ══════════════════════════════════════════════════════════════
+
+   This project has established defaults that will be applied
+   during the planning phase:
+
+   | Category | Key Settings |
+   |----------|--------------|
+   | Backend  | [language], [framework], [orm] |
+   | Frontend | [framework], [ui_library] |
+   | API      | [versioning], [pagination] |
+
+   These can be overridden per-feature during /speckit.plan
+   with explicit justification.
+   ══════════════════════════════════════════════════════════════
+   ```
+
+   If registry is empty or doesn't exist, this step is silent (no warning needed here - plan.md handles it).
+
 1. **Generate a concise short name** (2-4 words) for the branch:
    - Analyze the feature description and extract the most meaningful keywords
    - Create a 2-4 word short name that captures the essence of the feature
