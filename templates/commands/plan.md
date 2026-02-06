@@ -213,41 +213,75 @@ Before any planning work, load the project defaults registry:
 
 **Per Constitution Article IX, Directive 8 - This step is MANDATORY.**
 
-Before designing, load relevant stations and subagents based on feature domains:
+Before designing, load relevant stations and subagents based on feature domains.
 
-1. **Detect feature domains** from `spec.md`:
+**⚠️ DO NOT hard-code agent names. Use dynamic discovery.**
 
-   Scan the spec for domain indicators:
+1. **Discover available subagents**:
 
-   | Indicator in Spec | Domain | Load From |
-   |-------------------|--------|-----------|
-   | API endpoints, REST, routes | API Design | `.specify/subagents/backend-architect.md` OR Station 06 |
-   | Database, entities, models | Data Architecture | `.specify/subagents/data-architecture.md` OR Station 07 |
-   | Login, auth, JWT, sessions | Authentication | `.specify/subagents/auth-rbac.md` OR Station 08 |
-   | Payment, billing, subscription | Payments | `.specify/subagents/payment-integration.md` OR Station 09 |
-   | UI, components, pages | Frontend | `.specify/subagents/frontend-developer.md` OR Station 10 |
-   | Tests, coverage | Testing | `.specify/subagents/test-runner.md` OR Station 12 |
-   | Deploy, CI/CD, containers | Deployment | `.specify/subagents/deployment-engineer.md` OR Station 15 |
+   a. **Scan the subagents folder** at `.specify/subagents/`:
+      - List all `*.md` files in the folder
+      - **Exclude** files starting with `_` (e.g., `_index.md`, `_template.md`)
+      - Also scan `.specify/subagents/custom/` for project-specific agents
 
-2. **For each relevant domain**:
+   b. **For each subagent file found**, read the YAML frontmatter to extract:
+      - `name`: The subagent identifier
+      - `description`: What it does and when to use it (contains matching keywords)
 
-   a. **Try loading subagent first** (faster, distilled knowledge):
+   c. **Build an agent catalog** with extracted descriptions:
       ```
-      Read: .specify/subagents/[domain].md
-      ```
-
-   b. **If subagent doesn't exist**, fall back to full station:
-      ```
-      Read: .specify/knowledge/stations/[XX]-[domain].md
+      | Agent Name | Description (for matching) |
+      |------------|---------------------------|
+      | [name from frontmatter] | [description from frontmatter] |
+      | ... | ... |
       ```
 
-   c. **Extract and store**:
+2. **Extract domain keywords from spec.md**:
+
+   Scan the feature specification for domain-relevant terms:
+   - Technical terms: API, database, auth, payment, UI, tests, deploy, etc.
+   - User story contexts: "user can pay", "admin dashboard", "login flow"
+   - Entity mentions: users, orders, subscriptions, products, etc.
+   - Actions: create, update, delete, search, filter, etc.
+
+3. **Match spec keywords to agent descriptions** (semantic similarity):
+
+   For each agent in the catalog:
+   a. Check if agent's `description` contains keywords from the spec
+   b. Check if spec context relates to agent's stated purpose
+   c. **Score match quality**:
+      - Multiple keyword matches → Strong match (load this agent)
+      - Single keyword match → Moderate match (consider loading)
+      - No overlap → Do not load
+
+   **Example matching**:
+   - Spec mentions "REST API", "endpoints" → Agent with "REST, API, microservice" in description → Match
+   - Spec mentions "payment", "subscription" → Agent with "payment, billing, stripe" → Match
+   - Spec mentions "React components" → Agent with "components, UI, frontend" → Match
+
+4. **For each matched agent**:
+
+   a. **Load the subagent file**:
+      ```
+      Read: .specify/subagents/[matched-agent-name].md
+      ```
+
+   b. **Extract and store**:
       - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
       - Gate criteria checklists
       - Common pitfalls to avoid
       - Required outputs/artifacts
 
-3. **If NO knowledge base exists** (no stations, no subagents):
+5. **If no subagents exist but stations might help**:
+
+   Fall back to station discovery:
+   ```
+   Read: .specify/knowledge/stations/00-station-map.md
+   → Find relevant station for unmatched domain
+   → Read: .specify/knowledge/stations/[XX]-[domain].md
+   ```
+
+6. **If NO knowledge base exists** (no stations, no subagents):
 
    Use AskUserQuestion:
    ```

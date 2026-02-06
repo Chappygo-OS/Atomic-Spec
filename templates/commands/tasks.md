@@ -287,21 +287,36 @@ Per the Knowledge Wiring Plan, during `/speckit.implement`, Context Pinning prev
 
    If registry doesn't exist: Note "No registry - using plan.md decisions"
 
-2. **Load Domain Rules** based on task type:
+2. **Load Domain Rules** based on task type (DYNAMIC DISCOVERY):
 
-   | Task Domain | Load From |
-   |-------------|-----------|
-   | Database/entities | `.specify/subagents/data-architecture.md` OR Station 07 |
-   | API endpoints | `.specify/subagents/backend-architect.md` OR Station 06 |
-   | Authentication | `.specify/subagents/auth-rbac.md` OR Station 08 |
-   | Payments | `.specify/subagents/payment-integration.md` OR Station 09 |
-   | Frontend components | `.specify/subagents/frontend-developer.md` OR Station 10 |
-   | Testing | `.specify/subagents/test-runner.md` OR Station 12 |
+   **⚠️ DO NOT hard-code agent names. Match dynamically.**
 
-   Extract and embed:
-   - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
-   - Required checks (e.g., "No naked queries")
-   - Gate criteria checklist
+   a. **Scan available subagents** at `.specify/subagents/`:
+      - List all `*.md` files (exclude files starting with `_`)
+      - Read YAML frontmatter to get `name` and `description` for each
+
+   b. **For each task**, extract domain keywords:
+      - Task objective keywords (e.g., "create repository", "add API endpoint")
+      - Files being created/modified (e.g., `repositories/`, `routes/`, `components/`)
+      - Technical terms in implementation steps
+
+   c. **Match task keywords to agent descriptions**:
+      - Compare task keywords against each agent's `description` field
+      - Select the agent with best keyword overlap
+      - **Example matches**:
+        - Task creates `repositories/*.ts` → Agent with "database", "data access" in description
+        - Task creates `routes/*.ts` → Agent with "API", "REST", "endpoints" in description
+        - Task creates `components/*.tsx` → Agent with "frontend", "UI", "components" in description
+
+   d. **Load matched agent and extract**:
+      - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
+      - Required checks (e.g., "No naked queries")
+      - Gate criteria checklist
+
+   e. **If no agent matches**, try station fallback:
+      - Read `.specify/knowledge/stations/00-station-map.md`
+      - Find relevant station based on task domain
+      - Extract rules from station file
 
    If neither subagent nor station exists: Note "No domain knowledge - using plan.md decisions"
 
