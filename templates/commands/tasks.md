@@ -258,6 +258,118 @@ npm run dev & sleep 5 && curl -s http://localhost:3000/feature | grep -q "Featur
 
 **DO NOT proceed to Section 4.3 until every User Story has wiring tasks.**
 
+#### 4.2.2 Embed Context into Task Files (MANDATORY)
+
+⚠️ **CRITICAL: This section enables self-contained implementation (Constitution Directive 8).**
+
+Per the Knowledge Wiring Plan, during `/speckit.implement`, Context Pinning prevents subagents from reading:
+- `plan.md`, `spec.md`
+- `.specify/knowledge/stations/*`
+- `.specify/subagents/*`
+- Other task files
+
+**Therefore, ALL context must be embedded INTO each task file during generation.**
+
+**Context Embedding Process:**
+
+1. **Load Registry Standards** (if `specs/_defaults/registry.yaml` exists):
+   ```markdown
+   ### Project Standards (from registry)
+   | Key | Value |
+   |-----|-------|
+   | `architecture.pattern` | [value from registry] |
+   | `architecture.layers` | [value from registry] |
+   | `code_patterns.data_access` | [value from registry] |
+   | `code_patterns.error_handling` | [value from registry] |
+   | `database.tenancy_model` | [value from registry] |
+   | `conventions.files` | [value from registry] |
+   ```
+
+   If registry doesn't exist: Note "No registry - using plan.md decisions"
+
+2. **Load Domain Rules** based on task type:
+
+   | Task Domain | Load From |
+   |-------------|-----------|
+   | Database/entities | `.specify/subagents/data-architecture.md` OR Station 07 |
+   | API endpoints | `.specify/subagents/backend-architect.md` OR Station 06 |
+   | Authentication | `.specify/subagents/auth-rbac.md` OR Station 08 |
+   | Payments | `.specify/subagents/payment-integration.md` OR Station 09 |
+   | Frontend components | `.specify/subagents/frontend-developer.md` OR Station 10 |
+   | Testing | `.specify/subagents/test-runner.md` OR Station 12 |
+
+   Extract and embed:
+   - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
+   - Required checks (e.g., "No naked queries")
+   - Gate criteria checklist
+
+   If neither subagent nor station exists: Note "No domain knowledge - using plan.md decisions"
+
+3. **Load API Context** (if task involves API):
+   - Read `FEATURE_DIR/contracts/*.yaml` or `contracts/*.md`
+   - Extract relevant endpoint signatures
+   - Embed as YAML snippet in task file
+
+4. **Load Feature Summary**:
+   - Read `plan.md` (this is during /speckit.tasks, not /speckit.implement)
+   - Extract one-paragraph feature summary
+   - Embed in task file
+
+5. **Load Gate Criteria**:
+   - From the subagent loaded in step 2
+   - Extract the "Gate Criteria" checklist
+   - Embed as checkboxes in task file
+
+**Graceful Degradation (when knowledge sources don't exist):**
+
+| Missing Source | Action |
+|----------------|--------|
+| Registry | Embed: "No registry - using plan.md decisions" + extract patterns from plan.md |
+| Subagent | Check for full station file, extract key rules |
+| Station | Embed: "No domain knowledge available" |
+| Contracts | Skip API Context section |
+| Everything | Embed plan.md decisions directly, note limited context |
+
+**NEVER fail task generation due to missing knowledge. Always produce tasks with whatever context is available.**
+
+**Example Embedded Context:**
+
+```markdown
+## 📋 Embedded Context (READ THIS FIRST)
+
+### Project Standards (from registry)
+| Key | Value |
+|-----|-------|
+| `architecture.layers` | clean |
+| `code_patterns.data_access` | repository |
+| `code_patterns.error_handling` | result_type |
+| `database.tenancy_model` | shared_db_tenant_id |
+| `conventions.files` | kebab-case |
+
+### Domain Rules (from data-architecture subagent)
+- **Tenancy**: Every query MUST filter by `tenant_id`
+- **No naked queries**: All DB access through repository methods only
+- **Audit columns**: Include `created_at`, `updated_at`, `created_by`
+- **Soft delete**: Use `deleted_at` instead of hard delete
+
+### API Context (from contracts/)
+```yaml
+POST /api/v1/users → createUser(data, tenantId)
+GET /api/v1/users/:id → getUserById(id, tenantId)
+```
+
+### Feature Summary
+This feature implements user management for the multi-tenant SaaS platform,
+allowing administrators to create, update, and manage user accounts within
+their organization.
+
+### Gate Criteria (from data-architecture subagent)
+- [ ] Repository interface defined with tenant-scoped methods
+- [ ] No direct ORM calls outside repository
+- [ ] All queries filter by tenant_id
+- [ ] Audit columns handled automatically
+```
+
 #### 4.3 Generate index.md
 
 Create `FEATURE_DIR/index.md` using `templates/index-template.md`:

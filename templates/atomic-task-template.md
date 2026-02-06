@@ -1,8 +1,87 @@
 # Task: [ID] - [NAME]
 
+**Status**: Pending
+**Created**: [DATE] | **Completed**: N/A
 **User Story**: [STORY ID] (e.g., US1)
 **Requirement**: [REQ ID] (e.g., FR-005)
-**Station Reference**: [e.g., Station 04 for API rules]
+
+---
+
+## 📋 Embedded Context (READ THIS FIRST)
+
+<!--
+  SELF-CONTAINED TASK (Constitution Directive 8):
+  This section contains ALL context needed to implement this task.
+  Do NOT read plan.md, spec.md, stations, or subagents.
+
+  If this section is empty or insufficient, report as task quality issue.
+-->
+
+### Project Standards (from registry)
+
+<!--
+  Extracted from specs/_defaults/registry.yaml during /speckit.tasks
+  If no registry exists, this section will note "No registry - using plan.md decisions"
+-->
+
+| Key | Value |
+|-----|-------|
+| `architecture.pattern` | [e.g., monolith, microservices] |
+| `architecture.layers` | [e.g., clean, vertical_slice, mvc] |
+| `code_patterns.data_access` | [e.g., repository, active_record, query_builder] |
+| `code_patterns.error_handling` | [e.g., exceptions, result_type, error_codes] |
+| `code_patterns.validation_approach` | [e.g., schema, manual, decorator] |
+| `database.tenancy_model` | [e.g., shared_db_tenant_id, separate_schema] |
+| `conventions.files` | [e.g., kebab-case, snake_case, PascalCase] |
+| `conventions.variables` | [e.g., camelCase, snake_case] |
+
+### Domain Rules (from subagent/station)
+
+<!--
+  Extracted from relevant .specify/subagents/[domain].md or
+  .specify/knowledge/stations/[XX]-[domain].md during /speckit.tasks
+
+  If no domain knowledge exists, note: "No domain knowledge - using plan.md decisions"
+-->
+
+- **[Rule Category]**: [Rule description]
+- **[Rule Category]**: [Rule description]
+- **Example**: Tenancy: Every query MUST filter by `tenant_id`
+- **Example**: No naked queries: All DB access through repository methods only
+
+### API Context (from contracts/)
+
+<!--
+  Extracted from FEATURE_DIR/contracts/ if this task involves API endpoints.
+  If no contracts exist or not applicable, this section can be removed.
+-->
+
+```yaml
+# Relevant endpoints for this task
+[METHOD] [PATH] → [function](params)
+```
+
+### Feature Summary
+
+<!--
+  One paragraph summarizing the feature this task belongs to.
+  Extracted from plan.md during /speckit.tasks generation.
+-->
+
+[Brief description of the feature and its purpose]
+
+### Gate Criteria (from subagent/station)
+
+<!--
+  Checklist items extracted from the relevant subagent or station.
+  These MUST be verified before marking the task complete.
+-->
+
+- [ ] [Gate criterion 1]
+- [ ] [Gate criterion 2]
+- [ ] [Gate criterion 3]
+
+---
 
 ## 🎯 Objective
 

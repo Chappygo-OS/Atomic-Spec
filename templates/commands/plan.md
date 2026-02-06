@@ -209,6 +209,89 @@ Before any planning work, load the project defaults registry:
 
 **Output**: Registry defaults loaded into planning context
 
+### Phase 0.1: Load Domain Knowledge (Assembly Line Manual)
+
+**Per Constitution Article IX, Directive 8 - This step is MANDATORY.**
+
+Before designing, load relevant stations and subagents based on feature domains:
+
+1. **Detect feature domains** from `spec.md`:
+
+   Scan the spec for domain indicators:
+
+   | Indicator in Spec | Domain | Load From |
+   |-------------------|--------|-----------|
+   | API endpoints, REST, routes | API Design | `.specify/subagents/backend-architect.md` OR Station 06 |
+   | Database, entities, models | Data Architecture | `.specify/subagents/data-architecture.md` OR Station 07 |
+   | Login, auth, JWT, sessions | Authentication | `.specify/subagents/auth-rbac.md` OR Station 08 |
+   | Payment, billing, subscription | Payments | `.specify/subagents/payment-integration.md` OR Station 09 |
+   | UI, components, pages | Frontend | `.specify/subagents/frontend-developer.md` OR Station 10 |
+   | Tests, coverage | Testing | `.specify/subagents/test-runner.md` OR Station 12 |
+   | Deploy, CI/CD, containers | Deployment | `.specify/subagents/deployment-engineer.md` OR Station 15 |
+
+2. **For each relevant domain**:
+
+   a. **Try loading subagent first** (faster, distilled knowledge):
+      ```
+      Read: .specify/subagents/[domain].md
+      ```
+
+   b. **If subagent doesn't exist**, fall back to full station:
+      ```
+      Read: .specify/knowledge/stations/[XX]-[domain].md
+      ```
+
+   c. **Extract and store**:
+      - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
+      - Gate criteria checklists
+      - Common pitfalls to avoid
+      - Required outputs/artifacts
+
+3. **If NO knowledge base exists** (no stations, no subagents):
+
+   Use AskUserQuestion:
+   ```
+   Question: "No Assembly Line knowledge base found. How should we proceed?"
+   Header: "Knowledge"
+   Options:
+     - Label: "Use general best practices (Recommended)"
+       Description: "AI will use training knowledge - less SaaS-specific"
+     - Label: "Set up defaults now"
+       Description: "I'll answer questions to establish patterns"
+     - Label: "Import from template"
+       Description: "Use a standard SaaS template as starting point"
+   ```
+
+4. **Report loaded knowledge**:
+
+   ```
+   ══════════════════════════════════════════════════════════════
+   📚 DOMAIN KNOWLEDGE LOADED
+   ══════════════════════════════════════════════════════════════
+
+   Detected domains from spec:
+   - [domain 1]: Loaded from [subagent/station]
+   - [domain 2]: Loaded from [subagent/station]
+   - [domain 3]: No knowledge available - using general practices
+
+   Key rules that will be applied:
+   - [Rule 1 from domain 1]
+   - [Rule 2 from domain 1]
+   - [Rule 3 from domain 2]
+
+   Gate criteria to verify:
+   - [ ] [Gate from domain 1]
+   - [ ] [Gate from domain 2]
+   ══════════════════════════════════════════════════════════════
+   ```
+
+5. **Store loaded knowledge** for use in subsequent phases:
+   - These patterns inform data model design
+   - Gate criteria will be embedded in task files during `/speckit.tasks`
+   - Rules will be applied during code review
+
+**Output**: Domain knowledge loaded into planning context, rules documented
+
 ### Phase 0: Outline & Research
 
 1. **Extract unknowns from Technical Context** above:
