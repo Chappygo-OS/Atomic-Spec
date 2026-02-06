@@ -14,28 +14,36 @@
 
 This fork implements the **Atomic Traceability Model**, a governance upgrade based on the "Andre/Mable AI workflow" that enforces:
 
-1. **Constitutional Prime Directives** - Six non-negotiable rules in `memory/constitution.md` (Article IX)
+1. **Constitutional Prime Directives** - Eight non-negotiable rules in `memory/constitution.md` (Article IX)
 2. **Knowledge Station Gates** - 18 governance checkpoints that MUST pass before phase transitions
 3. **Atomic Task Structure** - Individual task files instead of a single `tasks.md`
 4. **Context Pinning** - During implementation, AI can ONLY read `index.md` + current task file
-5. **Human-In-The-Loop** - Mandatory tech stack review checkpoint before design phase
+5. **Human-In-The-Loop** - Mandatory checkpoints for tech stack, validation, UI, and registry sync
+6. **Project Defaults Registry** - Central source of truth for project-wide technical decisions
+7. **Self-Contained Tasks** - All context embedded INTO task files for implementation
+8. **Dynamic Agent Discovery** - 21+ specialized subagents matched by semantic similarity
 
-### The Six Prime Directives
+### The Eight Prime Directives
 
 | Directive | Rule |
 |-----------|------|
-| **Directory Supremacy** | Every feature MUST have an `index.md` (dashboard) and `traceability.md` (matrix) |
-| **Atomic Injunction** | `/speckit.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
-| **Context Pinning** | During `/speckit.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
-| **Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
-| **Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then specific station |
-| **Human-In-The-Loop** | During `/speckit.plan`, AI MUST pause after Phase 0 to present tech stack decisions for user approval before proceeding to Phase 1 |
+| **1. Directory Supremacy** | Every feature MUST have an `index.md` (dashboard) and `traceability.md` (matrix) |
+| **2. Atomic Injunction** | `/speckit.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
+| **3. Context Pinning** | During `/speckit.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
+| **4. Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
+| **5. Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then specific station |
+| **6. Human-In-The-Loop** | During `/speckit.plan`, AI MUST pause at 4 checkpoints for user approval |
+| **7. Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
+| **8. Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
 
 ---
 
 ## Table of Contents
 
 - [Quick Start (Custom Speckit - Exact Assembly Line)](#quick-start-custom-speckit---exact-assembly-line)
+- [Project Defaults Registry](#project-defaults-registry)
+- [Self-Contained Tasks (Knowledge Wiring)](#self-contained-tasks-knowledge-wiring)
+- [Dynamic Agent Discovery](#dynamic-agent-discovery)
 - [Atomic Traceability Workflow](#atomic-traceability-workflow)
 - [Knowledge Stations](#knowledge-stations)
 - [Feature Directory Structure](#feature-directory-structure)
@@ -87,6 +95,202 @@ git checkout -b 001-your-feature-name
 
 ---
 
+## Project Defaults Registry
+
+**Constitution Directive 7** introduces a central source of truth for project-wide technical decisions.
+
+### What It Does
+
+The **Project Defaults Registry** at `specs/_defaults/registry.yaml` stores all project-wide technical decisions:
+
+```yaml
+# specs/_defaults/registry.yaml
+version: 2
+architecture:
+  pattern: monolith          # or microservices, serverless
+  layers: clean              # or mvc, vertical_slice
+  api_style: rest            # or graphql, grpc
+code_patterns:
+  data_access: repository    # or active_record, query_builder
+  error_handling: result_type # or exceptions, error_codes
+  validation_approach: schema # or manual, decorator
+backend:
+  language: typescript
+  framework: express
+database:
+  type: postgresql
+  tenancy_model: shared_db_tenant_id
+# ... 80+ configurable decisions
+```
+
+### How It Works
+
+| Phase | Action |
+|-------|--------|
+| **On Entry** | Every command reads registry, applies existing defaults |
+| **During Work** | New decisions prompt user: "Add to project defaults?" |
+| **On Exit** | Registry sync checkpoint collects all new decisions with HITL approval |
+| **Deviation** | Using a different value requires explicit DEVIATION block + approval |
+
+### HITL Requirements
+
+Every registry change requires Human-In-The-Loop approval:
+
+```
+══════════════════════════════════════════════════════════════
+📋 REGISTRY SYNC - Phase 0.9 Checkpoint
+══════════════════════════════════════════════════════════════
+
+The following decisions were made in this planning session
+and are NOT yet in the project defaults registry:
+
+| Key                      | Value           | Add to Registry? |
+|--------------------------|-----------------|------------------|
+| backend.language         | typescript      | Candidate        |
+| backend.framework        | express         | Candidate        |
+
+Adding these to the registry means ALL future features
+will use these as defaults.
+══════════════════════════════════════════════════════════════
+```
+
+### Audit Trail
+
+All changes are logged in `specs/_defaults/changelog.md`:
+
+```markdown
+### 2026-02-06 | backend.language
+- **Changed**: `null` → `typescript`
+- **Why**: Decided during user-auth feature planning
+- **Source**: specs/001-user-auth/plan.md
+- **Approved by**: Human (accept)
+```
+
+---
+
+## Self-Contained Tasks (Knowledge Wiring)
+
+**Constitution Directive 8** ensures task files contain ALL context needed for implementation.
+
+### The Problem
+
+During `/speckit.implement`, **Context Pinning** (Directive 3) prevents reading:
+- `plan.md`, `spec.md`
+- `.specify/knowledge/stations/*`
+- `.specify/subagents/*`
+- Other task files
+
+This meant subagents were "blind" to project patterns and had to guess.
+
+### The Solution
+
+During `/speckit.tasks`, ALL context is **embedded INTO each task file**:
+
+```markdown
+# T-025-create-user-repository
+
+## 📋 Embedded Context (READ THIS FIRST)
+
+### Project Standards (from registry)
+| Key | Value |
+|-----|-------|
+| `architecture.layers` | clean |
+| `code_patterns.data_access` | repository |
+| `database.tenancy_model` | shared_db_tenant_id |
+
+### Domain Rules (from data-architecture subagent)
+- **Tenancy**: Every query MUST filter by `tenant_id`
+- **No naked queries**: All DB access through repository methods only
+- **Audit columns**: Include `created_at`, `updated_at`, `created_by`
+
+### Gate Criteria (from data-architecture subagent)
+- [ ] Repository interface defined with tenant-scoped methods
+- [ ] No direct ORM calls outside repository
+- [ ] All queries filter by tenant_id
+
+---
+
+## 🎯 Objective
+Create the UserRepository class implementing the repository pattern...
+```
+
+### Graceful Degradation
+
+Not all projects have all knowledge sources:
+
+| Missing Source | Action |
+|----------------|--------|
+| Registry | Embed: "No registry - using plan.md decisions" |
+| Subagent | Check for full station file, extract key rules |
+| Station | Embed: "No domain knowledge available" |
+| Everything | Embed plan.md decisions directly, note limited context |
+
+**Tasks are NEVER blocked by missing knowledge sources.**
+
+---
+
+## Dynamic Agent Discovery
+
+**21 specialized subagents** are available in `.specify/subagents/`, matched dynamically based on feature needs.
+
+### How It Works
+
+Agent selection is **NOT hard-coded**. Instead:
+
+1. **Scan available agents**: Read all `*.md` files in `.specify/subagents/` (excluding `_*` files)
+2. **Extract metadata**: Parse YAML frontmatter for `name` and `description`
+3. **Match by similarity**: Compare spec/task keywords against agent descriptions
+4. **Load relevant agents**: Only agents whose description matches the feature's needs
+
+### Example Matching
+
+```
+Spec mentions "REST API", "endpoints"
+  → Agent description: "Design RESTful APIs, microservice boundaries..."
+  → Match: backend-architect ✓
+
+Spec mentions "payment", "subscription"
+  → Agent description: "Integrate Stripe, PayPal, and payment processors..."
+  → Match: payment-integration ✓
+```
+
+### Available Subagents
+
+| Agent | Domain |
+|-------|--------|
+| `backend-architect` | REST APIs, microservices, database schemas |
+| `data-architecture` | Database design, tenancy models, migrations |
+| `frontend-developer` | React components, responsive layouts, state management |
+| `payment-integration` | Stripe, PayPal, checkout flows, subscriptions |
+| `database-optimizer` | SQL optimization, indexes, query performance |
+| `deployment-engineer` | CI/CD, Docker, Kubernetes, infrastructure |
+| `code-reviewer` | Code quality, security, maintainability |
+| `typescript-pro` | Advanced TypeScript, generics, strict typing |
+| `python-pro` | Idiomatic Python, decorators, async/await |
+| `sql-pro` | Complex SQL, CTEs, window functions |
+| `ui-ux-designer` | Interface design, wireframes, accessibility |
+| `performance-engineer` | Profiling, bottlenecks, caching strategies |
+| `prompt-engineer` | LLM prompts, AI features, agent orchestration |
+| ... and 8 more | See `.specify/subagents/` for full list |
+
+### Adding Custom Agents
+
+Create `.specify/subagents/custom/your-agent.md`:
+
+```yaml
+---
+name: your-agent
+description: Your agent's purpose and keywords for matching
+model: opus  # or sonnet, haiku
+---
+
+Agent instructions here...
+```
+
+The agent will be automatically discovered and matched when features mention keywords from its description.
+
+---
+
 ## Atomic Traceability Workflow
 
 ### Phase Flow
@@ -95,13 +299,31 @@ git checkout -b 001-your-feature-name
 /speckit.specify  -->  /speckit.AnalyzeCompetitors (optional)  -->  /speckit.plan  -->  /speckit.tasks  -->  /speckit.implement
      |                           |                                       |                    |                     |
      v                           v                                       v                    v                     v
-  spec.md                  competitive-analysis/                   Phase 0: Research      tasks/               Execute with
-  + Gates 03-05            summary.md + competitors/               Phase 0.5: HITL #1     T-XXX-*.md           Context Pinning
-                           🛑 User review                          Phase 0.6: Validate    index.md
-                           (accept/revise/reject)                  Phase 0.7: HITL #2     traceability.md
+  spec.md                  competitive-analysis/                   Phase 0.0: Registry    tasks/               Execute with
+  + Gates 03-05            summary.md + competitors/               Phase 0.1: Domain      T-XXX-*.md           Context Pinning
+  + Registry check         🛑 User review                          Phase 0: Research      index.md             + Registry
+                           (accept/revise/reject)                  Phase 0.5: HITL #1     traceability.md      as reference
+                                                                   Phase 0.6: Validate    + Embedded Context
+                                                                   Phase 0.7: HITL #2     (from registry,
+                                                                   Phase 0.8: HITL #3     subagents, gates)
+                                                                   Phase 0.9: HITL #4
                                                                    Phase 1: Design
                                                                    + Gates 06-13
 ```
+
+### Planning Phases Explained
+
+| Phase | Name | Purpose |
+|-------|------|---------|
+| 0.0 | **Load Registry** | Read project defaults, pre-populate tech decisions |
+| 0.1 | **Load Domain Knowledge** | Dynamically discover and load relevant subagents/stations |
+| 0 | **Research** | Resolve unknowns, research best practices |
+| 0.5 | **HITL #1: Tech Stack** | User approves language, framework, database choices |
+| 0.6 | **Validation** | Check package compatibility, deprecation, conflicts |
+| 0.7 | **HITL #2: Validation Review** | User reviews warnings, approves overrides |
+| 0.8 | **HITL #3: UI Specs** | User selects UI library, state management, design system |
+| 0.9 | **HITL #4: Registry Sync** | User approves adding new decisions to project defaults |
+| 1 | **Design** | Generate data models, API contracts, architecture |
 
 ### Competitive Analysis (Optional)
 
@@ -211,39 +433,58 @@ Custom Speckit - Exact Assembly Line includes 18 Knowledge Stations in `.specify
 
 ## Feature Directory Structure
 
-After running the full workflow, your feature directory looks like:
+After running the full workflow, your project looks like:
 
 ```
-specs/001-feature-name/
-├── spec.md              # Feature specification (/speckit.specify)
+your-project/
 │
-│   COMPETITIVE ANALYSIS (optional, /speckit.AnalyzeCompetitors):
+│   PROJECT-WIDE DEFAULTS (/speckit.plan creates, all commands use):
 │
-├── competitive-analysis/
-│   ├── summary.md       # Main reference doc (patterns, pains, wedge)
-│   ├── user-research/   # User's custom materials (if provided)
-│   └── competitors/     # Individual competitor analyses
-│       ├── competitor-1.md
+├── specs/_defaults/
+│   ├── registry.yaml    # Source of truth for project-wide tech decisions
+│   ├── changelog.md     # Audit trail (what/when/why/who)
+│   └── README.md        # Registry documentation
+│
+│   FEATURE-SPECIFIC FILES:
+│
+├── specs/001-feature-name/
+│   ├── spec.md              # Feature specification (/speckit.specify)
+│   │
+│   │   COMPETITIVE ANALYSIS (optional, /speckit.AnalyzeCompetitors):
+│   │
+│   ├── competitive-analysis/
+│   │   ├── summary.md       # Main reference doc (patterns, pains, wedge)
+│   │   ├── user-research/   # User's custom materials (if provided)
+│   │   └── competitors/     # Individual competitor analyses
+│   │       ├── competitor-1.md
+│   │       └── ...
+│   │
+│   │   IMPLEMENTATION PLANNING (/speckit.plan):
+│   │
+│   ├── plan.md              # Implementation plan
+│   ├── research.md          # Technical research
+│   ├── data-model.md        # Database schema
+│   ├── quickstart.md        # Dev setup guide
+│   ├── contracts/           # API contracts (OpenAPI)
+│   │
+│   │   ATOMIC TRACEABILITY STRUCTURE (/speckit.tasks):
+│   │
+│   ├── index.md             # Feature dashboard - THE entry point
+│   ├── traceability.md      # Requirement-to-task mapping matrix
+│   └── tasks/               # Atomic task directory (NOT tasks.md!)
+│       ├── T-001-setup-project.md     # Each task has Embedded Context:
+│       ├── T-010-create-user-model.md # - Project Standards (from registry)
+│       ├── T-020-implement-endpoint.md# - Domain Rules (from subagents)
+│       ├── T-021-add-validation.md    # - Gate Criteria (from stations)
 │       └── ...
 │
-│   IMPLEMENTATION PLANNING (/speckit.plan):
+│   SUBAGENTS (21 specialized agents, dynamically discovered):
 │
-├── plan.md              # Implementation plan
-├── research.md          # Technical research
-├── data-model.md        # Database schema
-├── quickstart.md        # Dev setup guide
-├── contracts/           # API contracts (OpenAPI)
-│
-│   ATOMIC TRACEABILITY STRUCTURE (/speckit.tasks):
-│
-├── index.md             # Feature dashboard - THE entry point
-├── traceability.md      # Requirement-to-task mapping matrix
-└── tasks/               # Atomic task directory (NOT tasks.md!)
-    ├── T-001-setup-project.md
-    ├── T-010-create-user-model.md
-    ├── T-020-implement-endpoint.md
-    ├── T-021-add-validation.md
-    └── ...
+└── .specify/subagents/
+    ├── backend-architect.md
+    ├── data-architecture.md
+    ├── frontend-developer.md
+    └── ... (18 more)
 ```
 
 ### Task File Naming Convention
