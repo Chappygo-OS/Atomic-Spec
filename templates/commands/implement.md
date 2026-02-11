@@ -137,7 +137,66 @@ Check `traceability.md` to confirm all dependency tasks are marked "Done".
 
 If dependencies not met: **SKIP** task, move to next, report blocked status.
 
-#### 4.3 Execute Implementation
+#### 4.2.5 Spawn Subagent for Implementation (IF ENABLED)
+
+**Check if subagents were enabled during planning.**
+
+1. **Read plan.md's "Planning Configuration"** (allowed read for this check only):
+
+   ```markdown
+   ## Planning Configuration
+   | Setting | Value |
+   |---------|-------|
+   | Subagents | Enabled/Disabled |
+   | Available Subagents | [list] |
+   ```
+
+2. **If Subagents = "Disabled"**: Skip to 4.3, implement the task yourself.
+
+3. **If Subagents = "Enabled"**: Match task to an available agent.
+
+   **Extract domain from current task file**:
+   - Check "Domain Rules" section header (e.g., "from data-architecture subagent")
+   - Check file paths in "Files to Create" (e.g., `repositories/` → data-architecture)
+   - Check task objective keywords
+
+4. **Match to available subagent**:
+
+   | Task Domain Indicators | Likely Agent Match |
+   |------------------------|-------------------|
+   | `repositories/`, `models/`, "database" | data-architecture |
+   | `routes/`, `controllers/`, "API", "endpoint" | backend-architect |
+   | `components/`, `pages/`, "React", "UI" | frontend-developer |
+   | `payment`, `billing`, `subscription` | payment-integration |
+   | `*.test.ts`, `*.spec.ts`, "test" | code-reviewer |
+
+5. **Spawn the matched subagent using Task tool**:
+
+   ```
+   Task(
+     subagent_type: "[matched-agent-name]",
+     prompt: "Implement task T-XXX-[name].
+
+       Read the task file at: [FEATURE_DIR]/tasks/T-XXX-[name].md
+
+       Follow the Embedded Context section for:
+       - Project Standards (registry values)
+       - Domain Rules (patterns to follow)
+       - Gate Criteria (must verify before done)
+
+       Implement the code, run verification command, report result.",
+     description: "Implement T-XXX with [agent-name]"
+   )
+   ```
+
+6. **Handle subagent result**:
+   - If subagent reports success → Proceed to 4.4 (verification already done)
+   - If subagent reports failure → Report to user, ask for guidance
+   - If no agent matches → Fall back to 4.3 (implement yourself)
+
+#### 4.3 Execute Implementation (Fallback / No Subagent)
+
+**Use this section if subagents are disabled OR no agent matches the task domain.**
 
 Follow the Implementation Steps from the task file:
 1. Create/modify files as specified

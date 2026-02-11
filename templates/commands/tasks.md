@@ -385,6 +385,63 @@ their organization.
 - [ ] Audit columns handled automatically
 ```
 
+#### 4.2.3 Spawn Subagents for Task Generation (IF ENABLED)
+
+**Check plan.md's "Planning Configuration" section first.**
+
+1. **Read the user's subagent preference** from plan.md:
+
+   ```markdown
+   ## Planning Configuration
+   | Setting | Value |
+   |---------|-------|
+   | Subagents | Enabled/Disabled |
+   | Available Subagents | [list of matched agent names] |
+   ```
+
+2. **If Subagents = "Disabled"**: Skip this section, generate tasks yourself.
+
+3. **If Subagents = "Enabled"**: Use the Task tool to spawn matched agents.
+
+   **For each task that matches a listed subagent's domain:**
+
+   ```
+   Task(
+     subagent_type: "[agent-name-from-plan.md-list]",
+     prompt: "Generate atomic task file for: [task objective].
+
+       Task ID: T-XXX-[name]
+       Requirement: FR-XXX
+
+       Include in task file:
+       - Embedded Context section (registry, domain rules, gates)
+       - Implementation steps with file paths
+       - Verification command
+
+       Use templates/atomic-task-template.md structure.",
+     description: "Generate T-XXX with [agent-name]"
+   )
+   ```
+
+4. **Match tasks to agents dynamically**:
+
+   For each task, check which agent from the "Available Subagents" list matches:
+   - Task creates database/models → Agent with "data" in name/description
+   - Task creates API/routes → Agent with "backend" or "api" in name/description
+   - Task creates UI/components → Agent with "frontend" in name/description
+   - Task involves payments → Agent with "payment" in name/description
+
+5. **Spawn agents in parallel** for efficiency:
+
+   ```
+   # Multiple tasks can be generated simultaneously
+   Task(subagent_type: "data-architecture", prompt: "Generate T-010...", ...)
+   Task(subagent_type: "backend-architect", prompt: "Generate T-020...", ...)
+   Task(subagent_type: "frontend-developer", prompt: "Generate T-030...", ...)
+   ```
+
+6. **Fallback**: If a task doesn't match any available agent, generate it yourself using the embedded context approach from Section 4.2.2.
+
 #### 4.3 Generate index.md
 
 Create `FEATURE_DIR/index.md` using `templates/index-template.md`:
