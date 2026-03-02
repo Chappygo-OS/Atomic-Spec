@@ -132,15 +132,53 @@
 <!--
   Check all that apply. If any are checked, the "Files to Update" section
   MUST contain the corresponding file.
+
+  Use the section matching your platform. Skip sections that don't apply.
 -->
 
+### Web (React/Vue/Next.js/etc.)
 - [ ] **Backend route** → Registered in main app/router file
 - [ ] **Frontend page** → Added to app router configuration
 - [ ] **Navigation** → Link added to sidebar/nav component
 - [ ] **API endpoint** → Frontend store/hook calls this endpoint
 - [ ] **Component** → Rendered by a parent component
+
+### iOS Native (Swift/SwiftUI)
+- [ ] **View/Screen** → Added to NavigationStack/NavigationView
+- [ ] **Tab bar item** → Added to TabView (if top-level feature)
+- [ ] **Deep link route** → Registered in onOpenURL handler
+- [ ] **Entitlement** → Added to .entitlements file (push, IAP, etc.)
+- [ ] **Permission** → NS*UsageDescription added to Info.plist
+- [ ] **StoreKit config** → Product IDs added (if IAP)
+
+### Android Native (Kotlin/Compose)
+- [ ] **Activity/Fragment** → Registered in AndroidManifest.xml
+- [ ] **Composable route** → Added to NavHost/NavGraph
+- [ ] **Navigation item** → Added to BottomNavigation/Drawer
+- [ ] **Deep link route** → Intent filter added to manifest
+- [ ] **Permission** → Added to AndroidManifest.xml
+- [ ] **ProGuard rule** → Added for new dependencies
+
+### React Native
+- [ ] **Screen** → Added to Navigator (Stack/Tab/Drawer)
+- [ ] **Navigation item** → Added to tab bar or drawer
+- [ ] **Deep link route** → Added to linking config
+- [ ] **iOS URL scheme** → Added to Info.plist
+- [ ] **Android intent filter** → Added to AndroidManifest.xml
+- [ ] **Native module** → Linked (pod install + gradle sync)
+
+### Flutter
+- [ ] **Route** → Added to MaterialApp routes or GoRouter
+- [ ] **Navigation item** → Added to BottomNavigationBar/Drawer
+- [ ] **Deep link route** → Added to GoRouter/Navigator config
+- [ ] **iOS permission** → Added to Info.plist
+- [ ] **Android permission** → Added to AndroidManifest.xml
+- [ ] **Dependency** → Added to pubspec.yaml
+
+### Shared (All Platforms)
 - [ ] **Database model** → Migration created
 - [ ] **Environment var** → Added to .env.example
+- [ ] **API client** → Endpoint added to service layer
 
 ## ✅ Verification
 

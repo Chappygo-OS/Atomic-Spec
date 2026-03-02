@@ -175,13 +175,37 @@ For EACH task, create a separate file in `tasks/`:
 <!--
   CRITICAL: If this task creates a new file, it MUST specify what existing files
   need to be updated to "wire" the new file into the application.
+
+  Use the checklist matching your target platform.
 -->
 
+**Web:**
 - [ ] Route registered in main app file (if backend route)
 - [ ] Page added to app router (if frontend page)
 - [ ] Navigation link added (if user-facing page)
 - [ ] Store/hook connected to API endpoint (if API endpoint)
 - [ ] Component rendered by parent (if new component)
+
+**iOS Native:**
+- [ ] View added to NavigationStack/TabView
+- [ ] Deep link route in onOpenURL handler
+- [ ] Entitlement added (if capability needed)
+- [ ] Permission description in Info.plist
+
+**Android Native:**
+- [ ] Activity registered in AndroidManifest.xml
+- [ ] Screen in NavHost/Navigation graph
+- [ ] Permission in manifest (if needed)
+- [ ] ProGuard rule (if new dependency)
+
+**React Native:**
+- [ ] Screen in Navigator (Stack/Tab/Drawer)
+- [ ] Deep link in linking config
+- [ ] Native module linked (pod install + gradle)
+
+**Flutter:**
+- [ ] Route in MaterialApp/GoRouter
+- [ ] Dependency in pubspec.yaml
 
 ## Verification Command
 
@@ -212,6 +236,7 @@ For EVERY task that creates a new artifact, you MUST either:
 
 **Wiring Matrix - What Creates What Updates:**
 
+*Web Platform:*
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | Backend route file (`routes/clients.py`) | Main app file to register router (`main.py`, `app.py`) |
@@ -222,10 +247,55 @@ For EVERY task that creates a new artifact, you MUST either:
 | New service | Dependency injection / service registry |
 | Environment variable usage | `.env.example`, deployment configs |
 
+*iOS Native Platform:*
+| When You Create... | You MUST Also Update... |
+|-------------------|------------------------|
+| View/ViewController (`ClientsView.swift`) | NavigationStack, TabView if top-level |
+| API service (`ClientsService.swift`) | Dependency container, environment object |
+| Core Data model | `.xcdatamodeld` file, generate classes |
+| Push notification handler | `AppDelegate` / `UNUserNotificationCenter` setup |
+| Deep link handler | `onOpenURL` modifier, URL scheme in Info.plist |
+| StoreKit product | `.storekit` configuration file |
+| Capability (Push, IAP, etc.) | `.entitlements` file |
+| Permission usage | `NS*UsageDescription` in Info.plist |
+
+*Android Native Platform:*
+| When You Create... | You MUST Also Update... |
+|-------------------|------------------------|
+| Activity/Fragment | `AndroidManifest.xml` registration |
+| Composable screen (`ClientsScreen.kt`) | `NavHost` routes, BottomNavigation if top-level |
+| ViewModel | Hilt/Koin module for DI |
+| Room entity | `@Database` entities list, migration |
+| Deep link handler | Intent filter in `AndroidManifest.xml` |
+| Billing product | Play Console product IDs |
+| Permission | `<uses-permission>` in manifest |
+| New dependency with reflection | ProGuard/R8 keep rules |
+
+*React Native Platform:*
+| When You Create... | You MUST Also Update... |
+|-------------------|------------------------|
+| Screen component (`ClientsScreen.tsx`) | Navigator (Stack/Tab/Drawer) |
+| API hook (`useClients.ts`) | Parent component to call it |
+| Native module | iOS Podfile (`pod install`), Android gradle |
+| Deep link route | Linking config, iOS Info.plist, Android manifest |
+| Push notifications | iOS entitlements, Android manifest |
+| Environment variable | `.env`, `react-native-config` |
+
+*Flutter Platform:*
+| When You Create... | You MUST Also Update... |
+|-------------------|------------------------|
+| Screen widget (`clients_screen.dart`) | MaterialApp routes OR GoRouter |
+| Repository/Service | `GetIt`/`Provider` registration |
+| Drift/Hive model | Schema version, migration |
+| Deep link route | GoRouter paths, iOS/Android configs |
+| Platform channel | iOS `AppDelegate`, Android `MainActivity` |
+| Package dependency | `pubspec.yaml`, run `flutter pub get` |
+
 **Wiring Task Template:**
 
 For each User Story, the LAST task(s) in its range (T-X37 to T-X39) should be wiring tasks:
 
+**Web Wiring Example:**
 ```markdown
 # T-037-wire-us1-backend
 
@@ -254,6 +324,70 @@ Add US1 pages to router and navigation.
 ## Verification Command
 # Start frontend, navigate to /feature, verify page loads
 npm run dev & sleep 5 && curl -s http://localhost:3000/feature | grep -q "Feature Page"
+```
+
+**iOS Native Wiring Example:**
+```markdown
+# T-037-wire-us1-navigation
+
+## Task Objective
+Add US1 views to navigation stack and tab bar.
+
+## Files to Update (NOT create)
+- `App/Navigation/MainTabView.swift` - Add FeatureTab case and view
+- `App/Navigation/AppCoordinator.swift` - Register feature navigation flow
+- `App/Info.plist` - Add deep link URL scheme (if applicable)
+
+## Verification Command
+xcodebuild -scheme App -destination 'platform=iOS Simulator,name=iPhone 15' build 2>&1 | grep "BUILD SUCCEEDED"
+```
+
+**Android Native Wiring Example:**
+```markdown
+# T-037-wire-us1-navigation
+
+## Task Objective
+Add US1 screens to navigation graph and bottom navigation.
+
+## Files to Update (NOT create)
+- `app/src/main/java/.../navigation/NavGraph.kt` - Add composable route
+- `app/src/main/java/.../ui/BottomNavBar.kt` - Add FeatureTab item
+- `app/src/main/AndroidManifest.xml` - Register deep link intent filter (if applicable)
+
+## Verification Command
+./gradlew assembleDebug 2>&1 | grep "BUILD SUCCESSFUL"
+```
+
+**React Native Wiring Example:**
+```markdown
+# T-037-wire-us1-navigation
+
+## Task Objective
+Add US1 screens to navigator and tab bar.
+
+## Files to Update (NOT create)
+- `src/navigation/AppNavigator.tsx` - Add FeatureScreen to Stack.Navigator
+- `src/navigation/TabNavigator.tsx` - Add Feature tab
+- `src/navigation/linking.ts` - Add feature deep link route
+
+## Verification Command
+npx react-native bundle --entry-file index.js --platform ios --dev false --bundle-output /tmp/test.bundle 2>&1 | grep -v "^$"
+```
+
+**Flutter Wiring Example:**
+```markdown
+# T-037-wire-us1-navigation
+
+## Task Objective
+Add US1 routes to GoRouter and bottom navigation.
+
+## Files to Update (NOT create)
+- `lib/router/app_router.dart` - Add GoRoute for /feature
+- `lib/widgets/bottom_nav.dart` - Add Feature destination
+- `lib/router/deep_links.dart` - Add feature path (if applicable)
+
+## Verification Command
+flutter analyze && flutter build apk --debug 2>&1 | grep "Built"
 ```
 
 **DO NOT proceed to Section 4.3 until every User Story has wiring tasks.**
@@ -442,6 +576,148 @@ their organization.
 
 6. **Fallback**: If a task doesn't match any available agent, generate it yourself using the embedded context approach from Section 4.2.2.
 
+#### 4.2.4 Platform-Aware Verification Commands (MANDATORY)
+
+**CRITICAL: Verification commands MUST match the project's target platform.**
+
+Using `npm test` for an iOS task will cause verification failures. This section ensures every task has executable verification commands appropriate to its platform.
+
+**Step 1: Detect Target Platform**
+
+Read from registry (`specs/_defaults/registry.yaml`) in this priority order:
+
+```yaml
+# Mobile platform detection (highest priority)
+target_platform.primary: web | mobile | both
+target_platform.mobile_platforms: ios | android | both
+target_platform.mobile_framework: native | react-native | flutter
+
+# Backend language detection (if not mobile)
+backend.language: typescript | python | go | java | csharp | rust
+backend.framework: express | fastapi | gin | spring-boot | etc.
+```
+
+If registry doesn't exist, scan for file patterns:
+
+| File Pattern | Detected Platform |
+|--------------|-------------------|
+| `*.xcodeproj`, `Package.swift`, `Podfile` | iOS |
+| `build.gradle`, `AndroidManifest.xml` | Android |
+| `pubspec.yaml`, `lib/main.dart` | Flutter |
+| `metro.config.js`, `react-native.config.js` | React Native |
+| `package.json`, `tsconfig.json` | Web/Node.js |
+| `pyproject.toml`, `requirements.txt` | Python |
+| `go.mod`, `go.sum` | Go |
+
+**Step 2: Load Platform Verification Templates**
+
+Read `templates/verification-commands.yaml` and select the appropriate platform section:
+
+| Detected Platform | Template Section | Primary Tools |
+|-------------------|------------------|---------------|
+| iOS native | `ios.*` | `xcodebuild`, `swift test`, `swiftlint` |
+| Android native | `android.*` | `./gradlew`, `adb`, `ktlint` |
+| React Native | `react_native.*` | `jest`, `detox`, `npx react-native` |
+| Flutter | `flutter.*` | `flutter test`, `dart analyze` |
+| Node.js/TypeScript | `web_node.*` | `npm test`, `tsc`, `eslint` |
+| Python | `python.*` | `pytest`, `ruff`, `mypy` |
+| Go | `go.*` | `go test`, `golangci-lint` |
+
+**Step 3: Generate Platform-Specific Commands**
+
+For each task, select the appropriate verification type and replace placeholders:
+
+| Task Type | Select Template | Replace Placeholders |
+|-----------|-----------------|---------------------|
+| Model/Entity | `[platform].unit_tests.primary` | `{{TEST_NAME}}`, `{{FILE_PATH}}`, `{{MODULE}}` |
+| API Endpoint | `[platform].api_health.primary` | `{{ENDPOINT}}`, `{{PORT}}` |
+| UI Component/View | `[platform].unit_tests.primary` + `lint` | `{{TEST_NAME}}`, `{{SCHEME}}` |
+| Service/Logic | `[platform].unit_tests.primary` | `{{TEST_NAME}}`, `{{FILE_PATH}}` |
+| Database Migration | `[platform].migration.*` | Platform-specific |
+| Build/Config | `[platform].build.primary` | `{{SCHEME}}` (iOS), module (Android) |
+
+**Step 4: Include Fallback Commands**
+
+Always include a fallback in case the primary tool is unavailable:
+
+```markdown
+## Verification Command
+
+**Primary** (requires swiftlint):
+\`\`\`bash
+swiftlint lint Sources/Auth/AuthService.swift --strict
+\`\`\`
+
+**Fallback** (if swiftlint unavailable):
+\`\`\`bash
+swift -typecheck Sources/Auth/AuthService.swift
+\`\`\`
+
+**Expected Output**: No errors or warnings
+```
+
+**Platform-Specific Examples:**
+
+**iOS Task:**
+```bash
+xcodebuild test \
+  -scheme MyApp \
+  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -only-testing:MyAppTests/AuthServiceTests \
+  | xcpretty
+# Expected: Test Succeeded
+```
+
+**Android Task:**
+```bash
+./gradlew test --tests "com.myapp.auth.AuthServiceTest"
+# Expected: BUILD SUCCESSFUL
+```
+
+**Flutter Task:**
+```bash
+flutter test --name "AuthService"
+# Expected: All tests passed!
+```
+
+**Python Task:**
+```bash
+pytest -xvs -k "test_auth_service"
+# Expected: passed
+```
+
+**Go Task:**
+```bash
+go test -v -run "TestAuthService" ./internal/auth/...
+# Expected: PASS
+```
+
+**Step 5: Embed Detected Platform in Task Context**
+
+Include the detected platform in the task's Embedded Context section:
+
+```markdown
+### Project Standards (from registry)
+| Key | Value |
+|-----|-------|
+| `target_platform.primary` | mobile |
+| `target_platform.mobile_platforms` | ios |
+| `backend.language` | python |
+| **Verification Platform** | **ios** (uses xcodebuild, swift test) |
+```
+
+**Graceful Degradation:**
+
+| Scenario | Action |
+|----------|--------|
+| Registry missing | Scan file patterns, default to web_node |
+| Platform ambiguous (multiple detected) | Ask user via AskUserQuestion |
+| Primary tool unavailable | Use fallback from verification-commands.yaml |
+| No fallback exists | Provide manual verification checklist with clear criteria |
+| Hybrid project (web + mobile) | Generate platform-specific verification per task type |
+
+**FORBIDDEN: Generating web/Node.js verification commands for mobile tasks.**
+
 #### 4.3 Generate index.md
 
 Create `FEATURE_DIR/index.md` using `templates/index-template.md`:
@@ -492,36 +768,74 @@ Output summary:
 
 ## Verification Command Requirements
 
-**Every task MUST have an executable verification command.**
+**Every task MUST have an executable verification command appropriate to the project's platform.**
 
-### Good Examples
+See Section 4.2.4 for platform detection and `templates/verification-commands.yaml` for complete templates.
 
+### Good Examples by Platform
+
+**Web/Node.js:**
 ```bash
-# Specific test
 npm test -- --grep "UserModel creates valid user"
-
-# API test
-curl -s -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com"}' | jq '.id != null'
-
-# Type check
 npx tsc --noEmit src/models/user.ts
+curl -s http://localhost:3000/api/users | jq '.data | length > 0'
+```
 
-# Lint check
-npm run lint -- src/services/auth.ts
+**iOS (Swift/Xcode):**
+```bash
+xcodebuild test -scheme MyApp -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:MyAppTests/UserModelTests | xcpretty
+swift test --filter UserModelTests
+swiftlint lint Sources/Models/User.swift --strict
+```
+
+**Android (Kotlin/Gradle):**
+```bash
+./gradlew test --tests "com.myapp.models.UserModelTest"
+./gradlew ktlintCheck
+./gradlew lintDebug
+```
+
+**React Native:**
+```bash
+npx jest --testNamePattern="UserModel"
+npx detox test --configuration ios.sim.debug --testNamePattern "User"
+```
+
+**Flutter:**
+```bash
+flutter test --name "UserModel"
+dart analyze lib/models/user.dart
+```
+
+**Python:**
+```bash
+pytest -xvs -k "test_user_model"
+ruff check src/models/user.py
+mypy src/models/user.py --strict
+```
+
+**Go:**
+```bash
+go test -v -run "TestUserModel" ./internal/models/...
+golangci-lint run ./internal/models/user.go
 ```
 
 ### Forbidden Patterns
 
 ```bash
-# TOO VAGUE
+# TOO VAGUE - no specific target
 npm test
+./gradlew test
+flutter test
 
-# MANUAL
+# WRONG PLATFORM - using npm for iOS project
+npm test -- --grep "AuthService"  # WRONG for iOS!
+
+# MANUAL - not executable
 "Check the UI manually"
+"Verify in Xcode that..."
 
-# PLACEHOLDER
+# PLACEHOLDER - not complete
 [TODO: add verification]
 ```
 

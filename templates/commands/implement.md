@@ -288,34 +288,284 @@ When all tasks in `traceability.md` are "Done":
 
 ⚠️ **CRITICAL: This step prevents the #1 cause of "feature done but not working" issues.**
 
-Before marking the feature complete, run these integration checks:
+Before marking the feature complete, run platform-appropriate integration checks.
 
-**Backend Integration:**
+**Step 1: Detect Platform**
+
+Check `specs/_defaults/registry.yaml` for `target_platform.primary`:
+- If `web` or unset → Run Web Integration checks
+- If `mobile` → Check `target_platform.mobile_framework`:
+  - `native` + `ios` → Run iOS Native checks
+  - `native` + `android` → Run Android Native checks
+  - `react-native` → Run React Native checks
+  - `flutter` → Run Flutter checks
+- If `both` → Run Web + appropriate Mobile checks
+
+---
+
+##### Web Integration (Default)
+
 ```bash
-# Verify all routes are registered (Python/FastAPI example)
+# Backend: Verify all routes are registered (Python/FastAPI example)
 grep -r "include_router\|app.add_api_route" backend/main.py backend/app.py 2>/dev/null
 
-# Verify all routes are accessible
-# For each route file created, the corresponding endpoint should respond
+# Backend: Verify API docs accessible
 curl -s http://localhost:8000/api/docs | grep -q "openapi" && echo "API docs accessible"
-```
 
-**Frontend Integration:**
-```bash
-# Verify all pages are in router
+# Frontend: Verify all pages are in router
 grep -r "Route\|path:" frontend/src/App.tsx frontend/src/router 2>/dev/null
 
-# Verify navigation has links to new pages
+# Frontend: Verify navigation has links to new pages
 grep -r "href=\|to=\|navigate(" frontend/src/components/*Nav* frontend/src/components/*Sidebar* 2>/dev/null
 ```
 
-**Wiring Verification Checklist:**
+**Web Wiring Checklist:**
 - [ ] All backend routes registered in main app file
 - [ ] All frontend pages accessible via navigation
 - [ ] All API endpoints callable from frontend stores/hooks
 - [ ] No orphan components (everything rendered somewhere)
 - [ ] No dead routes (all routes lead to working pages)
 - [ ] Navigation reflects all user-facing features
+
+---
+
+##### iOS Native Integration
+
+```bash
+# Navigation: Verify views are in navigation stack
+grep -rE "NavigationStack|NavigationView|NavigationLink|UINavigationController" ios/ --include="*.swift" 2>/dev/null
+
+# Deep Links: Verify URL schemes configured
+grep -rE "CFBundleURLSchemes|CFBundleURLTypes" ios/ --include="*.plist" 2>/dev/null
+# OR for SwiftUI App structure
+grep -rE "onOpenURL|\.onContinueUserActivity" ios/ --include="*.swift" 2>/dev/null
+
+# Entitlements: Verify capabilities configured (if feature requires them)
+grep -rE "aps-environment|com\.apple\.developer" ios/ --include="*.entitlements" 2>/dev/null
+
+# Permissions: Verify Info.plist has required usage descriptions
+grep -rE "NS.*UsageDescription" ios/ --include="*.plist" 2>/dev/null
+
+# Build Verification: Verify project builds for simulator
+xcodebuild -scheme [SCHEME] -destination 'platform=iOS Simulator,name=iPhone 15' build 2>&1 | tail -5
+
+# TestFlight Readiness (if applicable)
+xcodebuild -scheme [SCHEME] -configuration Release archive -archivePath build/App.xcarchive 2>&1 | grep -E "ARCHIVE SUCCEEDED|error:"
+```
+
+**iOS Wiring Checklist:**
+- [ ] All views accessible via NavigationStack/NavigationView
+- [ ] Tab bar items added for new top-level features
+- [ ] Deep link routes registered (if URL scheme used)
+- [ ] Required entitlements added (Push, IAP, etc.)
+- [ ] Info.plist has all required permission descriptions
+- [ ] App builds without errors for simulator
+- [ ] No missing asset catalog entries
+- [ ] StoreKit configuration file present (if IAP feature)
+
+**iOS Tool Availability Handling:**
+```bash
+# Check if Xcode tools available
+if ! command -v xcodebuild &> /dev/null; then
+    echo "WARN: xcodebuild not available - skipping build verification"
+    echo "Manual verification required: Open project in Xcode and build"
+fi
+```
+
+---
+
+##### Android Native Integration
+
+```bash
+# Manifest: Verify all activities/services registered
+grep -rE "<activity|<service|<receiver|<provider" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Navigation: Verify composable routes (Jetpack Compose)
+grep -rE "composable\(|NavHost|navController" android/ --include="*.kt" 2>/dev/null
+# OR for XML navigation
+grep -rE "<fragment|<action|app:destination" android/ --include="*.xml" 2>/dev/null
+
+# Deep Links: Verify intent filters configured
+grep -rE "intent-filter|android:scheme|android:host" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Permissions: Verify required permissions declared
+grep -rE "uses-permission" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Build Verification: Verify project builds
+./gradlew assembleDebug 2>&1 | tail -10
+
+# Signing: Verify release signing configured (for Play Console readiness)
+grep -rE "signingConfigs|storeFile|keyAlias" android/app/build.gradle* 2>/dev/null
+
+# Play Console Readiness (if applicable)
+./gradlew bundleRelease 2>&1 | grep -E "BUILD SUCCESSFUL|BUILD FAILED"
+```
+
+**Android Wiring Checklist:**
+- [ ] All activities registered in AndroidManifest.xml
+- [ ] Navigation graph includes all screens
+- [ ] Deep link intent filters configured (if applicable)
+- [ ] Required permissions declared in manifest
+- [ ] Bottom navigation/drawer updated for new features
+- [ ] ProGuard/R8 rules added for new dependencies
+- [ ] App builds without errors (assembleDebug)
+- [ ] Release signing configured (if publishing)
+- [ ] Billing client configured (if IAP feature)
+
+**Android Tool Availability Handling:**
+```bash
+# Check if Gradle wrapper available
+if [ ! -f "./gradlew" ]; then
+    echo "WARN: gradlew not found - skipping build verification"
+    echo "Manual verification required: Open project in Android Studio and build"
+fi
+```
+
+---
+
+##### React Native Integration (Both Platforms)
+
+```bash
+# Navigation: Verify screens in navigation structure
+grep -rE "Screen|createStackNavigator|createBottomTabNavigator|NavigationContainer" src/ --include="*.tsx" --include="*.ts" 2>/dev/null
+
+# Deep Links: Verify linking configuration
+grep -rE "linking:|prefixes:|config:" src/ --include="*.tsx" --include="*.ts" 2>/dev/null
+
+# iOS: Verify URL schemes in Info.plist
+grep -rE "CFBundleURLSchemes" ios/ --include="*.plist" 2>/dev/null
+
+# Android: Verify intent filters in manifest
+grep -rE "intent-filter|android:scheme" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Native Modules: Verify linked properly
+npx react-native config 2>&1 | grep -E "dependencies|Missing"
+
+# Metro Bundle: Verify JS bundle builds
+npx react-native bundle --entry-file index.js --platform ios --dev false --bundle-output /tmp/test.bundle 2>&1 | tail -5
+
+# iOS Build Test
+npx react-native run-ios --simulator="iPhone 15" 2>&1 | grep -E "success|error|BUILD"
+# OR
+cd ios && xcodebuild -workspace *.xcworkspace -scheme [SCHEME] build 2>&1 | tail -5
+
+# Android Build Test
+npx react-native run-android 2>&1 | grep -E "BUILD SUCCESSFUL|BUILD FAILED"
+# OR
+cd android && ./gradlew assembleDebug 2>&1 | tail -5
+```
+
+**React Native Wiring Checklist:**
+- [ ] All screens registered in navigation container
+- [ ] Tab/drawer navigation updated for new features
+- [ ] Deep linking config includes new routes
+- [ ] iOS Info.plist has URL schemes (if deep links)
+- [ ] Android manifest has intent filters (if deep links)
+- [ ] Native modules linked (pod install + gradle sync)
+- [ ] Metro bundler builds without errors
+- [ ] iOS simulator build succeeds
+- [ ] Android emulator build succeeds
+- [ ] Environment variables in .env (if using react-native-config)
+
+**React Native Tool Availability Handling:**
+```bash
+# Check for RN CLI
+if ! command -v npx &> /dev/null; then
+    echo "WARN: npx not available - skipping RN build verification"
+fi
+
+# Check for iOS tools (macOS only)
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    echo "INFO: iOS verification skipped (not on macOS)"
+fi
+```
+
+---
+
+##### Flutter Integration (Both Platforms)
+
+```bash
+# Navigation: Verify routes defined
+grep -rE "MaterialPageRoute|GoRoute|routes:|onGenerateRoute" lib/ --include="*.dart" 2>/dev/null
+
+# Deep Links: Verify GoRouter or Navigator 2.0 deep link handling
+grep -rE "GoRouter|redirect:|onDeepLink|uriLinkStream" lib/ --include="*.dart" 2>/dev/null
+
+# iOS: Verify URL schemes
+grep -rE "CFBundleURLSchemes" ios/ --include="*.plist" 2>/dev/null
+
+# Android: Verify intent filters
+grep -rE "intent-filter|android:scheme" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Permissions: iOS Info.plist
+grep -rE "NS.*UsageDescription" ios/ --include="*.plist" 2>/dev/null
+
+# Permissions: Android manifest
+grep -rE "uses-permission" android/app/src/main/AndroidManifest.xml 2>/dev/null
+
+# Analyze: Check for issues
+flutter analyze 2>&1 | tail -20
+
+# Build iOS (macOS only)
+flutter build ios --debug --no-codesign 2>&1 | grep -E "Built|Error"
+
+# Build Android
+flutter build apk --debug 2>&1 | grep -E "Built|Error"
+
+# Test
+flutter test 2>&1 | tail -10
+```
+
+**Flutter Wiring Checklist:**
+- [ ] All routes registered in MaterialApp/GoRouter
+- [ ] Bottom navigation/drawer includes new features
+- [ ] Deep link routes configured (if applicable)
+- [ ] iOS URL schemes in Info.plist (if deep links)
+- [ ] Android intent filters in manifest (if deep links)
+- [ ] iOS permission descriptions in Info.plist
+- [ ] Android permissions in manifest
+- [ ] `flutter analyze` passes with no errors
+- [ ] iOS build succeeds (--no-codesign for CI)
+- [ ] Android APK build succeeds
+- [ ] Pubspec.yaml has all required dependencies
+
+**Flutter Tool Availability Handling:**
+```bash
+# Check for Flutter
+if ! command -v flutter &> /dev/null; then
+    echo "WARN: flutter not available - skipping Flutter verification"
+    echo "Install Flutter: https://docs.flutter.dev/get-started/install"
+fi
+
+# Check Flutter doctor
+flutter doctor --android-licenses 2>&1 | grep -E "licenses accepted|error"
+```
+
+---
+
+##### Graceful Degradation (All Platforms)
+
+When verification tools are unavailable:
+
+1. **Log the skip**: `echo "WARN: [tool] not available - verification skipped"`
+2. **Document manual steps**: Add to completion report what needs manual verification
+3. **Do NOT fail the feature**: Missing tools = deferred verification, not blocking failure
+4. **Create follow-up task**: If build tools missing, note "Verify build on CI" as pending item
+
+**Example Graceful Output:**
+```text
+Integration Verification Results:
+- [x] Navigation wiring: PASSED (grep found all routes)
+- [ ] iOS build: SKIPPED (xcodebuild not available)
+- [ ] Android build: SKIPPED (not on macOS/Linux with Android SDK)
+- [x] Deep links: PASSED (URL schemes configured)
+
+Manual verification required:
+- Build and run on iOS simulator
+- Build and run on Android emulator
+```
+
+---
 
 **If ANY wiring check fails:**
 1. Identify which task should have done the wiring

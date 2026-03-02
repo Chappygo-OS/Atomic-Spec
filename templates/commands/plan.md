@@ -556,191 +556,636 @@ If validation found warnings or issues, present them and get decisions:
 
 **Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if feature has UI.**
 
-After tech stack validation, if the feature involves frontend/UI, present context and gather UI specifications:
+After tech stack validation, if the feature involves frontend/UI, present context and gather UI specifications.
 
 ⚠️ **CRITICAL EXECUTION ORDER - YOU MUST FOLLOW THESE STEPS EXACTLY:**
 
-1. **Check if UI is involved**:
+---
 
-   Skip this phase if:
-   - Feature is backend-only (API, CLI, worker)
-   - No frontend framework in tech stack
-   - User explicitly marked "No UI" in spec
+#### Step 1: Check if UI is involved
 
-2. **Present UI context** (as text):
+Skip this phase if:
+- Feature is backend-only (API, CLI, worker)
+- No frontend/mobile framework in tech stack
+- User explicitly marked "No UI" in spec
 
-   ```
-   ══════════════════════════════════════════════════════════════
-   🎨 FRONTEND/UI SPECIFICATIONS - Phase 0.8 Checkpoint
-   ══════════════════════════════════════════════════════════════
+---
 
-   Your tech stack includes frontend work. Let's define UI standards
-   to ensure consistent implementation across all components.
+#### Step 2: Detect target platform
 
-   Detected frontend: [React/Vue/Angular/Svelte/Other]
-   ══════════════════════════════════════════════════════════════
-   ```
+Read `registry.target_platform.primary` OR detect from tech stack:
 
-   **YOU MUST OUTPUT THIS CONTEXT TO THE USER BEFORE PROCEEDING.**
+| Detection Signal | Platform |
+|------------------|----------|
+| `frontend.framework` = react/vue/angular/svelte/nextjs | **web** |
+| `target_platform.primary` = ios OR Swift/SwiftUI in spec | **ios** |
+| `target_platform.primary` = android OR Kotlin/Compose in spec | **android** |
+| `target_platform.mobile_framework` = react-native | **react-native** |
+| `target_platform.mobile_framework` = flutter | **flutter** |
 
-3. **THEN: Use AskUserQuestion for UI framework choices** (only AFTER showing context above):
+If ambiguous, ask:
 
-   ```
-   Question 1: "Which UI component library/framework?"
-   Header: "UI Library"
-   Options:
-     - Label: "Tailwind CSS + Headless UI (Recommended)"
-       Description: "Utility-first CSS with accessible headless components"
-     - Label: "Material UI / MUI"
-       Description: "Google's Material Design components for React"
-     - Label: "Shadcn/ui"
-       Description: "Re-usable components built with Radix and Tailwind"
-     - Label: "Chakra UI"
-       Description: "Simple, modular and accessible component library"
+```
+Question: "What is your target platform?"
+Header: "Platform"
+Options:
+  - Label: "Web (Browser)"
+    Description: "React, Vue, Angular, Svelte, or similar web framework"
+  - Label: "iOS (Native)"
+    Description: "Swift/SwiftUI or UIKit"
+  - Label: "Android (Native)"
+    Description: "Kotlin/Jetpack Compose or XML Views"
+  - Label: "React Native"
+    Description: "Cross-platform with React Native"
+  - Label: "Flutter"
+    Description: "Cross-platform with Flutter/Dart"
+```
 
-   Question 2: "Design system approach?"
-   Header: "Design System"
-   Options:
-     - Label: "Use existing design tokens (Recommended)"
-       Description: "I have design tokens/Figma variables to import"
-     - Label: "Create minimal tokens"
-       Description: "Define basic colors, spacing, typography from scratch"
-     - Label: "No design system"
-       Description: "Use library defaults, customize as needed"
+**Store in**: `registry.target_platform.primary`
 
-   Question 3: "State management approach?"
-   Header: "State Mgmt"
-   Options:
-     - Label: "React Context + hooks (Recommended for MVP)"
-       Description: "Built-in React state, good for small-medium apps"
-     - Label: "Zustand"
-       Description: "Lightweight, minimal boilerplate state management"
-     - Label: "Redux Toolkit"
-       Description: "Full-featured state management with dev tools"
-     - Label: "TanStack Query only"
-       Description: "Server state management, minimal client state"
+---
 
-   Question 4: "Form handling approach?"
-   Header: "Forms"
-   Options:
-     - Label: "React Hook Form + Zod (Recommended)"
-       Description: "Performant forms with schema validation"
-     - Label: "Formik + Yup"
-       Description: "Popular form library with Yup validation"
-     - Label: "Native form handling"
-       Description: "Manual form state, custom validation"
-   ```
+#### Step 3: Present platform-specific context
 
-4. **Follow-up for design tokens** (if "Use existing design tokens" selected):
+```
+══════════════════════════════════════════════════════════════
+🎨 FRONTEND/UI SPECIFICATIONS - Phase 0.8 Checkpoint
+══════════════════════════════════════════════════════════════
 
-   ```
-   Question: "Where are your design tokens located?"
-   Header: "Tokens"
-   Options:
-     - Label: "Figma Variables (will export)"
-       Description: "I'll export from Figma to JSON/CSS"
-     - Label: "CSS custom properties file"
-       Description: "Already have :root variables defined"
-     - Label: "tokens.json / design-tokens.json"
-       Description: "Have a JSON token file ready"
-     - Label: "I'll provide the path"
-       Description: "Tokens are in a custom location"
-   ```
+Your tech stack includes frontend work. Let's define UI standards
+to ensure consistent implementation across all components.
 
-5. **Additional UI specifications** (multiSelect):
+Detected Platform: [Web/iOS/Android/React Native/Flutter]
+Detected Framework: [React/SwiftUI/Jetpack Compose/etc.]
+══════════════════════════════════════════════════════════════
+```
 
-   ```
-   Question: "Select additional UI requirements" (multiSelect: true)
-   Header: "UI Features"
-   Options:
-     - Label: "Dark mode support"
-       Description: "Theme switching between light and dark"
-     - Label: "Responsive/mobile-first"
-       Description: "Must work well on mobile devices"
-     - Label: "Accessibility (WCAG 2.1 AA)"
-       Description: "Full keyboard nav, screen reader support"
-     - Label: "Animation/transitions"
-       Description: "Smooth animations with Framer Motion or similar"
-   ```
+**YOU MUST OUTPUT THIS CONTEXT TO THE USER BEFORE PROCEEDING.**
 
-6. **Custom UI specifications prompt**:
+---
 
-   After structured questions, always ask:
+#### Step 4: Platform-specific questions
 
-   ```
-   Question: "Do you have additional UI specifications to add?"
-   Header: "Custom UI"
-   Options:
-     - Label: "Yes, I have more requirements"
-       Description: "I'll describe additional UI rules/constraints"
-     - Label: "No, these choices are complete"
-       Description: "Proceed with the selections above"
-   ```
+**Branch to the appropriate platform section below based on Step 2 detection.**
 
-   If "Yes", use follow-up AskUserQuestion:
+---
 
-   ```
-   Question: "What additional UI specifications should we follow?"
-   Header: "Extra specs"
-   Options:
-     - Label: "Specific breakpoints"
-       Description: "Custom responsive breakpoints (I'll specify)"
-     - Label: "Icon library preference"
-       Description: "Specific icon set to use (Lucide, Heroicons, etc.)"
-     - Label: "Animation guidelines"
-       Description: "Specific timing, easing, or motion rules"
-     - Label: "Multiple specifications"
-       Description: "I'll describe all additional requirements"
-   ```
+### Platform Branch: WEB
 
-7. **Final UI confirmation**:
+**Registry prefix**: `frontend.*`
 
-   Present summary and confirm:
+```
+Question 1: "Which UI component library/framework?"
+Header: "UI Library"
+Options:
+  - Label: "Tailwind CSS + Headless UI (Recommended)"
+    Description: "Utility-first CSS with accessible headless components"
+  - Label: "Shadcn/ui"
+    Description: "Re-usable components built with Radix and Tailwind"
+  - Label: "Material UI / MUI"
+    Description: "Google's Material Design components for React"
+  - Label: "Chakra UI"
+    Description: "Simple, modular and accessible component library"
+  - Label: "Ant Design"
+    Description: "Enterprise-level React components"
+  - Label: "Other"
+    Description: "I'll specify a different library"
+→ Store in: registry.frontend.ui_library
 
-   ```
-   ══════════════════════════════════════════════════════════════
-   📋 UI SPECIFICATIONS SUMMARY
-   ══════════════════════════════════════════════════════════════
+Question 2: "Design system approach?"
+Header: "Design System"
+Options:
+  - Label: "Use existing design tokens (Recommended)"
+    Description: "I have design tokens/Figma variables to import"
+  - Label: "Create minimal tokens"
+    Description: "Define basic colors, spacing, typography from scratch"
+  - Label: "No design system"
+    Description: "Use library defaults, customize as needed"
+→ Store in: registry.ui_specs.design_tokens
 
-   | Setting          | Value                    |
-   |------------------|--------------------------|
-   | UI Library       | [selected]               |
-   | Design System    | [selected]               |
-   | State Management | [selected]               |
-   | Form Handling    | [selected]               |
-   | Dark Mode        | [Yes/No]                 |
-   | Responsive       | [Yes/No]                 |
-   | Accessibility    | [Yes/No]                 |
-   | Animations       | [Yes/No]                 |
+Question 3: "State management approach?"
+Header: "State Mgmt"
+Options:
+  - Label: "React Context + hooks (Recommended for MVP)"
+    Description: "Built-in React state, good for small-medium apps"
+  - Label: "Zustand"
+    Description: "Lightweight, minimal boilerplate state management"
+  - Label: "Redux Toolkit"
+    Description: "Full-featured state management with dev tools"
+  - Label: "TanStack Query only"
+    Description: "Server state management, minimal client state"
+  - Label: "Jotai"
+    Description: "Primitive and flexible state management"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.frontend.state_management
 
-   Additional specifications:
-   [any custom specs provided]
-   ══════════════════════════════════════════════════════════════
-   ```
+Question 4: "Form handling approach?"
+Header: "Forms"
+Options:
+  - Label: "React Hook Form + Zod (Recommended)"
+    Description: "Performant forms with schema validation"
+  - Label: "Formik + Yup"
+    Description: "Popular form library with Yup validation"
+  - Label: "TanStack Form"
+    Description: "Headless, type-safe form library"
+  - Label: "Native form handling"
+    Description: "Manual form state, custom validation"
+  - Label: "Other"
+    Description: "I'll specify a different library"
+→ Store in: registry.frontend.form_library
+```
 
-   ```
-   Question: "Confirm these UI specifications?"
-   Header: "Confirm UI"
-   Options:
-     - Label: "Approve all (Recommended)"
-       Description: "These specifications are correct"
-     - Label: "Make changes"
-       Description: "I need to modify some choices"
-     - Label: "Add more specifications"
-       Description: "I have additional requirements to add"
-   ```
+**Follow-up for design tokens** (if "Use existing design tokens" selected):
 
-8. **Record in plan.md** `## Frontend/UI Specifications` section:
-   - All selected options
-   - Design token source (if applicable)
-   - Additional requirements
-   - Approval timestamp
+```
+Question: "Where are your design tokens located?"
+Header: "Tokens"
+Options:
+  - Label: "Figma Variables (will export)"
+    Description: "I'll export from Figma to JSON/CSS"
+  - Label: "CSS custom properties file"
+    Description: "Already have :root variables defined"
+  - Label: "tokens.json / design-tokens.json"
+    Description: "Have a JSON token file ready"
+  - Label: "Style Dictionary config"
+    Description: "Using Style Dictionary for token management"
+  - Label: "I'll provide the path"
+    Description: "Tokens are in a custom location"
+→ Store in: registry.ui_specs.design_token_source
+```
 
-9. **Skip conditions**:
-   - Feature has no UI (backend-only)
-   - Review Depth = "Auto-approve" (log choices automatically)
+---
 
-**Output**: User-approved UI specifications recorded in plan.md
+### Platform Branch: iOS (Native)
+
+**Registry prefix**: `ios.*`
+
+```
+Question 1: "Which UI framework?"
+Header: "UI Framework"
+Options:
+  - Label: "SwiftUI (Recommended)"
+    Description: "Modern declarative UI framework, iOS 15+"
+  - Label: "UIKit"
+    Description: "Imperative UI framework, broader iOS version support"
+  - Label: "SwiftUI + UIKit hybrid"
+    Description: "SwiftUI for new screens, UIKit for complex components"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.ios.ui_framework
+
+Question 2: "State management approach?"
+Header: "State Mgmt"
+Options:
+  - Label: "@Observable + SwiftUI (Recommended)"
+    Description: "Modern Observation framework (iOS 17+)"
+  - Label: "ObservableObject + @Published"
+    Description: "Combine-based state (iOS 13+)"
+  - Label: "TCA (The Composable Architecture)"
+    Description: "Unidirectional data flow with Point-Free library"
+  - Label: "MVVM with Combine"
+    Description: "Traditional MVVM pattern"
+  - Label: "Redux-like (ReSwift)"
+    Description: "Centralized state with ReSwift"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.ios.state_management
+
+Question 3: "Navigation approach?"
+Header: "Navigation"
+Options:
+  - Label: "NavigationStack (Recommended)"
+    Description: "SwiftUI navigation, iOS 16+"
+  - Label: "NavigationView (Legacy)"
+    Description: "Older SwiftUI navigation, iOS 13+"
+  - Label: "UINavigationController"
+    Description: "UIKit navigation with coordinators"
+  - Label: "Coordinator pattern"
+    Description: "Decoupled navigation with coordinator objects"
+  - Label: "SwiftUI Router"
+    Description: "Custom enum-based routing"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.ios.navigation
+
+Question 4: "Local data persistence?"
+Header: "Data"
+Options:
+  - Label: "SwiftData (Recommended)"
+    Description: "Modern persistence framework (iOS 17+)"
+  - Label: "Core Data"
+    Description: "Apple's ORM, broader version support"
+  - Label: "Realm"
+    Description: "Third-party object database"
+  - Label: "UserDefaults + Codable"
+    Description: "Simple key-value storage"
+  - Label: "GRDB / SQLite"
+    Description: "Direct SQLite access"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.ios.local_database
+
+Question 5: "Networking layer?"
+Header: "Networking"
+Options:
+  - Label: "URLSession + async/await (Recommended)"
+    Description: "Native networking with Swift concurrency"
+  - Label: "Alamofire"
+    Description: "Popular networking library"
+  - Label: "Moya"
+    Description: "Network abstraction layer over Alamofire"
+  - Label: "URLSession + Combine"
+    Description: "Reactive networking with Combine"
+  - Label: "Other"
+    Description: "I'll specify a different library"
+→ Store in: registry.ios.networking
+```
+
+---
+
+### Platform Branch: Android (Native)
+
+**Registry prefix**: `android.*`
+
+```
+Question 1: "Which UI framework?"
+Header: "UI Framework"
+Options:
+  - Label: "Jetpack Compose (Recommended)"
+    Description: "Modern declarative UI toolkit"
+  - Label: "XML Views"
+    Description: "Traditional View system with XML layouts"
+  - Label: "Compose + Views hybrid"
+    Description: "Compose for new screens, Views for complex components"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.android.ui_framework
+
+Question 2: "State management approach?"
+Header: "State Mgmt"
+Options:
+  - Label: "ViewModel + StateFlow (Recommended)"
+    Description: "Android Architecture Components with Kotlin Flow"
+  - Label: "ViewModel + LiveData"
+    Description: "Classic Android lifecycle-aware state"
+  - Label: "MVI with Orbit"
+    Description: "Model-View-Intent pattern with Orbit library"
+  - Label: "Redux-like (Mobius)"
+    Description: "Unidirectional data flow"
+  - Label: "Compose State only"
+    Description: "Simple remember/mutableStateOf for small apps"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.android.state_management
+
+Question 3: "Navigation approach?"
+Header: "Navigation"
+Options:
+  - Label: "Navigation Compose (Recommended)"
+    Description: "Jetpack Navigation with Compose integration"
+  - Label: "Navigation Component (Fragments)"
+    Description: "XML-based navigation with Fragments"
+  - Label: "Voyager"
+    Description: "Multiplatform navigation library"
+  - Label: "Decompose"
+    Description: "Lifecycle-aware components for navigation"
+  - Label: "Simple Activity/Fragment stack"
+    Description: "Manual navigation management"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.android.navigation
+
+Question 4: "Local data persistence?"
+Header: "Data"
+Options:
+  - Label: "Room (Recommended)"
+    Description: "SQLite abstraction with compile-time verification"
+  - Label: "DataStore"
+    Description: "Preferences and typed data storage"
+  - Label: "Realm"
+    Description: "Third-party object database"
+  - Label: "SQLDelight"
+    Description: "Type-safe SQL with multiplatform support"
+  - Label: "SharedPreferences"
+    Description: "Simple key-value storage (small data only)"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.android.local_database
+
+Question 5: "Dependency injection?"
+Header: "DI"
+Options:
+  - Label: "Hilt (Recommended)"
+    Description: "Android-optimized DI built on Dagger"
+  - Label: "Koin"
+    Description: "Lightweight Kotlin DI framework"
+  - Label: "Dagger 2"
+    Description: "Full Dagger without Android extensions"
+  - Label: "Manual DI"
+    Description: "Constructor injection without framework"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.android.dependency_injection
+```
+
+---
+
+### Platform Branch: React Native
+
+**Registry prefix**: `react_native.*`
+
+```
+Question 1: "Which component library?"
+Header: "UI Library"
+Options:
+  - Label: "React Native Paper (Recommended)"
+    Description: "Material Design components for React Native"
+  - Label: "NativeBase"
+    Description: "Cross-platform UI components"
+  - Label: "Tamagui"
+    Description: "Universal design system with performance focus"
+  - Label: "React Native Elements"
+    Description: "Cross-platform UI toolkit"
+  - Label: "Gluestack UI"
+    Description: "Universal components with NativeWind"
+  - Label: "Custom with NativeWind/Tailwind"
+    Description: "Tailwind-style styling for React Native"
+  - Label: "Other"
+    Description: "I'll specify a different library"
+→ Store in: registry.react_native.ui_library
+
+Question 2: "State management approach?"
+Header: "State Mgmt"
+Options:
+  - Label: "Zustand (Recommended)"
+    Description: "Lightweight, works great with React Native"
+  - Label: "Redux Toolkit"
+    Description: "Full-featured state management"
+  - Label: "Jotai"
+    Description: "Atomic state management"
+  - Label: "TanStack Query + Context"
+    Description: "Server state with minimal client state"
+  - Label: "MobX"
+    Description: "Observable-based state management"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.react_native.state_management
+
+Question 3: "Navigation solution?"
+Header: "Navigation"
+Options:
+  - Label: "React Navigation (Recommended)"
+    Description: "Most popular RN navigation library"
+  - Label: "Expo Router"
+    Description: "File-based routing for Expo apps"
+  - Label: "React Native Navigation (Wix)"
+    Description: "Native navigation with better performance"
+  - Label: "Solito"
+    Description: "Cross-platform navigation (web + native)"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.react_native.navigation
+
+Question 4: "Local data persistence?"
+Header: "Data"
+Options:
+  - Label: "AsyncStorage + MMKV (Recommended)"
+    Description: "Simple storage with MMKV for performance"
+  - Label: "WatermelonDB"
+    Description: "Reactive database for large datasets"
+  - Label: "Realm"
+    Description: "Object database with sync capabilities"
+  - Label: "SQLite (expo-sqlite)"
+    Description: "Direct SQLite access"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.react_native.local_database
+
+Question 5: "Development approach?"
+Header: "Dev Approach"
+Options:
+  - Label: "Expo (Managed) (Recommended)"
+    Description: "Simplified development with Expo SDK"
+  - Label: "Expo (Bare)"
+    Description: "Expo tools with native code access"
+  - Label: "React Native CLI"
+    Description: "Full native access, no Expo"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.react_native.dev_approach
+```
+
+---
+
+### Platform Branch: Flutter
+
+**Registry prefix**: `flutter.*`
+
+```
+Question 1: "UI approach?"
+Header: "UI Approach"
+Options:
+  - Label: "Material 3 (Recommended)"
+    Description: "Google's Material Design 3 widgets"
+  - Label: "Cupertino"
+    Description: "iOS-style widgets for Apple platforms"
+  - Label: "Adaptive (Material + Cupertino)"
+    Description: "Platform-adaptive UI switching"
+  - Label: "Custom design system"
+    Description: "Custom widgets matching brand design"
+  - Label: "Other"
+    Description: "I'll specify a different approach"
+→ Store in: registry.flutter.ui_approach
+
+Question 2: "State management approach?"
+Header: "State Mgmt"
+Options:
+  - Label: "Riverpod (Recommended)"
+    Description: "Type-safe, compile-time validated state management"
+  - Label: "BLoC"
+    Description: "Business Logic Component pattern"
+  - Label: "Provider"
+    Description: "Simple dependency injection and state"
+  - Label: "GetX"
+    Description: "All-in-one state, navigation, and DI"
+  - Label: "MobX"
+    Description: "Observable-based reactive state"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.flutter.state_management
+
+Question 3: "Navigation approach?"
+Header: "Navigation"
+Options:
+  - Label: "GoRouter (Recommended)"
+    Description: "Declarative routing with deep linking support"
+  - Label: "Navigator 2.0"
+    Description: "Flutter's declarative navigation API"
+  - Label: "AutoRoute"
+    Description: "Code-generated type-safe routing"
+  - Label: "GetX Navigation"
+    Description: "Simple navigation from GetX"
+  - Label: "Navigator 1.0 (imperative)"
+    Description: "Classic push/pop navigation"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.flutter.navigation
+
+Question 4: "Local data persistence?"
+Header: "Data"
+Options:
+  - Label: "Drift (moor) (Recommended)"
+    Description: "Type-safe SQLite wrapper with reactive queries"
+  - Label: "Hive"
+    Description: "Fast key-value database"
+  - Label: "Isar"
+    Description: "High-performance NoSQL database"
+  - Label: "sqflite"
+    Description: "Direct SQLite access"
+  - Label: "SharedPreferences"
+    Description: "Simple key-value storage"
+  - Label: "Other"
+    Description: "I'll specify a different solution"
+→ Store in: registry.flutter.local_database
+
+Question 5: "Networking approach?"
+Header: "Networking"
+Options:
+  - Label: "Dio (Recommended)"
+    Description: "Powerful HTTP client with interceptors"
+  - Label: "http package"
+    Description: "Dart's standard HTTP package"
+  - Label: "Retrofit"
+    Description: "Type-safe HTTP client generator"
+  - Label: "Chopper"
+    Description: "HTTP client with built-in converter"
+  - Label: "Other"
+    Description: "I'll specify a different library"
+→ Store in: registry.flutter.networking
+```
+
+---
+
+#### Step 5: Cross-platform UI specifications (ALL platforms)
+
+After platform-specific questions, ask these for ALL platforms:
+
+```
+Question: "Select additional UI requirements" (multiSelect: true)
+Header: "UI Features"
+Options:
+  - Label: "Dark mode support"
+    Description: "Theme switching between light and dark"
+  - Label: "Accessibility support"
+    Description: "VoiceOver/TalkBack, dynamic type, high contrast"
+  - Label: "Animation/transitions"
+    Description: "Smooth animations and micro-interactions"
+  - Label: "Tablet/iPad support"
+    Description: "Optimized layouts for larger screens"
+  - Label: "Landscape orientation"
+    Description: "Support for landscape mode"
+→ Store in: registry.ui_specs.* (dark_mode, accessibility, animations, tablet_support, landscape)
+```
+
+---
+
+#### Step 6: Custom UI specifications prompt
+
+After structured questions, always ask:
+
+```
+Question: "Do you have additional UI specifications to add?"
+Header: "Custom UI"
+Options:
+  - Label: "Yes, I have more requirements"
+    Description: "I'll describe additional UI rules/constraints"
+  - Label: "No, these choices are complete"
+    Description: "Proceed with the selections above"
+```
+
+If "Yes", use follow-up AskUserQuestion:
+
+```
+Question: "What additional UI specifications should we follow?"
+Header: "Extra specs"
+Options:
+  - Label: "Specific design guidelines"
+    Description: "Brand guidelines, spacing rules, typography"
+  - Label: "Icon library preference"
+    Description: "SF Symbols, Material Icons, custom icons"
+  - Label: "Animation guidelines"
+    Description: "Specific timing, easing, or motion rules"
+  - Label: "Multiple specifications"
+    Description: "I'll describe all additional requirements"
+```
+
+---
+
+#### Step 7: Final UI confirmation
+
+Present summary and confirm:
+
+```
+══════════════════════════════════════════════════════════════
+📋 UI SPECIFICATIONS SUMMARY
+══════════════════════════════════════════════════════════════
+
+Platform: [Web/iOS/Android/React Native/Flutter]
+
+| Setting          | Value                    | Registry Key                |
+|------------------|--------------------------|------------------------------|
+| UI Framework     | [selected]               | [platform].ui_framework      |
+| State Management | [selected]               | [platform].state_management  |
+| Navigation       | [selected]               | [platform].navigation        |
+| Data Persistence | [selected]               | [platform].local_database    |
+| [Platform-specific] | [selected]            | [platform].[key]             |
+
+Cross-Platform Settings:
+| Setting          | Value    | Registry Key                |
+|------------------|----------|------------------------------|
+| Dark Mode        | [Yes/No] | ui_specs.dark_mode           |
+| Accessibility    | [Yes/No] | ui_specs.accessibility       |
+| Animations       | [Yes/No] | ui_specs.animations          |
+| Tablet Support   | [Yes/No] | ui_specs.tablet_support      |
+
+Additional specifications:
+[any custom specs provided]
+══════════════════════════════════════════════════════════════
+```
+
+```
+Question: "Confirm these UI specifications?"
+Header: "Confirm UI"
+Options:
+  - Label: "Approve all (Recommended)"
+    Description: "These specifications are correct"
+  - Label: "Make changes"
+    Description: "I need to modify some choices"
+  - Label: "Add more specifications"
+    Description: "I have additional requirements to add"
+```
+
+---
+
+#### Step 8: Record in plan.md
+
+Record in `## Frontend/UI Specifications` section:
+- Platform detected
+- All selected options with registry keys
+- Design token source (if applicable)
+- Additional requirements
+- Approval timestamp
+
+---
+
+#### Step 9: Skip conditions
+
+Skip this phase if:
+- Feature has no UI (backend-only)
+- Review Depth = "Auto-approve" (log choices automatically)
+
+**Output**: User-approved UI specifications recorded in plan.md with platform-specific registry keys
 
 ### Phase 0.9: Registry Sync Checkpoint (HITL #4)
 

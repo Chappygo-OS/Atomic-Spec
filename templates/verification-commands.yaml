@@ -1,0 +1,929 @@
+# ============================================================================
+# VERIFICATION COMMAND TEMPLATES
+# ============================================================================
+# Platform-specific verification commands for atomic tasks.
+# This file enables tasks.md to generate executable verification commands
+# appropriate to each project's target platform.
+#
+# USAGE IN TASK GENERATION (Section 4.2.2):
+# 1. Read target platform from registry (backend.language, frontend.framework,
+#    or target_platform.primary)
+# 2. Select appropriate command template from this file
+# 3. Replace placeholders with task-specific values
+# 4. Embed fallback commands when primary tool may be unavailable
+#
+# PLACEHOLDER SYNTAX:
+# - {{TEST_NAME}} - Specific test name or pattern
+# - {{FILE_PATH}} - Path to file being tested
+# - {{ENDPOINT}} - API endpoint path
+# - {{SCHEME}} - Project scheme name (iOS)
+# - {{MODULE}} - Module/package name
+# - {{PORT}} - Server port number (default: 8000 for backend, 3000 for frontend)
+# ============================================================================
+
+version: 1
+created: 2026-03-02
+last_updated: 2026-03-02
+
+# ============================================================================
+# PLATFORM DETECTION RULES
+# ============================================================================
+# Use these rules to determine which platform templates to apply
+# ============================================================================
+platform_detection:
+  # Primary detection: Check registry values first
+  registry_keys:
+    ios:
+      - target_platform.mobile_platforms: "ios"
+      - target_platform.mobile_platforms: "both"
+      - mobile.iap_framework: "storekit2"
+    android:
+      - target_platform.mobile_platforms: "android"
+      - target_platform.mobile_platforms: "both"
+      - mobile.iap_framework: "billing_client"
+    react_native:
+      - target_platform.mobile_framework: "react-native"
+    flutter:
+      - target_platform.mobile_framework: "flutter"
+    web_node:
+      - backend.language: "typescript"
+      - backend.framework: "express"
+      - backend.framework: "nestjs"
+    python:
+      - backend.language: "python"
+      - backend.framework: "fastapi"
+      - backend.framework: "django"
+      - backend.framework: "flask"
+    go:
+      - backend.language: "go"
+      - backend.framework: "gin"
+      - backend.framework: "fiber"
+
+  # Secondary detection: File pattern scanning
+  file_patterns:
+    ios:
+      - "*.xcodeproj"
+      - "*.xcworkspace"
+      - "Package.swift"
+      - "Podfile"
+    android:
+      - "build.gradle"
+      - "build.gradle.kts"
+      - "settings.gradle"
+      - "AndroidManifest.xml"
+    react_native:
+      - "metro.config.js"
+      - "react-native.config.js"
+      - "app.json" # with "expo" or "name" + "displayName"
+    flutter:
+      - "pubspec.yaml"
+      - "lib/main.dart"
+    web_node:
+      - "package.json"
+      - "tsconfig.json"
+    python:
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "setup.py"
+      - "Pipfile"
+    go:
+      - "go.mod"
+      - "go.sum"
+
+# ============================================================================
+# WEB / NODE.JS PLATFORM
+# ============================================================================
+web_node:
+  description: "Node.js, TypeScript, npm-based web projects"
+
+  unit_tests:
+    primary:
+      tool: "npm/vitest"
+      command: 'npm test -- --grep "{{TEST_NAME}}"'
+      expected_output: "PASS {{TEST_NAME}}"
+    alternatives:
+      - tool: "npm/jest"
+        command: 'npx jest --testNamePattern="{{TEST_NAME}}"'
+        expected_output: "PASS"
+      - tool: "npm/mocha"
+        command: 'npx mocha --grep "{{TEST_NAME}}"'
+        expected_output: "passing"
+    fallback:
+      command: 'node -e "require(\"{{FILE_PATH}}\"); console.log(\"Module loads successfully\")"'
+      expected_output: "Module loads successfully"
+
+  type_check:
+    primary:
+      tool: "tsc"
+      command: "npx tsc --noEmit {{FILE_PATH}}"
+      expected_output: "No errors"
+    alternatives:
+      - tool: "tsc-project"
+        command: "npx tsc --noEmit"
+        expected_output: "No errors"
+    fallback:
+      command: 'node -e "require(\"{{FILE_PATH}}\")"'
+      expected_output: "No syntax errors"
+
+  lint:
+    primary:
+      tool: "eslint"
+      command: "npx eslint {{FILE_PATH}} --max-warnings=0"
+      expected_output: "No warnings or errors"
+    alternatives:
+      - tool: "biome"
+        command: "npx biome check {{FILE_PATH}}"
+        expected_output: "No issues found"
+    fallback:
+      command: "node --check {{FILE_PATH}}"
+      expected_output: "Syntax OK"
+
+  build:
+    primary:
+      tool: "npm"
+      command: "npm run build"
+      expected_output: "Build completed"
+    alternatives:
+      - tool: "vite"
+        command: "npx vite build"
+        expected_output: "built in"
+      - tool: "webpack"
+        command: "npx webpack --mode production"
+        expected_output: "compiled successfully"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+    alternatives:
+      - tool: "httpie"
+        command: 'http GET http://localhost:{{PORT}}/{{ENDPOINT}} --check-status'
+        expected_output: "HTTP/1.1 200"
+      - tool: "wget"
+        command: 'wget -qO- http://localhost:{{PORT}}/{{ENDPOINT}}'
+        expected_output: "Response body"
+
+  integration_tests:
+    primary:
+      tool: "supertest"
+      command: 'npm run test:integration -- --grep "{{TEST_NAME}}"'
+      expected_output: "PASS"
+    alternatives:
+      - tool: "playwright-api"
+        command: 'npx playwright test --grep "{{TEST_NAME}}" --project=api'
+        expected_output: "passed"
+    fallback:
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} && echo "Endpoint accessible"'
+      expected_output: "Endpoint accessible"
+
+  e2e_tests:
+    primary:
+      tool: "playwright"
+      command: 'npx playwright test {{FILE_PATH}}'
+      expected_output: "passed"
+    alternatives:
+      - tool: "cypress"
+        command: 'npx cypress run --spec "{{FILE_PATH}}"'
+        expected_output: "All specs passed"
+
+# ============================================================================
+# iOS PLATFORM (Swift, Xcode)
+# ============================================================================
+ios:
+  description: "iOS native development with Swift, SwiftUI, Xcode"
+
+  unit_tests:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild test \
+          -scheme {{SCHEME}} \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:{{MODULE}}Tests/{{TEST_NAME}} \
+          | xcpretty
+      expected_output: "Test Succeeded"
+    alternatives:
+      - tool: "swift-test"
+        command: 'swift test --filter "{{TEST_NAME}}"'
+        expected_output: "Test Suite 'All tests' passed"
+    fallback:
+      command: |
+        xcodebuild build \
+          -scheme {{SCHEME}} \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          | xcpretty
+      expected_output: "Build Succeeded"
+
+  build:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild build \
+          -scheme {{SCHEME}} \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -configuration Debug \
+          | xcpretty
+      expected_output: "Build Succeeded"
+    alternatives:
+      - tool: "swift-build"
+        command: "swift build"
+        expected_output: "Build complete!"
+      - tool: "fastlane"
+        command: "bundle exec fastlane build"
+        expected_output: "fastlane.tools finished successfully"
+
+  lint:
+    primary:
+      tool: "swiftlint"
+      command: "swiftlint lint {{FILE_PATH}} --strict"
+      expected_output: "No violations"
+    alternatives:
+      - tool: "swiftformat"
+        command: "swiftformat --lint {{FILE_PATH}}"
+        expected_output: "No formatting issues"
+    fallback:
+      command: "swift -parse {{FILE_PATH}}"
+      expected_output: "No syntax errors"
+
+  type_check:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild build \
+          -scheme {{SCHEME}} \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          2>&1 | grep -E "(error:|warning:)" | head -20
+      expected_output: "No errors"
+    fallback:
+      command: "swift -typecheck {{FILE_PATH}}"
+      expected_output: "No errors"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+    note: "Use same API health checks as backend - iOS tasks verify against running backend"
+
+  integration_tests:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild test \
+          -scheme {{SCHEME}} \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -testPlan IntegrationTests \
+          | xcpretty
+      expected_output: "Test Succeeded"
+    alternatives:
+      - tool: "xcrun-simctl"
+        command: |
+          xcrun simctl boot "iPhone 15" && \
+          xcodebuild test -scheme {{SCHEME}} -destination 'platform=iOS Simulator,name=iPhone 15'
+        expected_output: "Test Succeeded"
+
+  ui_tests:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild test \
+          -scheme {{SCHEME}}UITests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:{{MODULE}}UITests/{{TEST_NAME}} \
+          | xcpretty
+      expected_output: "Test Succeeded"
+
+  simulator:
+    primary:
+      tool: "xcrun"
+      command: |
+        xcrun simctl boot "iPhone 15" && \
+        open -a Simulator && \
+        xcodebuild -scheme {{SCHEME}} -destination 'platform=iOS Simulator,name=iPhone 15' build
+      expected_output: "Build Succeeded, Simulator running"
+
+  archive:
+    primary:
+      tool: "xcodebuild"
+      command: |
+        xcodebuild archive \
+          -scheme {{SCHEME}} \
+          -archivePath ./build/{{SCHEME}}.xcarchive \
+          -destination 'generic/platform=iOS' \
+          | xcpretty
+      expected_output: "Archive Succeeded"
+    alternatives:
+      - tool: "fastlane"
+        command: "bundle exec fastlane gym"
+        expected_output: "Successfully exported"
+
+# ============================================================================
+# ANDROID PLATFORM (Kotlin, Gradle)
+# ============================================================================
+android:
+  description: "Android native development with Kotlin, Jetpack Compose, Gradle"
+
+  unit_tests:
+    primary:
+      tool: "gradle"
+      command: './gradlew test --tests "{{MODULE}}.{{TEST_NAME}}"'
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "gradle-class"
+        command: './gradlew testDebugUnitTest --tests "{{TEST_NAME}}"'
+        expected_output: "BUILD SUCCESSFUL"
+    fallback:
+      command: "./gradlew compileDebugKotlin"
+      expected_output: "BUILD SUCCESSFUL"
+
+  build:
+    primary:
+      tool: "gradle"
+      command: "./gradlew assembleDebug"
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "gradle-release"
+        command: "./gradlew assembleRelease"
+        expected_output: "BUILD SUCCESSFUL"
+      - tool: "fastlane"
+        command: "bundle exec fastlane build"
+        expected_output: "fastlane.tools finished successfully"
+
+  lint:
+    primary:
+      tool: "ktlint"
+      command: "./gradlew ktlintCheck"
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "detekt"
+        command: "./gradlew detekt"
+        expected_output: "BUILD SUCCESSFUL"
+      - tool: "android-lint"
+        command: "./gradlew lintDebug"
+        expected_output: "BUILD SUCCESSFUL"
+    fallback:
+      command: "./gradlew compileDebugKotlin"
+      expected_output: "BUILD SUCCESSFUL"
+
+  type_check:
+    primary:
+      tool: "gradle"
+      command: "./gradlew compileDebugKotlin"
+      expected_output: "BUILD SUCCESSFUL"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+    note: "Use same API health checks as backend - Android tasks verify against running backend"
+
+  integration_tests:
+    primary:
+      tool: "gradle"
+      command: './gradlew connectedDebugAndroidTest --tests "{{TEST_NAME}}"'
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "adb"
+        command: |
+          adb shell am instrument -w \
+            -e class {{MODULE}}.{{TEST_NAME}} \
+            {{PACKAGE}}.test/androidx.test.runner.AndroidJUnitRunner
+        expected_output: "OK (1 test)"
+
+  ui_tests:
+    primary:
+      tool: "gradle"
+      command: './gradlew connectedDebugAndroidTest --tests "*{{TEST_NAME}}*"'
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "maestro"
+        command: "maestro test flows/{{TEST_NAME}}.yaml"
+        expected_output: "Flow completed successfully"
+
+  emulator:
+    primary:
+      tool: "adb"
+      command: |
+        emulator -avd Pixel_7_API_34 -no-snapshot &
+        adb wait-for-device && \
+        ./gradlew installDebug
+      expected_output: "Installed on device"
+    alternatives:
+      - tool: "gradle"
+        command: "./gradlew installDebug"
+        expected_output: "BUILD SUCCESSFUL"
+
+  bundle:
+    primary:
+      tool: "gradle"
+      command: "./gradlew bundleRelease"
+      expected_output: "BUILD SUCCESSFUL"
+    alternatives:
+      - tool: "fastlane"
+        command: "bundle exec fastlane supply"
+        expected_output: "fastlane.tools finished successfully"
+
+# ============================================================================
+# REACT NATIVE PLATFORM
+# ============================================================================
+react_native:
+  description: "Cross-platform mobile with React Native or Expo"
+
+  unit_tests:
+    primary:
+      tool: "jest"
+      command: 'npx jest --testNamePattern="{{TEST_NAME}}"'
+      expected_output: "PASS"
+    alternatives:
+      - tool: "npm"
+        command: 'npm test -- --testNamePattern="{{TEST_NAME}}"'
+        expected_output: "PASS"
+
+  build:
+    ios:
+      primary:
+        tool: "react-native"
+        command: "npx react-native build-ios --scheme {{SCHEME}} --mode Debug"
+        expected_output: "Build Succeeded"
+      alternatives:
+        - tool: "expo"
+          command: "npx expo prebuild --platform ios && cd ios && xcodebuild build -scheme {{SCHEME}}"
+          expected_output: "Build Succeeded"
+    android:
+      primary:
+        tool: "react-native"
+        command: "npx react-native build-android --mode=debug"
+        expected_output: "BUILD SUCCESSFUL"
+      alternatives:
+        - tool: "expo"
+          command: "npx expo prebuild --platform android && cd android && ./gradlew assembleDebug"
+          expected_output: "BUILD SUCCESSFUL"
+
+  lint:
+    primary:
+      tool: "eslint"
+      command: "npx eslint {{FILE_PATH}} --max-warnings=0"
+      expected_output: "No warnings or errors"
+    alternatives:
+      - tool: "tsc"
+        command: "npx tsc --noEmit"
+        expected_output: "No errors"
+
+  type_check:
+    primary:
+      tool: "tsc"
+      command: "npx tsc --noEmit"
+      expected_output: "No errors"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+
+  integration_tests:
+    primary:
+      tool: "detox"
+      command: 'npx detox test --configuration ios.sim.debug --testNamePattern "{{TEST_NAME}}"'
+      expected_output: "PASS"
+    alternatives:
+      - tool: "maestro"
+        command: "maestro test flows/{{TEST_NAME}}.yaml"
+        expected_output: "Flow completed successfully"
+
+  e2e_tests:
+    primary:
+      tool: "detox"
+      command: "npx detox test --configuration ios.sim.debug"
+      expected_output: "All tests passed"
+    alternatives:
+      - tool: "maestro"
+        command: "maestro test flows/"
+        expected_output: "All flows completed"
+
+  metro:
+    primary:
+      tool: "react-native"
+      command: "npx react-native start --reset-cache &"
+      expected_output: "Metro waiting on"
+
+# ============================================================================
+# FLUTTER PLATFORM
+# ============================================================================
+flutter:
+  description: "Cross-platform mobile with Flutter and Dart"
+
+  unit_tests:
+    primary:
+      tool: "flutter"
+      command: 'flutter test --name "{{TEST_NAME}}"'
+      expected_output: "All tests passed!"
+    alternatives:
+      - tool: "flutter-file"
+        command: "flutter test {{FILE_PATH}}"
+        expected_output: "All tests passed!"
+    fallback:
+      command: "dart analyze {{FILE_PATH}}"
+      expected_output: "No issues found!"
+
+  build:
+    ios:
+      primary:
+        tool: "flutter"
+        command: "flutter build ios --debug --no-codesign"
+        expected_output: "Built"
+      alternatives:
+        - tool: "flutter-release"
+          command: "flutter build ios --release"
+          expected_output: "Built"
+    android:
+      primary:
+        tool: "flutter"
+        command: "flutter build apk --debug"
+        expected_output: "Built"
+      alternatives:
+        - tool: "flutter-appbundle"
+          command: "flutter build appbundle"
+          expected_output: "Built"
+
+  lint:
+    primary:
+      tool: "dart"
+      command: "dart analyze {{FILE_PATH}}"
+      expected_output: "No issues found!"
+    alternatives:
+      - tool: "flutter"
+        command: "flutter analyze"
+        expected_output: "No issues found!"
+
+  type_check:
+    primary:
+      tool: "dart"
+      command: "dart analyze {{FILE_PATH}} --fatal-infos"
+      expected_output: "No issues found!"
+
+  format:
+    primary:
+      tool: "dart"
+      command: "dart format --set-exit-if-changed {{FILE_PATH}}"
+      expected_output: "No changes"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+
+  integration_tests:
+    primary:
+      tool: "flutter"
+      command: 'flutter test integration_test/{{TEST_NAME}}_test.dart'
+      expected_output: "All tests passed!"
+    alternatives:
+      - tool: "flutter-drive"
+        command: "flutter drive --target=test_driver/app.dart"
+        expected_output: "All tests passed!"
+
+  widget_tests:
+    primary:
+      tool: "flutter"
+      command: "flutter test test/widget_test.dart"
+      expected_output: "All tests passed!"
+
+  pub:
+    primary:
+      tool: "flutter"
+      command: "flutter pub get"
+      expected_output: "Got dependencies!"
+
+# ============================================================================
+# PYTHON BACKEND
+# ============================================================================
+python:
+  description: "Python backend with FastAPI, Django, or Flask"
+
+  unit_tests:
+    primary:
+      tool: "pytest"
+      command: 'pytest -xvs -k "{{TEST_NAME}}"'
+      expected_output: "passed"
+    alternatives:
+      - tool: "pytest-file"
+        command: "pytest {{FILE_PATH}} -xvs"
+        expected_output: "passed"
+      - tool: "unittest"
+        command: 'python -m unittest {{MODULE}}.{{TEST_NAME}}'
+        expected_output: "OK"
+    fallback:
+      command: "python -m py_compile {{FILE_PATH}}"
+      expected_output: "No syntax errors"
+
+  build:
+    primary:
+      tool: "pip"
+      command: "pip install -e ."
+      expected_output: "Successfully installed"
+    alternatives:
+      - tool: "poetry"
+        command: "poetry build"
+        expected_output: "Built"
+      - tool: "uv"
+        command: "uv build"
+        expected_output: "Built"
+
+  lint:
+    primary:
+      tool: "ruff"
+      command: "ruff check {{FILE_PATH}}"
+      expected_output: "All checks passed!"
+    alternatives:
+      - tool: "flake8"
+        command: "flake8 {{FILE_PATH}}"
+        expected_output: "No issues"
+      - tool: "pylint"
+        command: "pylint {{FILE_PATH}}"
+        expected_output: "rated at 10.00/10"
+    fallback:
+      command: "python -m py_compile {{FILE_PATH}}"
+      expected_output: "No syntax errors"
+
+  type_check:
+    primary:
+      tool: "mypy"
+      command: "mypy {{FILE_PATH}} --strict"
+      expected_output: "Success: no issues found"
+    alternatives:
+      - tool: "pyright"
+        command: "pyright {{FILE_PATH}}"
+        expected_output: "0 errors"
+
+  format:
+    primary:
+      tool: "ruff"
+      command: "ruff format --check {{FILE_PATH}}"
+      expected_output: "would be left unchanged"
+    alternatives:
+      - tool: "black"
+        command: "black --check {{FILE_PATH}}"
+        expected_output: "would be left unchanged"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+    alternatives:
+      - tool: "httpx"
+        command: 'python -c "import httpx; r=httpx.get(\"http://localhost:{{PORT}}/{{ENDPOINT}}\"); print(r.json())"'
+        expected_output: '{"status": "ok"}'
+
+  integration_tests:
+    primary:
+      tool: "pytest"
+      command: 'pytest tests/integration/ -xvs -k "{{TEST_NAME}}"'
+      expected_output: "passed"
+    alternatives:
+      - tool: "pytest-httpx"
+        command: 'pytest -xvs --httpx-mock -k "{{TEST_NAME}}"'
+        expected_output: "passed"
+
+  migration:
+    primary:
+      tool: "alembic"
+      command: "alembic upgrade head && alembic check"
+      expected_output: "No new upgrade operations detected"
+    alternatives:
+      - tool: "django"
+        command: "python manage.py migrate --check"
+        expected_output: "No migrations to apply"
+
+# ============================================================================
+# GO BACKEND
+# ============================================================================
+go:
+  description: "Go backend with Gin, Fiber, or Echo"
+
+  unit_tests:
+    primary:
+      tool: "go"
+      command: 'go test -v -run "{{TEST_NAME}}" ./...'
+      expected_output: "PASS"
+    alternatives:
+      - tool: "go-pkg"
+        command: 'go test -v -run "{{TEST_NAME}}" ./{{MODULE}}/...'
+        expected_output: "PASS"
+    fallback:
+      command: "go build ./..."
+      expected_output: "No errors"
+
+  build:
+    primary:
+      tool: "go"
+      command: "go build -o ./bin/app ./cmd/..."
+      expected_output: "Build successful"
+    alternatives:
+      - tool: "go-simple"
+        command: "go build ./..."
+        expected_output: "Build successful"
+
+  lint:
+    primary:
+      tool: "golangci-lint"
+      command: "golangci-lint run {{FILE_PATH}}"
+      expected_output: "No issues"
+    alternatives:
+      - tool: "staticcheck"
+        command: "staticcheck ./..."
+        expected_output: "No issues"
+      - tool: "go-vet"
+        command: "go vet ./..."
+        expected_output: "No issues"
+    fallback:
+      command: "go build ./..."
+      expected_output: "No errors"
+
+  type_check:
+    primary:
+      tool: "go"
+      command: "go build ./..."
+      expected_output: "Build successful"
+    note: "Go has built-in type checking during compilation"
+
+  format:
+    primary:
+      tool: "gofmt"
+      command: "gofmt -l {{FILE_PATH}} | wc -l"
+      expected_output: "0"
+    alternatives:
+      - tool: "goimports"
+        command: "goimports -l {{FILE_PATH}} | wc -l"
+        expected_output: "0"
+
+  api_health:
+    primary:
+      tool: "curl"
+      command: 'curl -sf http://localhost:{{PORT}}/{{ENDPOINT}} | jq -e ".status"'
+      expected_output: '"ok"'
+
+  integration_tests:
+    primary:
+      tool: "go"
+      command: 'go test -v -tags=integration -run "{{TEST_NAME}}" ./...'
+      expected_output: "PASS"
+    alternatives:
+      - tool: "go-race"
+        command: 'go test -race -v -run "{{TEST_NAME}}" ./...'
+        expected_output: "PASS"
+
+  benchmark:
+    primary:
+      tool: "go"
+      command: 'go test -bench="{{TEST_NAME}}" -benchmem ./...'
+      expected_output: "ns/op"
+
+  coverage:
+    primary:
+      tool: "go"
+      command: "go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out"
+      expected_output: "total:"
+
+# ============================================================================
+# FALLBACK STRATEGY
+# ============================================================================
+# When primary tool is unavailable, use this decision tree
+# ============================================================================
+fallback_strategy:
+  description: |
+    Fallback order when primary verification tool is unavailable:
+    1. Try alternatives in order
+    2. Use language-native syntax check
+    3. Use file existence + import check
+    4. Last resort: manual verification instruction with clear criteria
+
+  universal_fallbacks:
+    # These work across most platforms
+    file_exists:
+      command: 'test -f "{{FILE_PATH}}" && echo "File exists"'
+      expected_output: "File exists"
+
+    file_not_empty:
+      command: 'test -s "{{FILE_PATH}}" && echo "File has content"'
+      expected_output: "File has content"
+
+    git_diff:
+      command: 'git diff --name-only HEAD~1 | grep -q "{{FILE_PATH}}" && echo "File was modified"'
+      expected_output: "File was modified"
+
+  manual_verification_template: |
+    ## Manual Verification Required
+
+    **Reason**: {{REASON}}
+
+    **Steps**:
+    1. {{STEP_1}}
+    2. {{STEP_2}}
+    3. {{STEP_3}}
+
+    **Success Criteria**:
+    - {{CRITERION_1}}
+    - {{CRITERION_2}}
+
+    **Automated fallback attempted**: {{FALLBACK_COMMAND}}
+
+# ============================================================================
+# COMPOSITE VERIFICATION PATTERNS
+# ============================================================================
+# Common multi-step verification patterns
+# ============================================================================
+composite_patterns:
+
+  # Full API endpoint verification (backend)
+  api_endpoint_full:
+    description: "Verify API endpoint: build, lint, test, health check"
+    steps:
+      - name: "Lint"
+        command: "{{LINT_COMMAND}}"
+      - name: "Type Check"
+        command: "{{TYPE_CHECK_COMMAND}}"
+      - name: "Unit Test"
+        command: "{{UNIT_TEST_COMMAND}}"
+      - name: "Health Check"
+        command: "{{API_HEALTH_COMMAND}}"
+    combined_command: "{{LINT_COMMAND}} && {{TYPE_CHECK_COMMAND}} && {{UNIT_TEST_COMMAND}}"
+
+  # Full UI component verification (frontend)
+  ui_component_full:
+    description: "Verify UI component: lint, type check, unit test, snapshot"
+    steps:
+      - name: "Lint"
+        command: "{{LINT_COMMAND}}"
+      - name: "Type Check"
+        command: "{{TYPE_CHECK_COMMAND}}"
+      - name: "Unit Test"
+        command: "{{UNIT_TEST_COMMAND}}"
+    combined_command: "{{LINT_COMMAND}} && {{TYPE_CHECK_COMMAND}} && {{UNIT_TEST_COMMAND}}"
+
+  # Full mobile screen verification
+  mobile_screen_full:
+    description: "Verify mobile screen: build, lint, test, simulator run"
+    steps:
+      - name: "Lint"
+        command: "{{LINT_COMMAND}}"
+      - name: "Build"
+        command: "{{BUILD_COMMAND}}"
+      - name: "Unit Test"
+        command: "{{UNIT_TEST_COMMAND}}"
+    combined_command: "{{LINT_COMMAND}} && {{BUILD_COMMAND}} && {{UNIT_TEST_COMMAND}}"
+
+  # Database migration verification
+  database_migration:
+    description: "Verify database migration: apply, verify schema, rollback test"
+    steps:
+      - name: "Apply Migration"
+        command: "{{MIGRATION_UP_COMMAND}}"
+      - name: "Verify Schema"
+        command: "{{SCHEMA_CHECK_COMMAND}}"
+      - name: "Rollback Test"
+        command: "{{MIGRATION_DOWN_COMMAND}} && {{MIGRATION_UP_COMMAND}}"
+
+# ============================================================================
+# TOOL AVAILABILITY DETECTION
+# ============================================================================
+# Commands to check if a tool is available
+# ============================================================================
+tool_detection:
+  npm: "command -v npm >/dev/null 2>&1"
+  node: "command -v node >/dev/null 2>&1"
+  npx: "command -v npx >/dev/null 2>&1"
+  tsc: "npx tsc --version 2>/dev/null || command -v tsc >/dev/null 2>&1"
+  eslint: "npx eslint --version 2>/dev/null"
+  jest: "npx jest --version 2>/dev/null"
+  vitest: "npx vitest --version 2>/dev/null"
+  playwright: "npx playwright --version 2>/dev/null"
+
+  xcodebuild: "command -v xcodebuild >/dev/null 2>&1"
+  xcrun: "command -v xcrun >/dev/null 2>&1"
+  swift: "command -v swift >/dev/null 2>&1"
+  swiftlint: "command -v swiftlint >/dev/null 2>&1"
+  fastlane: "command -v fastlane >/dev/null 2>&1 || bundle exec fastlane --version 2>/dev/null"
+
+  gradle: "command -v gradle >/dev/null 2>&1 || ./gradlew --version 2>/dev/null"
+  adb: "command -v adb >/dev/null 2>&1"
+  ktlint: "./gradlew ktlintCheck --dry-run 2>/dev/null"
+
+  flutter: "command -v flutter >/dev/null 2>&1"
+  dart: "command -v dart >/dev/null 2>&1"
+
+  python: "command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1"
+  pytest: "python -m pytest --version 2>/dev/null"
+  ruff: "command -v ruff >/dev/null 2>&1"
+  mypy: "command -v mypy >/dev/null 2>&1"
+
+  go: "command -v go >/dev/null 2>&1"
+  golangci-lint: "command -v golangci-lint >/dev/null 2>&1"
+
+  curl: "command -v curl >/dev/null 2>&1"
+  jq: "command -v jq >/dev/null 2>&1"
+  wget: "command -v wget >/dev/null 2>&1"

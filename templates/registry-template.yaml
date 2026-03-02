@@ -9,10 +9,96 @@
 # Updates require HITL (Human-In-The-Loop) approval via AskUserQuestion
 # ============================================================================
 
-version: 2
+version: 3
 created: null  # Set when first decision is added
 last_updated: null
 last_updated_by: null
+
+# ============================================================================
+# TARGET PLATFORM (What type of application is being built)
+# ============================================================================
+# CRITICAL: This section determines which verification commands are used
+# in generated tasks. See templates/verification-commands.yaml for details.
+# ============================================================================
+target_platform:
+  # Primary deployment target: web | mobile | desktop | both
+  # web = Browser-based application (SPA, SSR, etc.)
+  # mobile = Native or cross-platform mobile app
+  # desktop = Desktop application (Electron, Tauri, native)
+  # both = Hybrid (e.g., web app + mobile app sharing backend)
+  primary: null
+
+  # Mobile platforms (only if primary = mobile or both)
+  # ios | android | both
+  mobile_platforms: null
+
+  # Mobile framework (only if mobile_platforms is set)
+  # native = Swift/Kotlin native development
+  # react-native = React Native / Expo
+  # flutter = Flutter / Dart
+  # capacitor = Web-based with Capacitor
+  # cordova = Web-based with Cordova (legacy)
+  mobile_framework: null
+
+  # Desktop framework (only if primary = desktop)
+  # electron | tauri | native | none
+  desktop_framework: null
+
+# ============================================================================
+# MOBILE CONFIGURATION (Only if target_platform.mobile_platforms is set)
+# ============================================================================
+# Mobile-specific settings that affect task generation and verification.
+# ============================================================================
+mobile:
+  # Push notification service: apns_fcm | onesignal | firebase | expo | none
+  # apns_fcm = Direct APNs + FCM integration
+  # onesignal = OneSignal unified service
+  # firebase = Firebase Cloud Messaging (both platforms)
+  # expo = Expo push notifications (React Native only)
+  push_service: null
+
+  # Offline strategy: offline_first | online_first | hybrid | none
+  # offline_first = App works fully offline, syncs when online
+  # online_first = Requires connection, limited offline cache
+  # hybrid = Some features offline, others require connection
+  offline_strategy: null
+
+  # Local database: sqlite | realm | core_data | room | hive | drift | none
+  # sqlite = Direct SQLite (both platforms)
+  # realm = Realm database
+  # core_data = iOS Core Data (iOS only)
+  # room = Android Room (Android only)
+  # hive = Hive (Flutter)
+  # drift = Drift (Flutter, formerly Moor)
+  local_database: null
+
+  # Deep linking approach: universal_links | branch | firebase | appsflyer | none
+  # universal_links = iOS Universal Links + Android App Links
+  # branch = Branch.io deep linking
+  # firebase = Firebase Dynamic Links
+  # appsflyer = AppsFlyer OneLink
+  deep_linking: null
+
+  # In-app purchase framework: storekit2 | billing_client | revenuecat | adapty | none
+  # storekit2 = Apple StoreKit 2 (iOS only)
+  # billing_client = Google Play Billing Library (Android only)
+  # revenuecat = RevenueCat (cross-platform)
+  # adapty = Adapty (cross-platform)
+  iap_framework: null
+
+  # Crash reporting: crashlytics | sentry | bugsnag | none
+  crash_reporting: null
+
+  # Certificate pinning: enabled | disabled
+  # enabled = SSL certificate pinning for API calls
+  cert_pinning: null
+
+  # App architecture pattern (iOS/Android native): mvvm | mvc | viper | clean | none
+  # mvvm = Model-View-ViewModel
+  # mvc = Model-View-Controller
+  # viper = View-Interactor-Presenter-Entity-Router
+  # clean = Clean Architecture
+  app_architecture: null
 
 # ============================================================================
 # ARCHITECTURE (How the system is structured)
@@ -158,7 +244,24 @@ backend:
   cache: null
 
 # ============================================================================
-# FRONTEND CONFIGURATION
+# TARGET PLATFORM (What are we building for?)
+# ============================================================================
+# This determines which Phase 0.8 questions are shown during /speckit.plan
+# ============================================================================
+target_platform:
+  # Primary platform: web | ios | android | react-native | flutter | desktop
+  primary: null
+
+  # For mobile/cross-platform: ios | android | both
+  mobile_platforms: null
+
+  # Mobile framework if cross-platform: react-native | flutter | native
+  mobile_framework: null
+
+# ============================================================================
+# FRONTEND CONFIGURATION (Web)
+# ============================================================================
+# Used when target_platform.primary = web
 # ============================================================================
 frontend:
   # Framework: react | vue | angular | svelte | nextjs | nuxt | remix | none
@@ -191,6 +294,152 @@ frontend:
 
   # Routing: react-router | tanstack-router | next-router | vue-router
   routing: null
+
+# ============================================================================
+# iOS CONFIGURATION (Native iOS)
+# ============================================================================
+# Used when target_platform.primary = ios
+# ============================================================================
+ios:
+  # UI framework: swiftui | uikit | hybrid
+  ui_framework: null
+
+  # Minimum iOS version (e.g., "15.0", "16.0", "17.0")
+  min_version: null
+
+  # State management: observable | observableobject | tca | mvvm | reswift
+  # observable = @Observable (iOS 17+)
+  # observableobject = ObservableObject + @Published
+  # tca = The Composable Architecture
+  # mvvm = MVVM with Combine
+  # reswift = Redux-like with ReSwift
+  state_management: null
+
+  # Navigation: navigationstack | navigationview | uinavigationcontroller | coordinator | router
+  navigation: null
+
+  # Local database: swiftdata | coredata | realm | userdefaults | grdb | sqlite
+  local_database: null
+
+  # Networking: urlsession | alamofire | moya | combine
+  networking: null
+
+  # Async pattern: async_await | combine | callbacks
+  async_pattern: null
+
+# ============================================================================
+# ANDROID CONFIGURATION (Native Android)
+# ============================================================================
+# Used when target_platform.primary = android
+# ============================================================================
+android:
+  # UI framework: compose | xml_views | hybrid
+  ui_framework: null
+
+  # Minimum SDK version (e.g., 24, 26, 28)
+  min_sdk: null
+
+  # Target SDK version (e.g., 34, 35)
+  target_sdk: null
+
+  # State management: viewmodel_stateflow | viewmodel_livedata | mvi_orbit | mobius | compose_state
+  state_management: null
+
+  # Navigation: navigation_compose | navigation_component | voyager | decompose | manual
+  navigation: null
+
+  # Local database: room | datastore | realm | sqldelight | sharedpreferences
+  local_database: null
+
+  # Dependency injection: hilt | koin | dagger | manual
+  dependency_injection: null
+
+  # Networking: retrofit | ktor | okhttp
+  networking: null
+
+  # Async pattern: coroutines | rxjava | callbacks
+  async_pattern: null
+
+# ============================================================================
+# REACT NATIVE CONFIGURATION (Cross-platform)
+# ============================================================================
+# Used when target_platform.mobile_framework = react-native
+# ============================================================================
+react_native:
+  # Development approach: expo_managed | expo_bare | cli
+  dev_approach: null
+
+  # UI library: paper | nativebase | tamagui | elements | gluestack | nativewind | custom
+  ui_library: null
+
+  # State management: zustand | redux | jotai | tanstack_query | mobx
+  state_management: null
+
+  # Navigation: react_navigation | expo_router | rnn_wix | solito
+  navigation: null
+
+  # Local database: asyncstorage_mmkv | watermelondb | realm | sqlite
+  local_database: null
+
+  # Type checking: typescript | flow | none
+  type_checking: null
+
+# ============================================================================
+# FLUTTER CONFIGURATION (Cross-platform)
+# ============================================================================
+# Used when target_platform.mobile_framework = flutter
+# ============================================================================
+flutter:
+  # UI approach: material3 | cupertino | adaptive | custom
+  ui_approach: null
+
+  # Minimum Flutter version (e.g., "3.16", "3.19")
+  min_version: null
+
+  # State management: riverpod | bloc | provider | getx | mobx
+  state_management: null
+
+  # Navigation: go_router | navigator2 | auto_route | getx_nav | navigator1
+  navigation: null
+
+  # Local database: drift | hive | isar | sqflite | shared_preferences
+  local_database: null
+
+  # Networking: dio | http | retrofit | chopper
+  networking: null
+
+  # Code generation: freezed | json_serializable | both | none
+  code_generation: null
+
+# ============================================================================
+# MOBILE COMMON CONFIGURATION
+# ============================================================================
+# Shared mobile settings for ios, android, react-native, flutter
+# ============================================================================
+mobile:
+  # Push notification service: apns_fcm | onesignal | firebase | expo_push
+  push_service: null
+
+  # Offline strategy: offline_first | online_first | hybrid | none
+  offline_strategy: null
+
+  # Deep linking: universal_links | branch | firebase | custom | none
+  deep_linking: null
+
+  # In-app purchase framework: storekit2 | billing_client | revenuecat | none
+  iap_framework: null
+
+  # Crash reporting: crashlytics | sentry | bugsnag | none
+  crash_reporting: null
+
+  # Analytics: firebase_analytics | amplitude | mixpanel | none
+  analytics: null
+
+  # Certificate pinning: enabled | disabled
+  cert_pinning: null
+
+  # Biometric auth: enabled | disabled
+  biometric_auth: null
 
 # ============================================================================
 # DATABASE CONFIGURATION
@@ -330,26 +579,50 @@ conventions:
 # ============================================================================
 # UI/UX SPECIFICATIONS
 # ============================================================================
+# Cross-platform UI settings that apply to all target platforms
+# ============================================================================
 ui_specs:
   # Dark mode support: true | false
   dark_mode: null
 
-  # Mobile responsive: true | false
+  # Mobile responsive (web) / Tablet support (mobile): true | false
   responsive: null
 
+  # Tablet/iPad optimized layouts: true | false
+  tablet_support: null
+
+  # Landscape orientation support: true | false
+  landscape_support: null
+
   # Accessibility standard: wcag-aa | wcag-aaa | basic | none
+  # For mobile: VoiceOver/TalkBack, dynamic type, high contrast
   accessibility: null
 
-  # Animation library: framer-motion | react-spring | css | gsap | none
+  # Animation library (platform-specific):
+  # Web: framer-motion | react-spring | css | gsap | none
+  # iOS: native | lottie | none
+  # Android: native | lottie | none
+  # React Native: reanimated | lottie | native | none
+  # Flutter: native | rive | lottie | none
   animations: null
 
   # Design token source: figma | css-variables | tokens-json | style-dictionary | none
   design_tokens: null
 
-  # Icon library: lucide | heroicons | phosphor | fontawesome | custom
+  # Design token file path (if applicable)
+  design_token_source: null
+
+  # Icon library (platform-specific):
+  # Web: lucide | heroicons | phosphor | fontawesome | custom
+  # iOS: sf_symbols | custom
+  # Android: material_icons | custom
+  # React Native: react_native_vector_icons | expo_icons | custom
+  # Flutter: material_icons | cupertino_icons | custom
   icons: null
 
-  # Toast/notification library: sonner | react-hot-toast | notistack | custom
+  # Toast/notification library (platform-specific):
+  # Web: sonner | react-hot-toast | notistack | custom
+  # Mobile: native | custom
   notifications: null
 
 # ============================================================================

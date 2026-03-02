@@ -1,0 +1,230 @@
+# ============================================================================
+# PLATFORM REGISTRY
+# ============================================================================
+# Maps target platforms to station overrides for platform-specific knowledge.
+#
+# PROBLEM SOLVED:
+# When building for mobile (iOS/Android), loading base Station 09 (Stripe web
+# billing) generates Stripe tasks. iOS/Android apps need IAP (In-App Purchase)
+# tasks instead. This registry tells the AI which station variant to load.
+#
+# BACKWARD COMPATIBILITY:
+# - If this file doesn't exist: Load base stations (web behavior unchanged)
+# - If platform not in registry: Load base stations (graceful degradation)
+# - If variant missing: Load base station + log warning
+#
+# LOCATION: .specify/knowledge/_platform-registry.yaml
+# ============================================================================
+
+version: 1
+created: null  # Set when first platform is configured
+last_updated: null
+last_updated_by: null
+
+# ============================================================================
+# PLATFORM DEFINITIONS
+# ============================================================================
+# Each platform defines:
+# - display_name: Human-readable name for reporting
+# - billing_provider: Primary billing integration (stripe | iap_apple | iap_google | both)
+# - station_overrides: Map of base station ID -> variant filename
+# - inherit_from: Optional base platform to extend (reduces duplication)
+# ============================================================================
+
+platforms:
+  # --------------------------------------------------------------------------
+  # WEB (Default - no overrides needed)
+  # --------------------------------------------------------------------------
+  web:
+    display_name: "Web Application"
+    billing_provider: stripe
+    station_overrides: {}  # Empty = use all base stations
+    notes: "Default platform. Uses base stations as-is."
+
+  # --------------------------------------------------------------------------
+  # IOS (Apple App Store)
+  # --------------------------------------------------------------------------
+  ios:
+    display_name: "iOS (App Store)"
+    billing_provider: iap_apple
+    station_overrides:
+      "09": "platforms/ios/09-billing-ios.md"
+      "10": "platforms/ios/10-metering-ios.md"
+    required_artifacts:
+      - "App_Store_Compliance_Checklist.md"
+      - "IAP_Product_Catalog.md"
+    notes: |
+      Apple requires all digital goods/services to use IAP.
+      Physical goods can use Stripe. See App Store Review Guidelines 3.1.1.
+
+  # --------------------------------------------------------------------------
+  # ANDROID (Google Play Store)
+  # --------------------------------------------------------------------------
+  android:
+    display_name: "Android (Google Play)"
+    billing_provider: iap_google
+    station_overrides:
+      "09": "platforms/android/09-billing-android.md"
+      "10": "platforms/android/10-metering-android.md"
+    required_artifacts:
+      - "Play_Store_Compliance_Checklist.md"
+      - "Google_Play_Billing_Spec.md"
+    notes: |
+      Google Play requires Google Play Billing for in-app purchases.
+      Physical goods and some B2B scenarios may qualify for alternative billing.
+
+  # --------------------------------------------------------------------------
+  # CROSS-PLATFORM: React Native
+  # --------------------------------------------------------------------------
+  react-native:
+    display_name: "React Native (iOS + Android)"
+    billing_provider: both  # Needs both IAP implementations
+    inherit_from: null  # Explicit: no inheritance
+    station_overrides:
+      "09": "platforms/cross-platform/09-billing-react-native.md"
+      "10": "platforms/cross-platform/10-metering-react-native.md"
+    required_artifacts:
+      - "App_Store_Compliance_Checklist.md"
+      - "Play_Store_Compliance_Checklist.md"
+      - "IAP_Abstraction_Layer_Spec.md"
+    notes: |
+      Must handle both Apple IAP and Google Play Billing.
+      Use react-native-iap or RevenueCat for unified API.
+
+  # --------------------------------------------------------------------------
+  # CROSS-PLATFORM: Flutter
+  # --------------------------------------------------------------------------
+  flutter:
+    display_name: "Flutter (iOS + Android)"
+    billing_provider: both
+    station_overrides:
+      "09": "platforms/cross-platform/09-billing-flutter.md"
+      "10": "platforms/cross-platform/10-metering-flutter.md"
+    required_artifacts:
+      - "App_Store_Compliance_Checklist.md"
+      - "Play_Store_Compliance_Checklist.md"
+      - "IAP_Abstraction_Layer_Spec.md"
+    notes: |
+      Must handle both Apple IAP and Google Play Billing.
+      Use in_app_purchase_storekit (iOS) + in_app_purchase_android.
+
+  # --------------------------------------------------------------------------
+  # HYBRID: Mobile + Web (Same Backend)
+  # --------------------------------------------------------------------------
+  mobile-web:
+    display_name: "Mobile + Web (Unified Backend)"
+    billing_provider: hybrid  # Stripe for web, IAP for mobile
+    station_overrides:
+      "09": "platforms/hybrid/09-billing-hybrid.md"
+      "10": "platforms/hybrid/10-metering-hybrid.md"
+      "08": "platforms/hybrid/08-auth-hybrid.md"
+    required_artifacts:
+      - "Billing_Routing_Spec.md"
+      - "Platform_Detection_Spec.md"
+    notes: |
+      Single backend serves both web and mobile.
+      Must route billing to correct provider based on client platform.
+      Entitlements must be platform-agnostic.
+
+  # --------------------------------------------------------------------------
+  # DESKTOP: Electron
+  # --------------------------------------------------------------------------
+  electron:
+    display_name: "Electron (Desktop)"
+    billing_provider: stripe  # Desktop apps can use Stripe directly
+    station_overrides:
+      "12": "platforms/desktop/12-cicd-electron.md"
+    notes: |
+      Electron apps distributed outside app stores can use Stripe.
+      Mac App Store distribution requires IAP (use 'ios' platform).
+
+  # --------------------------------------------------------------------------
+  # PWA (Progressive Web App)
+  # --------------------------------------------------------------------------
+  pwa:
+    display_name: "Progressive Web App"
+    billing_provider: stripe
+    station_overrides: {}  # Uses base stations, but with PWA considerations
+    inherit_from: web
+    notes: |
+      PWAs installed from browser can use Stripe.
+      PWAs submitted to app stores may need IAP compliance.
+
+# ============================================================================
+# GRACEFUL DEGRADATION RULES
+# ============================================================================
+# Defines behavior when variant files are missing or platform is unknown.
+# ============================================================================
+
+fallback_behavior:
+  # What to do when a specified variant file doesn't exist
+  missing_variant:
+    action: "load_base_with_warning"  # Options: error | load_base_with_warning | load_base_silent
+    warning_template: |
+      WARNING: Platform variant not found
+      - Platform: {{platform}}
+      - Station: {{station_id}}
+      - Expected: {{variant_path}}
+      - Loaded: {{base_path}} (base station)
+
+      Action: Create variant file or verify platform registry configuration.
+
+  # What to do when platform is not defined in registry
+  unknown_platform:
+    action: "load_base_with_warning"  # Options: error | load_base_with_warning | load_base_silent
+    warning_template: |
+      WARNING: Unknown platform "{{platform}}"
+      Loading base stations. Define platform in _platform-registry.yaml if needed.
+
+  # What to do when registry file doesn't exist
+  missing_registry:
+    action: "load_base_silent"  # Backward compatible - don't break existing projects
+    notes: "Registry is optional. Projects without it use base stations (web default)."
+
+# ============================================================================
+# RESOLUTION PRIORITY
+# ============================================================================
+# When multiple platforms apply, defines precedence.
+# Lower number = higher priority.
+# ============================================================================
+
+resolution_priority:
+  - ios          # Most restrictive App Store rules
+  - android      # Second most restrictive
+  - react-native # Cross-platform mobile
+  - flutter      # Cross-platform mobile
+  - mobile-web   # Hybrid
+  - electron     # Desktop
+  - pwa          # Progressive web
+  - web          # Default fallback
+
+# ============================================================================
+# STATION OVERRIDE MAP (Quick Reference)
+# ============================================================================
+# Which stations commonly need platform variants:
+#
+# | Station | Platform Concern |
+# |---------|-----------------|
+# | 08 | Auth may need biometric/device auth on mobile |
+# | 09 | Billing CRITICAL - IAP vs Stripe vs hybrid |
+# | 10 | Metering must work offline, sync on reconnect |
+# | 12 | CI/CD needs app store submission pipelines |
+# | 13 | Security needs device attestation on mobile |
+#
+# Stations that rarely need variants:
+# 01-07, 11, 14-18 (platform-agnostic concepts)
+# ============================================================================
+
+# ============================================================================
+# EXTENDING THIS REGISTRY
+# ============================================================================
+# To add a new platform:
+# 1. Add entry under `platforms:` section
+# 2. Define station_overrides for platform-specific stations
+# 3. Create variant files in .specify/knowledge/platforms/{platform}/
+# 4. Test resolution with `speckit validate-platforms`
+#
+# Variant file naming convention:
+# - Base: .specify/knowledge/stations/09-billing.md
+# - Variant: .specify/knowledge/platforms/ios/09-billing-ios.md
+# ============================================================================

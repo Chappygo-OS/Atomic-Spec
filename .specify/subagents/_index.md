@@ -6,16 +6,42 @@ This folder contains specialized subagent prompts for domain-specific tasks. Sub
 
 1. During `/speckit.plan` Initial Configuration, user is asked if they want subagents
 2. If enabled, this registry is checked for available agents
-3. Commands load relevant subagent prompts as context for specific tasks
-4. Each subagent knows its domain deeply without needing the full station
+3. **Platform filtering**: Agents are filtered by platform FIRST, then matched by keywords
+4. Commands load relevant subagent prompts as context for specific tasks
+5. Each subagent knows its domain deeply without needing the full station
+
+## Platform Matching
+
+Agents can specify which platforms they support. Matching algorithm:
+
+1. **Filter by platform**: Only agents matching the spec's platform are candidates
+2. **Match by keywords**: Keyword similarity on filtered candidates
+3. **Universal agents**: Agents without `platform:` field match any platform
+
+### Platform Values
+
+| Value | Scope | Examples |
+|-------|-------|----------|
+| `web` | Browser-based frontend | React (web), Vue, Angular, Next.js SSR |
+| `mobile` | Mobile apps | React Native, Flutter, Swift, Kotlin |
+| `desktop` | Desktop apps | Electron, Tauri, WPF, macOS native |
+| `backend` | Server-side | Node.js APIs, Python services, databases |
+| `cli` | Command-line tools | Shell scripts, CLI apps |
+| `infra` | Infrastructure | Docker, K8s, CI/CD, Terraform |
 
 ## Available Subagents
 
-| Agent | File | Domain | Use When |
-|-------|------|--------|----------|
-| API Contracts | `api-contracts.md` | API design, OpenAPI, error handling | Phase 1 of /speckit.plan (API involved) |
-| Data Architecture | `data-architecture.md` | Database, tenancy, migrations | Phase 1 of /speckit.plan (DB involved) |
-| Auth & RBAC | `auth-rbac.md` | Authentication, permissions | Phase 1 of /speckit.plan (auth involved) |
+| Agent | File | Platform | Domain | Use When |
+|-------|------|----------|--------|----------|
+| API Contracts | `api-contracts.md` | backend | API design, OpenAPI, error handling | Phase 1 of /speckit.plan (API involved) |
+| Data Architecture | `data-architecture.md` | backend | Database, tenancy, migrations | Phase 1 of /speckit.plan (DB involved) |
+| Auth & RBAC | `auth-rbac.md` | backend | Authentication, permissions | Phase 1 of /speckit.plan (auth involved) |
+| Frontend Developer | `frontend-developer.md` | web | React (web), CSS, Tailwind | Web UI components |
+| Mobile Developer | `mobile-developer.md` | mobile | React Native, Flutter | Mobile app development |
+| Backend Architect | `backend-architect.md` | backend | APIs, microservices | Backend services |
+| TypeScript Pro | `typescript-pro.md` | universal | Advanced TypeScript | TypeScript architecture |
+| Payment Integration | `payment-integration.md` | backend | Stripe, billing | Payment features |
+| Deployment Engineer | `deployment-engineer.md` | infra | CI/CD, Docker, K8s | Deployments |
 
 ## Custom Subagents
 
