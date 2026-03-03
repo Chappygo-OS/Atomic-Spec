@@ -31,9 +31,17 @@ FUNCTION validateRegistry():
         IF user_confirms:
             createMinimalRegistry(REGISTRY_PATH)
         ELSE:
-            WARN("Proceeding without registry - defaulting to 'web' platform")
-            LOG("Platform assumption: web (no registry)")
-            RETURN { platform: "web", source: "default_no_registry" }
+            WARN("No registry created - but platform is still required")
+            platform = ASK_USER("What is the target platform?", options=[
+                "web", "ios", "android", "react-native", "flutter", "backend-only", "both"
+            ])
+            IF platform == "both":
+                mobile_framework = ASK_USER("Which mobile framework?", options=[
+                    "ios", "android", "react-native", "flutter"
+                ])
+                LOG("Platform: both, mobile_framework: {mobile_framework}")
+            LOG("Platform selected without registry: {platform}")
+            RETURN { platform: platform, source: "user_prompted_no_registry" }
 
     # Step 2: Load registry
     registry = loadYAML(REGISTRY_PATH)
@@ -42,8 +50,13 @@ FUNCTION validateRegistry():
     IF registry.target_platform IS NULL OR registry.target_platform.primary IS NULL:
         WARN("No target platform defined in registry")
         platform = ASK_USER("What is the target platform?", options=[
-            "web", "ios", "android", "react-native", "flutter", "backend-only"
+            "web", "ios", "android", "react-native", "flutter", "backend-only", "both"
         ])
+        IF platform == "both":
+            mobile_framework = ASK_USER("Which mobile framework?", options=[
+                "ios", "android", "react-native", "flutter"
+            ])
+            updateRegistry(REGISTRY_PATH, "target_platform.mobile_framework", mobile_framework)
         # Store in registry
         updateRegistry(REGISTRY_PATH, "target_platform.primary", platform)
         LOG("Platform stored in registry: {platform}")
@@ -81,6 +94,11 @@ Platform is determined in this priority order:
 | /speckit.implement | task file | ERROR if missing |
 
 Each command should read from its primary source. If missing, it's an error for downstream commands (they should have inherited it).
+
+> **Composite Platform (`both`)**: When `platform = "both"`, all commands must also read
+> `mobile_framework` from the registry to determine the mobile sub-platform. The `backend.*`
+> registry section provides backend specifics. Do NOT introduce new fields like
+> Platform-Frontend or Platform-Backend — use the existing registry structure.
 
 ### Resolution Pseudocode
 

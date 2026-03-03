@@ -3,13 +3,20 @@
 **Feature Branch**: `[###-feature-name]`
 **Created**: [DATE]
 **Status**: Draft
-**Platform**: [Web | iOS | Android | React Native | Flutter]
+**Platform**: [Web | iOS | Android | React Native | Flutter | Backend-only | both]
 **Input**: User description: "$ARGUMENTS"
 
 <!--
   NOTE: The Platform field is set during /speckit.specify (Phase 0 - Platform Detection).
   All downstream commands (/speckit.plan, /speckit.build, etc.) will inherit this platform
   setting to ensure consistent platform context throughout the feature lifecycle.
+
+  When Platform = "both", the single Platform field is all that is stored here.
+  Do NOT add Platform-Frontend or Platform-Backend fields.
+  Downstream commands read the registry for specifics:
+    - mobile_framework  → which mobile SDK/framework (React Native, Flutter, etc.)
+    - backend.*         → language, framework, ORM, and other backend details
+  This keeps the spec contract simple while the registry carries the detail.
 -->
 
 <!--

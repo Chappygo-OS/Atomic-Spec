@@ -1,5 +1,6 @@
 ---
 name: ui-ux-designer
+platform: universal
 description: Create interface designs, wireframes, and design systems. Masters user research, prototyping, and accessibility standards. Use PROACTIVELY for design systems, user flows, or interface optimization.
 model: opus
 ---

@@ -46,6 +46,13 @@ Agents can specify which platforms they support:
 | `backend` | Server-side | Node.js, Python, Go |
 | `cli` | Command-line tools | Shell scripts, CLI apps |
 | `infra` | Infrastructure | Docker, K8s, Terraform |
+| `universal` | All platforms / cross-cutting | AI/ML, code review, languages, business analysis |
+
+**Matching rules**:
+- `universal` or field absent: Always included regardless of target platform
+- `backend`: Included when project has backend components (registry `backend.*` keys or plan.md backend tech stack)
+- All others: Included only when value matches the current target platform
+- Field accepts scalar (`platform: mobile`) or array (`platform: [backend, web]`) format
 
 ## Available Subagents
 
@@ -83,7 +90,7 @@ Complete mobile app development lifecycle coverage:
 | Agent | File | Platform | Use When |
 |-------|------|----------|----------|
 | Frontend Developer | `frontend/frontend-developer.md` | web | React, CSS, Tailwind |
-| UI/UX Designer | `frontend/ui-ux-designer.md` | web | Interface design |
+| UI/UX Designer | `frontend/ui-ux-designer.md` | universal | Interface design |
 
 ### Data & Database
 

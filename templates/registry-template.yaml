@@ -26,6 +26,13 @@ target_platform:
   # mobile = Native or cross-platform mobile app
   # desktop = Desktop application (Electron, Tauri, native)
   # both = Hybrid (e.g., web app + mobile app sharing backend)
+  #        When primary = both:
+  #        - mobile_framework MUST be set (ios, android, react-native, flutter)
+  #        - mobile_platforms MUST be set (ios, android, or both)
+  #        - backend.* section MUST be populated for the API tier
+  #        - The appropriate mobile section (ios.*, android.*, react_native.*, flutter.*)
+  #          MUST be populated for the mobile tier
+  #        - /speckit.plan Phase 0.8 will interview for BOTH tech stacks
   primary: null
 
   # Mobile platforms (only if primary = mobile or both)

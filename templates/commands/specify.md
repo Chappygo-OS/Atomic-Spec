@@ -47,7 +47,22 @@ Given that feature description, do this:
         - Android (native Android app)
         - React Native (cross-platform mobile)
         - Flutter (cross-platform mobile)
+        - Mobile + Backend (mobile app with dedicated backend/API)
+        - Backend-only (API / service with no user-facing frontend)
         ```
+      - **If user selects "Mobile + Backend"**:
+        - Ask a follow-up AskUserQuestion:
+          ```
+          Which mobile framework will you use?
+          - React Native
+          - Flutter
+          - iOS (native Swift/SwiftUI)
+          - Android (native Kotlin/Compose)
+          ```
+        - Store the mobile framework choice in `specs/_defaults/registry.yaml` under `mobile_framework`
+        - Set the Platform value to `both` (the registry's `mobile_framework` and `backend.*` fields provide the specifics)
+      - **If user selects "Backend-only"**:
+        - Set the Platform value to `Backend-only`
       - Store the user's response for use in step 5
 
    d. **Platform value**: The selected platform will be stored in the spec.md output as a header field: `Platform: [value]`
@@ -290,7 +305,7 @@ When creating this spec from a user prompt:
 - Data retention: Industry-standard practices for the domain
 - Performance targets: Standard web/mobile app expectations unless specified
 - Error handling: User-friendly messages with appropriate fallbacks
-- Authentication method: Standard session-based or OAuth2 for web apps
+- Authentication method: Platform-aware default (session-based/OAuth2 for web; token-based/OAuth2 for mobile; API-key or OAuth2 for backend-only; combined strategy for `both`)
 - Integration patterns: RESTful APIs unless specified otherwise
 
 ### Success Criteria Guidelines

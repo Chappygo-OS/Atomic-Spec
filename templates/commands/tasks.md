@@ -153,6 +153,7 @@ For EACH task, create a separate file in `tasks/`:
 -->
 
 - **Platform**: [web/mobile/both - from plan.md Platform field]
+- **Task Target**: [backend/frontend/mobile/shared - see Task Target Classification below]
 - **Mobile Framework**: [native/react-native/flutter - if mobile, else N/A]
 - **Mobile Platforms**: [ios/android/both - if mobile, else N/A]
 - **Subagents Enabled**: [yes/no - from plan.md Planning Configuration]
@@ -178,6 +179,27 @@ For EACH task, create a separate file in `tasks/`:
 ### Dependencies
 - [T-XXX-dep](./T-XXX-dep.md) - [why needed]
 
+<!--
+  Cross-Target Dependency Auto-Generation Rules:
+  When generating tasks, automatically create dependency edges for these patterns:
+
+  1. API Producer/Consumer: If a backend task produces an endpoint (e.g., T-020 creates
+     POST /api/users) and a frontend task consumes it (e.g., T-030 calls POST /api/users),
+     add T-020 as a dependency of T-030.
+
+  2. Shared Type Consumer: If a shared task defines a type/interface (e.g., T-010 creates
+     UserDTO in contracts/) and a backend or frontend task imports it, add T-010 as a
+     dependency of the consuming task.
+
+  3. Migration Before Seed: If a backend task creates a migration (e.g., T-011 creates
+     users table) and another task seeds data into that table, add T-011 as a dependency
+     of the seed task.
+
+  Single-Platform Exception: If the project has only ONE platform (e.g., backend-only
+  API with no frontend), skip API producer/consumer dependency generation since there
+  is no cross-target consumption.
+-->
+
 ### Implementation Steps
 1. [Specific action]
 2. [Next action]
@@ -192,21 +214,52 @@ For EACH task, create a separate file in `tasks/`:
   CRITICAL: If this task creates a new file, it MUST specify what existing files
   need to be updated to "wire" the new file into the application.
 
-  Include ONLY the checklist matching the platform from plan.md.
+  Include ONLY the checklist matching the Task Target + Platform.
 -->
 
 <!--
+  ### Task Target Classification Rules
+
+  Classify each task's Task Target based on the files it creates/modifies.
+
+  **Path-Based Classification (primary - check first):**
+
+  | Path pattern | Task Target |
+  |--------------|-------------|
+  | routes/, controllers/, models/, migrations/, middleware/, server/, backend/ | backend |
+  | screens/, views/, widgets/, app/ui/, lib/ui/ | mobile |
+  | pages/, components/, hooks/, stores/, frontend/ | frontend |
+  | contracts/, shared/, types/, interfaces/, dto/ | shared |
+
+  **Keyword Fallback (if no path match):**
+
+  | Task objective keywords | Task Target |
+  |-------------------------|-------------|
+  | "API endpoint", "route handler", "database", "migration", "server" | backend |
+  | "screen", "widget", "native view", "navigation (mobile)" | mobile |
+  | "page", "component", "hook", "store", "UI (web)" | frontend |
+  | "contract", "DTO", "shared type", "interface definition" | shared |
+
   ### Wiring Checklist Selection Rule
 
-  Based on platform from plan.md:
-  - `web` -> Include ONLY Web checklist
-  - `ios` -> Include ONLY iOS Native checklist
-  - `android` -> Include ONLY Android Native checklist
-  - `react-native` -> Include ONLY React Native checklist
-  - `flutter` -> Include ONLY Flutter checklist
+  Based on Task Target + Platform from plan.md:
+
+  | Task Target | Platform | Checklist |
+  |-------------|----------|-----------|
+  | backend | ANY | Web (backend items only) |
+  | frontend | ANY | Web (frontend items only) |
+  | mobile | ios | iOS Native checklist |
+  | mobile | android | Android Native checklist |
+  | mobile | react-native | React Native checklist |
+  | mobile | flutter | Flutter checklist |
+  | shared | ANY | NONE - shared tasks have no wiring checklist |
+
+  Single-Platform Override: If the project has only one platform (e.g., backend-only
+  API with no frontend), the sole platform's checklist applies to all non-shared tasks
+  regardless of Task Target classification.
 
   NEVER include all platform checklists in a single task.
-  Delete the checklists that do not match the target platform.
+  Delete the checklists that do not match the Task Target + Platform.
 -->
 
 **Web:** (include only if platform=web)
@@ -268,12 +321,14 @@ For EVERY task that creates a new artifact, you MUST either:
 
 ### Wiring Matrix Platform Selection
 
-Based on platform from plan.md, use ONLY the corresponding matrix:
-- `web` -> "Web Platform" matrix
-- `ios` -> "iOS Native Platform" matrix
-- `android` -> "Android Native Platform" matrix
-- `react-native` -> "React Native Platform" matrix
-- `flutter` -> "Flutter Platform" matrix
+Based on Task Target, select the corresponding matrix:
+- `backend` + ANY platform -> "Web Platform" matrix (backend rows only)
+- `frontend` + ANY platform -> "Web Platform" matrix (frontend rows only)
+- `mobile` + `ios` -> "iOS Native Platform" matrix
+- `mobile` + `android` -> "Android Native Platform" matrix
+- `mobile` + `react-native` -> "React Native Platform" matrix
+- `mobile` + `flutter` -> "Flutter Platform" matrix
+- `shared` -> SKIP (shared tasks do not have wiring matrices)
 
 Include ONLY the relevant matrix. Do NOT include all platforms.
 
@@ -467,7 +522,7 @@ Per the Knowledge Wiring Plan, during `/speckit.implement`, Context Pinning prev
    **⚠️ DO NOT hard-code agent names. Match dynamically.**
 
    a. **Scan available subagents** at `.specify/subagents/`:
-      - List all `*.md` files (exclude files starting with `_`)
+      - List all `**/*.md` files recursively (exclude files starting with `_`)
       - Read YAML frontmatter to get `name` and `description` for each
 
    b. **For each task**, extract domain keywords:
@@ -584,15 +639,20 @@ their organization.
 
    **Step 2: Filter available subagents by platform**
 
-   For each subagent in `.specify/subagents/`:
-   - Read frontmatter `platform:` field
-   - If platform includes current target OR field is absent (universal) -> INCLUDE
-   - If platform does NOT include current target -> EXCLUDE
+   Scan `.specify/subagents/` recursively (`**/*.md`, exclude files starting with `_`).
 
-   Example: Target=ios
-   - mobile-developer.md (platform: mobile) -> INCLUDE
-   - frontend-developer.md (platform: web) -> EXCLUDE
-   - backend-architect.md (no platform) -> INCLUDE (universal)
+   For each subagent, read frontmatter `platform:` field and apply these 4 rules in order:
+
+   a) **Universal/Absent**: If `platform:` field is absent or set to `universal` -> INCLUDE
+   b) **Platform Match**: If `platform:` value matches the plan.md target platform -> INCLUDE
+   c) **Backend Match**: If `platform: backend` AND the project has a backend component -> INCLUDE
+   d) **Otherwise**: -> EXCLUDE
+
+   Example: Target=flutter, project has backend
+   - `utils/code-quality.md` (no platform) -> INCLUDE (rule a: universal)
+   - `mobile/flutter-developer.md` (platform: flutter) -> INCLUDE (rule b: platform match)
+   - `backend/api-architect.md` (platform: backend) -> INCLUDE (rule c: project has backend)
+   - `mobile/ios-developer.md` (platform: ios) -> EXCLUDE (rule d: no match)
 
    **For each task that matches a filtered subagent's domain:**
 
@@ -635,13 +695,13 @@ their organization.
 
 #### 4.2.4 Platform-Aware Verification Commands (MANDATORY)
 
-**CRITICAL: Verification commands MUST match the project's target platform.**
+**CRITICAL: Verification commands MUST match the task's Task Target and project platform.**
 
 **See also**: `.specify/knowledge/_platform-resolution.md` for the canonical platform resolution algorithm.
 
-Using `npm test` for an iOS task will cause verification failures. This section ensures every task has executable verification commands appropriate to its platform.
+Using `npm test` for an iOS task will cause verification failures. This section ensures every task has executable verification commands appropriate to its Task Target and platform.
 
-**Step 1: Load Platform from Plan**
+**Step 1: Load Platform from Plan and Resolve Task Target**
 
 Per the canonical platform resolution in `_platform-resolution.md`:
 - For /speckit.tasks, plan.md is the **authoritative source**
@@ -658,6 +718,17 @@ The platform value from plan.md will be one of:
 - `android` - Android native application
 - `react-native` - React Native cross-platform
 - `flutter` - Flutter cross-platform
+
+**Task Target Resolution for Verification Template Selection:**
+
+For each task, use its Task Target to select the verification template:
+
+| Task Target | Resolution | Template Section |
+|-------------|------------|------------------|
+| backend | Use `backend.language` from registry (e.g., typescript -> `web_node`, python -> `python`, go -> `go`) | `[resolved_language].*` |
+| frontend | Use `frontend.language` from registry; if absent, default to `web_node` | `[resolved_language].*` |
+| mobile | Use plan.md Platform directly (ios -> `ios`, android -> `android`, react-native -> `react_native`, flutter -> `flutter`) | `[platform].*` |
+| shared | Resolve from file extension of the files being created: `.ts`/`.js` -> `web_node`, `.dart` -> `flutter`, `.py` -> `python`, `.go` -> `go`; if ambiguous, fallback to `web_node` | `[resolved_from_extension].*` |
 
 **Step 1b: Load Additional Details from Registry (Optional)**
 
@@ -772,13 +843,14 @@ Include the detected platform in the task's Embedded Context section:
 
 | Scenario | Action |
 |----------|--------|
-| Registry missing | Scan file patterns, default to web_node |
+| Registry missing | Use Task Target + plan.md Platform to resolve (NEVER silently default to web_node) |
 | Platform ambiguous (multiple detected) | Ask user via AskUserQuestion |
 | Primary tool unavailable | Use fallback from verification-commands.yaml |
 | No fallback exists | Provide manual verification checklist with clear criteria |
 | Hybrid project (web + mobile) | Generate platform-specific verification per task type |
 
 **FORBIDDEN: Generating web/Node.js verification commands for mobile tasks.**
+**FORBIDDEN: Silently defaulting to web_node without consulting Task Target and plan.md Platform.**
 
 #### 4.3 Generate index.md
 
@@ -813,6 +885,10 @@ Before completing, verify:
 - [ ] No orphan tasks (all tasks map to requirements)
 - [ ] No uncovered requirements (all requirements have tasks)
 - [ ] All verification commands are executable
+- [ ] Every task has a valid Task Target (backend, frontend, mobile, or shared)
+- [ ] Verification commands match the task's Task Target (not just project platform)
+- [ ] Cross-target dependencies are wired (API producer->consumer, shared type->consumer, migration->seed)
+- [ ] No cross-platform verification commands (e.g., no `npm test` in a mobile task)
 
 ### 6. Report
 

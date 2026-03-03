@@ -1,6 +1,6 @@
 ---
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
-handoffs: 
+handoffs:
   - label: Create Tasks
     agent: speckit.tasks
     prompt: Break the plan into tasks
@@ -86,9 +86,8 @@ Options:
 If user selected "Yes, use specialized agents":
 
 1. **Scan the subagents folder** at `.specify/subagents/`:
-   - List all `*.md` files in the folder
+   - Recursively list all `**/*.md` files in the folder and all subdirectories
    - **Exclude** files starting with `_` (e.g., `_index.md`, `_template.md`)
-   - Also scan `.specify/subagents/custom/` for project-specific agents
 
 2. **For each subagent file found**, read the YAML frontmatter to extract:
    - `name`: The subagent identifier
@@ -131,11 +130,11 @@ Store configuration in plan.md:
 ## Planning Configuration
 
 **Configured At**: [timestamp]
-**Detected Platform**: [web/ios/android/react-native/flutter/backend-only]
+**Detected Platform**: [web/ios/android/react-native/flutter/backend-only/both]
 
 | Setting | Value |
 |---------|-------|
-| Platform | [web/ios/android/react-native/flutter/backend-only] |
+| Platform | [web/ios/android/react-native/flutter/backend-only/both] |
 | Subagents | [Enabled/Disabled] |
 | Available Subagents | [list or "None"] |
 | Competitive Analysis | [Yes/No/Pending] |
@@ -254,14 +253,33 @@ Before proceeding, validate the registry exists and has target_platform set. Nev
        Description: "Cross-platform with Flutter/Dart"
      - Label: "Backend-only"
        Description: "API, CLI, worker, or service with no UI"
+     - Label: "Mobile + Backend"
+       Description: "Mobile app with its own backend/API (interviews for BOTH stacks)"
    ```
+
+   If user selects "Mobile + Backend", ask follow-up:
+   ```
+   Question: "Which mobile framework for the frontend?"
+   Header: "Mobile Framework"
+   Options:
+     - Label: "iOS (Native)"
+       Description: "Swift/SwiftUI or UIKit"
+     - Label: "Android (Native)"
+       Description: "Kotlin/Jetpack Compose or XML Views"
+     - Label: "React Native"
+       Description: "Cross-platform with React Native"
+     - Label: "Flutter"
+       Description: "Cross-platform with Flutter/Dart"
+   ```
+   Store the selected mobile framework in `mobile_framework` registry field.
+   Store `Detected Platform: both`.
 
 4. **Store detected platform** in plan.md output header:
    ```markdown
    ## Planning Configuration
 
    **Configured At**: [timestamp]
-   **Detected Platform**: [web/ios/android/react-native/flutter/backend-only]
+   **Detected Platform**: [web/ios/android/react-native/flutter/backend-only/both]
 
    | Setting | Value |
    |---------|-------|
@@ -288,9 +306,8 @@ Before designing, load relevant stations and subagents based on feature domains.
 1. **Discover available subagents**:
 
    a. **Scan the subagents folder** at `.specify/subagents/`:
-      - List all `*.md` files in the folder
+      - Recursively list all `**/*.md` files in the folder and all subdirectories
       - **Exclude** files starting with `_` (e.g., `_index.md`, `_template.md`)
-      - Also scan `.specify/subagents/custom/` for project-specific agents
 
    b. **For each subagent file found**, read the YAML frontmatter to extract:
       - `name`: The subagent identifier
@@ -640,6 +657,65 @@ Skip this phase ONLY if:
 - User explicitly marked "No UI" in spec
 
 **DO NOT skip this phase just because it's a backend feature.** If the backend serves a mobile app, the platform context (detected in Phase 0.1) is still valuable, but UI framework questions can be skipped.
+
+---
+
+#### Step 1.5: COMPOSITE PLATFORM HANDLING (Platform = "both" only)
+
+**This block ONLY triggers when Detected Platform = "both". For single platforms, skip entirely to Step 2.**
+
+When Platform = "both", this feature targets a mobile frontend with its own backend/API. Both stacks need specification:
+
+1. **Read mobile framework from registry/plan config**:
+   ```
+   Read from plan.md: "Detected Platform: both"
+   Read from registry or plan config: mobile_framework → [ios/android/react-native/flutter]
+   ```
+
+2. **Run mobile platform interview branch**:
+   Based on `mobile_framework`, execute the corresponding mobile platform branch questions below (iOS, Android, React Native, or Flutter) to gather UI framework specifics for the mobile frontend.
+   Record results under the appropriate `mobile_*` registry fields (`mobile_framework`, `mobile_platforms`).
+
+3. **Present backend tech stack questions**:
+   ```
+   Question 1: "What backend language?"
+   Header: "Backend Language"
+   Options:
+     - Label: "TypeScript/Node.js"
+     - Label: "Python"
+     - Label: "Go"
+     - Label: "Rust"
+     - Label: "Java/Kotlin"
+     - Label: "Other"
+   Store → backend.language
+
+   Question 2: "What backend framework?"
+   Header: "Backend Framework"
+   (Options vary by selected language, e.g., Express/Fastify/NestJS for Node, Django/FastAPI for Python, etc.)
+   Store → backend.framework
+
+   Question 3: "What ORM/database layer?"
+   Header: "ORM / Database Layer"
+   (Options vary by selected language, e.g., Prisma/Drizzle/TypeORM for Node, SQLAlchemy/Django ORM for Python, etc.)
+   Store → backend.orm
+   ```
+
+4. **Record both stacks in plan.md**:
+   ```markdown
+   ### Composite Stack (Platform = both)
+
+   **Mobile Frontend**:
+   - Framework: [mobile_framework value]
+   - Platforms: [mobile_platforms value]
+   - UI specifications: [from mobile branch interview above]
+
+   **Backend/API**:
+   - Language: [backend.language]
+   - Framework: [backend.framework]
+   - ORM: [backend.orm]
+   ```
+
+After completing this composite block, skip Step 3 and Step 4 (single-platform branches) and proceed directly to Phase 0.9.
 
 ---
 

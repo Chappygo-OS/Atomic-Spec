@@ -40,6 +40,9 @@ env/
 .env.local
 *.lock
 
+# Claude Code
+.claude/
+
 # Spec Kit-specific files
 .genreleases/
 *.zip
