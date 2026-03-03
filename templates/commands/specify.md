@@ -27,14 +27,41 @@ The text the user typed after `/speckit.specify` in the triggering message **is*
 
 Given that feature description, do this:
 
-0. **Check Project Defaults Registry** (per Constitution Directive 7):
+0. **Platform Detection** (CRITICAL - runs BEFORE all other steps):
+
+   Platform context is essential for mobile apps and must be established first.
+
+   a. **Check registry for existing platform**:
+      Read `specs/_defaults/registry.yaml` and check for `target_platform.primary`
+
+   b. **If platform is found in registry**:
+      - Use that value as the Platform for this spec
+      - Inform user: "Using platform from project defaults: [platform]"
+
+   c. **If platform is NOT found in registry**:
+      - Ask user with AskUserQuestion:
+        ```
+        What platform are you building for?
+        - Web (browser-based application)
+        - iOS (native iPhone/iPad app)
+        - Android (native Android app)
+        - React Native (cross-platform mobile)
+        - Flutter (cross-platform mobile)
+        ```
+      - Store the user's response for use in step 5
+
+   d. **Platform value**: The selected platform will be stored in the spec.md output as a header field: `Platform: [value]`
+
+   **NOTE**: Downstream commands (`/speckit.plan`, `/speckit.build`, etc.) will inherit this platform setting from the spec. This ensures consistent platform context throughout the entire feature lifecycle.
+
+1. **Check Project Defaults Registry** (per Constitution Directive 7):
 
    Read `specs/_defaults/registry.yaml` to check for existing project defaults.
 
    If registry exists with values set, inform user:
    ```
    ══════════════════════════════════════════════════════════════
-   📋 PROJECT DEFAULTS DETECTED
+   PROJECT DEFAULTS DETECTED
    ══════════════════════════════════════════════════════════════
 
    This project has established defaults that will be applied
@@ -56,7 +83,7 @@ Given that feature description, do this:
 
    If registry is empty or doesn't exist, this step is silent (no warning needed here - plan.md handles it).
 
-1. **Generate a concise short name** (2-4 words) for the branch:
+2. **Generate a concise short name** (2-4 words) for the branch:
    - Analyze the feature description and extract the most meaningful keywords
    - Create a 2-4 word short name that captures the essence of the feature
    - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
@@ -68,7 +95,7 @@ Given that feature description, do this:
      - "Create a dashboard for analytics" → "analytics-dashboard"
      - "Fix payment processing timeout bug" → "fix-payment-timeout"
 
-2. **Check for existing branches before creating new one**:
+3. **Check for existing branches before creating new one**:
 
    a. First, fetch all remote branches to ensure we have the latest information:
 
@@ -100,9 +127,9 @@ Given that feature description, do this:
    - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
 
-3. Load `templates/spec-template.md` to understand required sections.
+4. Load `templates/spec-template.md` to understand required sections.
 
-4. Follow this execution flow:
+5. Follow this execution flow:
 
     1. Parse user description from Input
        If empty: ERROR "No feature description provided"
@@ -128,9 +155,9 @@ Given that feature description, do this:
     7. Identify Key Entities (if data involved)
     8. Return: SUCCESS (spec ready for planning)
 
-5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+6. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings. **Include the Platform field from step 0 in the header section, immediately after the Status field.**
 
-6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
+7. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
 
    a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
 
@@ -177,7 +204,7 @@ Given that feature description, do this:
 
    c. **Handle Validation Results**:
 
-      - **If all items pass**: Mark checklist complete and proceed to step 6
+      - **If all items pass**: Mark checklist complete and proceed to step 8
 
       - **If items fail (excluding [NEEDS CLARIFICATION])**:
         1. List the failing items and specific issues
@@ -222,7 +249,7 @@ Given that feature description, do this:
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
-7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
 
 **NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
 

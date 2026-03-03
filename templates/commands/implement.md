@@ -137,23 +137,24 @@ Check `traceability.md` to confirm all dependency tasks are marked "Done".
 
 If dependencies not met: **SKIP** task, move to next, report blocked status.
 
-#### 4.2.5 Spawn Subagent for Implementation (IF ENABLED)
+#### 4.2.5 Subagent Context Loading
 
-**Check if subagents were enabled during planning.**
+**Task files contain an embedded configuration section set during task generation.**
 
-1. **Read plan.md's "Planning Configuration"** (allowed read for this check only):
+1. **Read the Implementation Context section from the CURRENT TASK FILE**:
 
    ```markdown
-   ## Planning Configuration
-   | Setting | Value |
-   |---------|-------|
-   | Subagents | Enabled/Disabled |
-   | Available Subagents | [list] |
+   ## Implementation Context
+   - Platform: [inherited from plan.md during task generation]
+   - Subagents Enabled: [yes/no]
+   - Available Subagents: [list relevant to this task's domain and platform]
    ```
 
-2. **If Subagents = "Disabled"**: Skip to 4.3, implement the task yourself.
+   **This maintains Context Pinning compliance - DO NOT read plan.md.**
 
-3. **If Subagents = "Enabled"**: Match task to an available agent.
+2. **If Subagents Enabled = "no"**: Skip to 4.3, implement the task yourself.
+
+3. **If Subagents Enabled = "yes"**: Match task to an available agent from the list.
 
    **Extract domain from current task file**:
    - Check "Domain Rules" section header (e.g., "from data-architecture subagent")
@@ -290,16 +291,28 @@ When all tasks in `traceability.md` are "Done":
 
 Before marking the feature complete, run platform-appropriate integration checks.
 
-**Step 1: Detect Platform**
+**Step 1: Load Platform from Task Context**
 
-Check `specs/_defaults/registry.yaml` for `target_platform.primary`:
-- If `web` or unset → Run Web Integration checks
-- If `mobile` → Check `target_platform.mobile_framework`:
+Read platform from the task file's Implementation Context section.
+This was set during task generation and reflects the project's platform.
+
+**DO NOT re-read registry - the task file is authoritative for this implementation.**
+
+```markdown
+## Implementation Context
+- Platform: [web/mobile/both]
+- Mobile Framework: [native/react-native/flutter] (if mobile)
+- Mobile Platforms: [ios/android/both] (if mobile)
+```
+
+Based on the Implementation Context:
+- If Platform = `web` → Run Web Integration checks
+- If Platform = `mobile` → Check Mobile Framework:
   - `native` + `ios` → Run iOS Native checks
   - `native` + `android` → Run Android Native checks
   - `react-native` → Run React Native checks
   - `flutter` → Run Flutter checks
-- If `both` → Run Web + appropriate Mobile checks
+- If Platform = `both` → Run Web + appropriate Mobile checks
 
 ---
 

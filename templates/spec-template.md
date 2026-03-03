@@ -3,7 +3,14 @@
 **Feature Branch**: `[###-feature-name]`
 **Created**: [DATE]
 **Status**: Draft
+**Platform**: [Web | iOS | Android | React Native | Flutter]
 **Input**: User description: "$ARGUMENTS"
+
+<!--
+  NOTE: The Platform field is set during /speckit.specify (Phase 0 - Platform Detection).
+  All downstream commands (/speckit.plan, /speckit.build, etc.) will inherit this platform
+  setting to ensure consistent platform context throughout the feature lifecycle.
+-->
 
 <!--
   ============================================================================

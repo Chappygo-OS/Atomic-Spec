@@ -131,9 +131,11 @@ Store configuration in plan.md:
 ## Planning Configuration
 
 **Configured At**: [timestamp]
+**Detected Platform**: [web/ios/android/react-native/flutter/backend-only]
 
 | Setting | Value |
 |---------|-------|
+| Platform | [web/ios/android/react-native/flutter/backend-only] |
 | Subagents | [Enabled/Disabled] |
 | Available Subagents | [list or "None"] |
 | Competitive Analysis | [Yes/No/Pending] |
@@ -209,7 +211,73 @@ Before any planning work, load the project defaults registry:
 
 **Output**: Registry defaults loaded into planning context
 
-### Phase 0.1: Load Domain Knowledge (Assembly Line Manual)
+### Phase 0.1: Platform Detection (MANDATORY - NEVER SKIP)
+
+**This phase runs for ALL features, including backend-only.**
+
+**See also**: `.specify/knowledge/_platform-resolution.md` for the canonical platform resolution algorithm that ALL commands must follow.
+
+Platform detection must happen BEFORE tech stack validation because:
+- A backend FOR a mobile app is different from a backend for web
+- Platform determines verification commands, subagent selection, and wiring requirements
+- Tech stack validation (Phase 0.5-0.7) needs platform context
+
+**Registry Validation (per _platform-resolution.md)**:
+Before proceeding, validate the registry exists and has target_platform set. Never silently default to web.
+
+1. **Check spec.md for Platform header**:
+   ```
+   Read: FEATURE_DIR/spec.md
+   → Look for "Platform:" header in frontmatter or body
+   ```
+
+2. **If not in spec.md, check registry**:
+   ```
+   Read: specs/_defaults/registry.yaml
+   → Look for target_platform.primary
+   ```
+
+3. **If still unknown, ask user**:
+   ```
+   Question: "What is the target platform for this feature?"
+   Header: "Platform"
+   Options:
+     - Label: "Web (Browser)"
+       Description: "React, Vue, Angular, Svelte, or similar web framework"
+     - Label: "iOS (Native)"
+       Description: "Swift/SwiftUI or UIKit"
+     - Label: "Android (Native)"
+       Description: "Kotlin/Jetpack Compose or XML Views"
+     - Label: "React Native"
+       Description: "Cross-platform with React Native"
+     - Label: "Flutter"
+       Description: "Cross-platform with Flutter/Dart"
+     - Label: "Backend-only"
+       Description: "API, CLI, worker, or service with no UI"
+   ```
+
+4. **Store detected platform** in plan.md output header:
+   ```markdown
+   ## Planning Configuration
+
+   **Configured At**: [timestamp]
+   **Detected Platform**: [web/ios/android/react-native/flutter/backend-only]
+
+   | Setting | Value |
+   |---------|-------|
+   | Platform | [detected value] |
+   | Subagents | [Enabled/Disabled] |
+   ...
+   ```
+
+**Why this matters**: Even backend-only features need platform context. A REST API for a mobile app may need different response formats, pagination styles, or authentication flows than one for web. This information propagates to:
+- Tech stack validation commands (Phase 0.6)
+- Subagent selection (mobile subagents vs web subagents)
+- Knowledge wiring in generated tasks
+
+**Output**: Platform detected and stored in plan.md configuration
+
+### Phase 0.2: Load Domain Knowledge (Assembly Line Manual)
 
 **Per Constitution Article IX, Directive 8 - This step is MANDATORY.**
 
@@ -368,14 +436,15 @@ After Phase 0 completes, present the tech stack and get approval:
 
    | Decision          | Value             | Source       |
    |-------------------|-------------------|--------------|
+   | Target Platform   | [from Phase 0.1]  | Phase 0.1    |
    | Language/Version  | [value]           | Registry/Spec/Assumed |
    | Primary Framework | [value]           | Registry/Spec/Assumed |
    | Storage           | [value]           | Registry/Spec/Assumed |
    | ORM/Data Layer    | [value]           | Registry/Spec/Assumed |
    | Testing Framework | [value]           | Registry/Spec/Assumed |
-   | Target Platform   | [value]           | Registry/Spec/Assumed |
 
    Source Legend:
+   - Phase 0.1 = Detected in Platform Detection phase
    - Registry = From specs/_defaults/registry.yaml (project standard)
    - Spec = Explicitly stated in feature spec
    - Assumed = Inferred by AI (candidate for registry)
@@ -556,52 +625,33 @@ If validation found warnings or issues, present them and get decisions:
 
 **Per Constitution Article IX, Directive 6 - This checkpoint is MANDATORY if feature has UI.**
 
-After tech stack validation, if the feature involves frontend/UI, present context and gather UI specifications.
+After tech stack validation, if the feature involves frontend/UI, gather UI framework specifications.
 
 ⚠️ **CRITICAL EXECUTION ORDER - YOU MUST FOLLOW THESE STEPS EXACTLY:**
 
 ---
 
-#### Step 1: Check if UI is involved
+#### Step 1: Check if UI specifications are needed
 
-Skip this phase if:
-- Feature is backend-only (API, CLI, worker)
-- No frontend/mobile framework in tech stack
+**Platform was already detected in Phase 0.1.** This phase focuses on UI FRAMEWORK specifics.
+
+Skip this phase ONLY if:
+- Platform = "backend-only" (detected in Phase 0.1)
 - User explicitly marked "No UI" in spec
+
+**DO NOT skip this phase just because it's a backend feature.** If the backend serves a mobile app, the platform context (detected in Phase 0.1) is still valuable, but UI framework questions can be skipped.
 
 ---
 
-#### Step 2: Detect target platform
+#### Step 2: Retrieve detected platform
 
-Read `registry.target_platform.primary` OR detect from tech stack:
-
-| Detection Signal | Platform |
-|------------------|----------|
-| `frontend.framework` = react/vue/angular/svelte/nextjs | **web** |
-| `target_platform.primary` = ios OR Swift/SwiftUI in spec | **ios** |
-| `target_platform.primary` = android OR Kotlin/Compose in spec | **android** |
-| `target_platform.mobile_framework` = react-native | **react-native** |
-| `target_platform.mobile_framework` = flutter | **flutter** |
-
-If ambiguous, ask:
+The platform was detected in Phase 0.1 and stored in plan.md configuration.
 
 ```
-Question: "What is your target platform?"
-Header: "Platform"
-Options:
-  - Label: "Web (Browser)"
-    Description: "React, Vue, Angular, Svelte, or similar web framework"
-  - Label: "iOS (Native)"
-    Description: "Swift/SwiftUI or UIKit"
-  - Label: "Android (Native)"
-    Description: "Kotlin/Jetpack Compose or XML Views"
-  - Label: "React Native"
-    Description: "Cross-platform with React Native"
-  - Label: "Flutter"
-    Description: "Cross-platform with Flutter/Dart"
+Read from plan.md: "Detected Platform: [value]"
 ```
 
-**Store in**: `registry.target_platform.primary`
+If platform is "backend-only", skip to Phase 0.9.
 
 ---
 
@@ -1181,9 +1231,12 @@ Record in `## Frontend/UI Specifications` section:
 
 #### Step 9: Skip conditions
 
-Skip this phase if:
-- Feature has no UI (backend-only)
-- Review Depth = "Auto-approve" (log choices automatically)
+Skip UI framework questions (Steps 3-8) if:
+- Platform = "backend-only" (detected in Phase 0.1)
+- User explicitly marked "No UI" in spec
+- Review Depth = "Auto-approve" AND all UI choices are in registry
+
+**Note**: Platform detection itself is NEVER skipped - it happens in Phase 0.1 for ALL features. This phase (0.8) only handles UI framework specifics.
 
 **Output**: User-approved UI specifications recorded in plan.md with platform-specific registry keys
 

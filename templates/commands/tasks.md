@@ -52,6 +52,8 @@ If the script outputs gate failures, report them to the user and **DO NOT PROCEE
 
 **Per Constitution Article IX, Directive 7 - Load registry before generating tasks.**
 
+**See also**: `.specify/knowledge/_platform-resolution.md` for registry validation requirements.
+
 Read `specs/_defaults/registry.yaml` to ensure tasks follow project standards:
 
 1. **Extract relevant standards for task generation**:
@@ -142,6 +144,20 @@ For EACH task, create a separate file in `tasks/`:
 **Status**: Pending
 **Created**: [DATE] | **Completed**: N/A
 
+## Implementation Context
+
+<!--
+  This section is set during task generation from plan.md and registry.yaml.
+  During /speckit.implement, this is the AUTHORITATIVE source for platform
+  and subagent configuration. DO NOT read plan.md or registry during implementation.
+-->
+
+- **Platform**: [web/mobile/both - from plan.md Platform field]
+- **Mobile Framework**: [native/react-native/flutter - if mobile, else N/A]
+- **Mobile Platforms**: [ios/android/both - if mobile, else N/A]
+- **Subagents Enabled**: [yes/no - from plan.md Planning Configuration]
+- **Available Subagents**: [list from plan.md, filtered to task domain]
+
 ## Requirement Mapping
 
 | Requirement | Description | Priority |
@@ -176,34 +192,48 @@ For EACH task, create a separate file in `tasks/`:
   CRITICAL: If this task creates a new file, it MUST specify what existing files
   need to be updated to "wire" the new file into the application.
 
-  Use the checklist matching your target platform.
+  Include ONLY the checklist matching the platform from plan.md.
 -->
 
-**Web:**
+<!--
+  ### Wiring Checklist Selection Rule
+
+  Based on platform from plan.md:
+  - `web` -> Include ONLY Web checklist
+  - `ios` -> Include ONLY iOS Native checklist
+  - `android` -> Include ONLY Android Native checklist
+  - `react-native` -> Include ONLY React Native checklist
+  - `flutter` -> Include ONLY Flutter checklist
+
+  NEVER include all platform checklists in a single task.
+  Delete the checklists that do not match the target platform.
+-->
+
+**Web:** (include only if platform=web)
 - [ ] Route registered in main app file (if backend route)
 - [ ] Page added to app router (if frontend page)
 - [ ] Navigation link added (if user-facing page)
 - [ ] Store/hook connected to API endpoint (if API endpoint)
 - [ ] Component rendered by parent (if new component)
 
-**iOS Native:**
+**iOS Native:** (include only if platform=ios)
 - [ ] View added to NavigationStack/TabView
 - [ ] Deep link route in onOpenURL handler
 - [ ] Entitlement added (if capability needed)
 - [ ] Permission description in Info.plist
 
-**Android Native:**
+**Android Native:** (include only if platform=android)
 - [ ] Activity registered in AndroidManifest.xml
 - [ ] Screen in NavHost/Navigation graph
 - [ ] Permission in manifest (if needed)
 - [ ] ProGuard rule (if new dependency)
 
-**React Native:**
+**React Native:** (include only if platform=react-native)
 - [ ] Screen in Navigator (Stack/Tab/Drawer)
 - [ ] Deep link in linking config
 - [ ] Native module linked (pod install + gradle)
 
-**Flutter:**
+**Flutter:** (include only if platform=flutter)
 - [ ] Route in MaterialApp/GoRouter
 - [ ] Dependency in pubspec.yaml
 
@@ -236,7 +266,18 @@ For EVERY task that creates a new artifact, you MUST either:
 
 **Wiring Matrix - What Creates What Updates:**
 
-*Web Platform:*
+### Wiring Matrix Platform Selection
+
+Based on platform from plan.md, use ONLY the corresponding matrix:
+- `web` -> "Web Platform" matrix
+- `ios` -> "iOS Native Platform" matrix
+- `android` -> "Android Native Platform" matrix
+- `react-native` -> "React Native Platform" matrix
+- `flutter` -> "Flutter Platform" matrix
+
+Include ONLY the relevant matrix. Do NOT include all platforms.
+
+*Web Platform:* (include only if platform=web)
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | Backend route file (`routes/clients.py`) | Main app file to register router (`main.py`, `app.py`) |
@@ -247,7 +288,7 @@ For EVERY task that creates a new artifact, you MUST either:
 | New service | Dependency injection / service registry |
 | Environment variable usage | `.env.example`, deployment configs |
 
-*iOS Native Platform:*
+*iOS Native Platform:* (include only if platform=ios)
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | View/ViewController (`ClientsView.swift`) | NavigationStack, TabView if top-level |
@@ -259,7 +300,7 @@ For EVERY task that creates a new artifact, you MUST either:
 | Capability (Push, IAP, etc.) | `.entitlements` file |
 | Permission usage | `NS*UsageDescription` in Info.plist |
 
-*Android Native Platform:*
+*Android Native Platform:* (include only if platform=android)
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | Activity/Fragment | `AndroidManifest.xml` registration |
@@ -271,7 +312,7 @@ For EVERY task that creates a new artifact, you MUST either:
 | Permission | `<uses-permission>` in manifest |
 | New dependency with reflection | ProGuard/R8 keep rules |
 
-*React Native Platform:*
+*React Native Platform:* (include only if platform=react-native)
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | Screen component (`ClientsScreen.tsx`) | Navigator (Stack/Tab/Drawer) |
@@ -281,7 +322,7 @@ For EVERY task that creates a new artifact, you MUST either:
 | Push notifications | iOS entitlements, Android manifest |
 | Environment variable | `.env`, `react-native-config` |
 
-*Flutter Platform:*
+*Flutter Platform:* (include only if platform=flutter)
 | When You Create... | You MUST Also Update... |
 |-------------------|------------------------|
 | Screen widget (`clients_screen.dart`) | MaterialApp routes OR GoRouter |
@@ -535,13 +576,29 @@ their organization.
 
 2. **If Subagents = "Disabled"**: Skip this section, generate tasks yourself.
 
-3. **If Subagents = "Enabled"**: Use the Task tool to spawn matched agents.
+3. **If Subagents = "Enabled"**: Filter and spawn matched agents.
 
-   **For each task that matches a listed subagent's domain:**
+   **Step 1: Load platform from plan.md**
+
+   Read `FEATURE_DIR/plan.md` and extract the `Platform:` field from header.
+
+   **Step 2: Filter available subagents by platform**
+
+   For each subagent in `.specify/subagents/`:
+   - Read frontmatter `platform:` field
+   - If platform includes current target OR field is absent (universal) -> INCLUDE
+   - If platform does NOT include current target -> EXCLUDE
+
+   Example: Target=ios
+   - mobile-developer.md (platform: mobile) -> INCLUDE
+   - frontend-developer.md (platform: web) -> EXCLUDE
+   - backend-architect.md (no platform) -> INCLUDE (universal)
+
+   **For each task that matches a filtered subagent's domain:**
 
    ```
    Task(
-     subagent_type: "[agent-name-from-plan.md-list]",
+     subagent_type: "[agent-name-from-filtered-list]",
      prompt: "Generate atomic task file for: [task objective].
 
        Task ID: T-XXX-[name]
@@ -557,7 +614,7 @@ their organization.
    )
    ```
 
-4. **Match tasks to agents dynamically**:
+5. **Match tasks to agents dynamically**:
 
    For each task, check which agent from the "Available Subagents" list matches:
    - Task creates database/models → Agent with "data" in name/description
@@ -565,7 +622,7 @@ their organization.
    - Task creates UI/components → Agent with "frontend" in name/description
    - Task involves payments → Agent with "payment" in name/description
 
-5. **Spawn agents in parallel** for efficiency:
+6. **Spawn agents in parallel** for efficiency:
 
    ```
    # Multiple tasks can be generated simultaneously
@@ -574,40 +631,45 @@ their organization.
    Task(subagent_type: "frontend-developer", prompt: "Generate T-030...", ...)
    ```
 
-6. **Fallback**: If a task doesn't match any available agent, generate it yourself using the embedded context approach from Section 4.2.2.
+7. **Fallback**: If a task doesn't match any available agent, generate it yourself using the embedded context approach from Section 4.2.2.
 
 #### 4.2.4 Platform-Aware Verification Commands (MANDATORY)
 
 **CRITICAL: Verification commands MUST match the project's target platform.**
 
+**See also**: `.specify/knowledge/_platform-resolution.md` for the canonical platform resolution algorithm.
+
 Using `npm test` for an iOS task will cause verification failures. This section ensures every task has executable verification commands appropriate to its platform.
 
-**Step 1: Detect Target Platform**
+**Step 1: Load Platform from Plan**
 
-Read from registry (`specs/_defaults/registry.yaml`) in this priority order:
+Per the canonical platform resolution in `_platform-resolution.md`:
+- For /speckit.tasks, plan.md is the **authoritative source**
+- If plan.md has no platform recorded, this is an ERROR - do not proceed
+- ERROR message: "Plan.md missing Platform: field. Re-run /speckit.plan to set platform."
+
+Read `FEATURE_DIR/plan.md` and extract the `Platform:` field from header.
+
+DO NOT re-detect platform from file patterns - plan.md is authoritative.
+
+The platform value from plan.md will be one of:
+- `web` - Web/Node.js application
+- `ios` - iOS native application
+- `android` - Android native application
+- `react-native` - React Native cross-platform
+- `flutter` - Flutter cross-platform
+
+**Step 1b: Load Additional Details from Registry (Optional)**
+
+If `specs/_defaults/registry.yaml` exists, read additional context:
 
 ```yaml
-# Mobile platform detection (highest priority)
-target_platform.primary: web | mobile | both
-target_platform.mobile_platforms: ios | android | both
-target_platform.mobile_framework: native | react-native | flutter
-
-# Backend language detection (if not mobile)
+# Backend language detection (supplements plan.md platform)
 backend.language: typescript | python | go | java | csharp | rust
 backend.framework: express | fastapi | gin | spring-boot | etc.
 ```
 
-If registry doesn't exist, scan for file patterns:
-
-| File Pattern | Detected Platform |
-|--------------|-------------------|
-| `*.xcodeproj`, `Package.swift`, `Podfile` | iOS |
-| `build.gradle`, `AndroidManifest.xml` | Android |
-| `pubspec.yaml`, `lib/main.dart` | Flutter |
-| `metro.config.js`, `react-native.config.js` | React Native |
-| `package.json`, `tsconfig.json` | Web/Node.js |
-| `pyproject.toml`, `requirements.txt` | Python |
-| `go.mod`, `go.sum` | Go |
+This provides framework-specific details but does NOT override plan.md platform.
 
 **Step 2: Load Platform Verification Templates**
 

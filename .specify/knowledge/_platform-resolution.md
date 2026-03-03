@@ -4,6 +4,140 @@ This document defines the algorithm for resolving which station file to load bas
 
 ---
 
+## Registry Validation (Required by All Commands)
+
+Before any platform-dependent operation, validate:
+
+1. Check if `specs/_defaults/registry.yaml` exists
+2. If missing, warn user and create minimal registry with platform question
+3. Check if `target_platform.primary` is set
+4. If not set:
+   - Display warning: "No target platform defined"
+   - Ask user to specify platform
+   - Store in registry before proceeding
+
+**Never silently default to web** - always inform user of the assumption.
+
+### Validation Pseudocode
+
+```
+FUNCTION validateRegistry():
+    REGISTRY_PATH = "specs/_defaults/registry.yaml"
+
+    # Step 1: Check registry exists
+    IF NOT fileExists(REGISTRY_PATH):
+        WARN("Registry not found at {REGISTRY_PATH}")
+        ASK_USER("Create minimal registry with platform question?")
+        IF user_confirms:
+            createMinimalRegistry(REGISTRY_PATH)
+        ELSE:
+            WARN("Proceeding without registry - defaulting to 'web' platform")
+            LOG("Platform assumption: web (no registry)")
+            RETURN { platform: "web", source: "default_no_registry" }
+
+    # Step 2: Load registry
+    registry = loadYAML(REGISTRY_PATH)
+
+    # Step 3: Check target_platform.primary
+    IF registry.target_platform IS NULL OR registry.target_platform.primary IS NULL:
+        WARN("No target platform defined in registry")
+        platform = ASK_USER("What is the target platform?", options=[
+            "web", "ios", "android", "react-native", "flutter", "backend-only"
+        ])
+        # Store in registry
+        updateRegistry(REGISTRY_PATH, "target_platform.primary", platform)
+        LOG("Platform stored in registry: {platform}")
+        RETURN { platform: platform, source: "user_prompted" }
+
+    # Step 4: Return existing platform
+    RETURN {
+        platform: registry.target_platform.primary,
+        source: "registry"
+    }
+
+END FUNCTION
+```
+
+---
+
+## Canonical Platform Resolution (All Commands MUST Use This)
+
+Platform is determined in this priority order:
+
+1. **Task file context** (during /implement): Read from task's Implementation Context
+2. **Plan.md header** (during /tasks): Read Platform: field
+3. **Spec.md header** (during /plan): Read Platform: field
+4. **Registry** (during /specify): Read target_platform.primary
+5. **User prompt** (if all above missing): Ask once, store in registry
+6. **Default** (last resort): "web" with logged warning
+
+### Command-Specific Sources
+
+| Command | Primary Source | Fallback |
+|---------|---------------|----------|
+| /speckit.specify | Registry -> Ask user | Store in spec.md |
+| /speckit.plan | spec.md -> Registry -> Ask user | Store in plan.md |
+| /speckit.tasks | plan.md | ERROR if missing |
+| /speckit.implement | task file | ERROR if missing |
+
+Each command should read from its primary source. If missing, it's an error for downstream commands (they should have inherited it).
+
+### Resolution Pseudocode
+
+```
+FUNCTION resolvePlatform(command, context):
+
+    SWITCH command:
+        CASE "/speckit.implement":
+            # Task file is authoritative - ERROR if missing
+            IF context.task_file.platform IS NOT NULL:
+                RETURN context.task_file.platform
+            ELSE:
+                ERROR("Task file missing platform. This is a /speckit.tasks generation error.")
+
+        CASE "/speckit.tasks":
+            # Plan.md is authoritative - ERROR if missing
+            IF context.plan_md.platform IS NOT NULL:
+                RETURN context.plan_md.platform
+            ELSE:
+                ERROR("Plan.md missing Platform: field. Re-run /speckit.plan.")
+
+        CASE "/speckit.plan":
+            # Check spec.md first, then registry, then ask
+            IF context.spec_md.platform IS NOT NULL:
+                RETURN context.spec_md.platform
+            IF context.registry.target_platform.primary IS NOT NULL:
+                RETURN context.registry.target_platform.primary
+            # Ask user and store
+            platform = ASK_USER("Target platform?")
+            STORE_IN(context.plan_md, "Platform: {platform}")
+            RETURN platform
+
+        CASE "/speckit.specify":
+            # Registry is primary, ask if missing
+            result = validateRegistry()  # See above
+            STORE_IN(context.spec_md, "Platform: {result.platform}")
+            RETURN result.platform
+
+    # Should never reach here
+    WARN("Unknown command - defaulting to web with warning")
+    LOG("Platform assumption: web (unknown command)")
+    RETURN "web"
+
+END FUNCTION
+```
+
+### Error Messages
+
+| Scenario | Command | Message |
+|----------|---------|---------|
+| Missing in task file | /implement | "ERROR: Task file missing platform context. Re-generate tasks with /speckit.tasks." |
+| Missing in plan.md | /tasks | "ERROR: Plan.md missing Platform: field. Re-run /speckit.plan to set platform." |
+| Missing everywhere | /plan | "WARNING: No platform found in spec.md or registry. Please specify target platform." |
+| Defaulting to web | Any | "WARNING: Defaulting to 'web' platform. Run /speckit.specify to set explicit platform." |
+
+---
+
 ## Overview
 
 When the AI loads domain knowledge (stations), it must consider the target platform to load the correct variant. For example, when building an iOS app, Station 09 (Billing) should load the iOS IAP variant instead of the base Stripe web variant.
