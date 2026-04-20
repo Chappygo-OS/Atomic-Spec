@@ -32,7 +32,12 @@ env/
 *.swp
 *.swo
 .DS_Store
+Thumbs.db
 *.tmp
+
+# Not a Node.js project — block stray npm files
+package-lock.json
+node_modules/
 
 # Project specific
 *.log

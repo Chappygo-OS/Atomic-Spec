@@ -2,6 +2,10 @@
 
 <!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
+> **Note to Atomic Spec users**: Articles I–VIII below are **intentionally left as `[PLACEHOLDER]` tokens**. They are filled in per consumer project by running `/atomicspec.constitution` — that command interactively authors your project's governing principles and replaces every placeholder.
+>
+> **Article IX (Prime Directives) is NOT a placeholder** — it is hardcoded below and encodes the eight non-negotiable rules of the Atomic Traceability Model. Do not edit Article IX unless you are deliberately changing framework governance.
+
 ## Core Principles
 
 ### [PRINCIPLE_1_NAME]

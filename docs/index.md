@@ -1,12 +1,14 @@
-# Spec Kit
+# Atomic Spec
 
-*Build high-quality software faster.*
+*Stop vibe coding. Ship with atomic traceability.*
 
-**An effort to allow organizations to focus on product scenarios rather than writing undifferentiated code with the help of Spec-Driven Development.**
+**Atomic Spec is a governance framework for AI-driven development — a customized fork of [GitHub's Spec Kit](https://github.com/github/spec-kit) that implements the Atomic Traceability Model through Constitutional Prime Directives, Knowledge Station Gates, and Context Pinning.**
 
-## What is Spec-Driven Development?
+## What is the Atomic Traceability Model?
 
-Spec-Driven Development **flips the script** on traditional software development. For decades, code has been king — specifications were just scaffolding we built and discarded once the "real work" of coding began. Spec-Driven Development changes this: **specifications become executable**, directly generating working implementations rather than just guiding them.
+The Atomic Traceability Model **forces AI coding agents through gated, atomic, context-pinned phases**. AI agents produce drift unless constrained. This framework enforces eight non-negotiable directives — individual task files instead of a single `tasks.md`, Context Pinning during implementation, Knowledge Station Gates between phases, and a Project Defaults Registry that every command reads and enforces.
+
+It builds on **Spec-Driven Development**: specifications become executable artifacts that directly generate working implementations, rather than scaffolding discarded once coding begins.
 
 ## Getting Started
 
@@ -60,8 +62,8 @@ Our research and experimentation focus on:
 
 ## Contributing
 
-Please see our [Contributing Guide](https://github.com/github/spec-kit/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
+Please see our [Contributing Guide](https://github.com/Airchitekt/atomic-spec/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
 
 ## Support
 
-For support, please check our [Support Guide](https://github.com/github/spec-kit/blob/main/SUPPORT.md) or open an issue on GitHub.
+For support, please check our [Support Guide](https://github.com/Airchitekt/atomic-spec/blob/main/SUPPORT.md) or [open an issue](https://github.com/Airchitekt/atomic-spec/issues/new) on GitHub.

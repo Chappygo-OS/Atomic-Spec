@@ -100,7 +100,7 @@ After a plan is created, this command analyzes the plan and related design docum
 1. **Inputs**: Reads `plan.md` (required) and, if present, `data-model.md`, `contracts/`, and `research.md`
 2. **Task Derivation**: Converts contracts, entities, and scenarios into specific tasks
 3. **Parallelization**: Marks independent tasks `[P]` and outlines safe parallel groups
-4. **Output**: Writes `tasks.md` in the feature directory, ready for execution by a Task agent
+4. **Output**: Writes a `tasks/` directory of individual `T-XXX-[name].md` task files in the feature directory, alongside `index.md` and `traceability.md`, ready for execution under Context Pinning (see Constitution Article IX, Directive 2: Atomic Injunction)
 
 ### Example: Building a Chat Feature
 
@@ -140,7 +140,9 @@ Total: ~12 hours of documentation work
 # - specs/003-chat-system/data-model.md (Message and User schemas)
 # - specs/003-chat-system/contracts/ (WebSocket events, REST endpoints)
 # - specs/003-chat-system/quickstart.md (Key validation scenarios)
-# - specs/003-chat-system/tasks.md (Task list derived from the plan)
+# - specs/003-chat-system/index.md (feature dashboard)
+# - specs/003-chat-system/traceability.md (requirement → task matrix)
+# - specs/003-chat-system/tasks/T-001-*.md through T-NNN-*.md (atomic task files)
 ```
 
 In 15 minutes, you have:

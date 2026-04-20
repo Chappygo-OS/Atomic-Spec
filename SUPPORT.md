@@ -6,14 +6,14 @@ This project uses GitHub issues to track bugs and feature requests. Please searc
 
 For help or questions about using this project, please:
 
-- Open a [GitHub issue](https://github.com/github/spec-kit/issues/new) for bug reports, feature requests, or questions about the Spec-Driven Development methodology
+- Open a [GitHub issue](https://github.com/Airchitekt/atomic-spec/issues/new) for bug reports, feature requests, or questions about the Atomic Traceability Model
 - Check the [comprehensive guide](./spec-driven.md) for detailed documentation on the Spec-Driven Development process
-- Review the [README](./README.md) for getting started instructions and troubleshooting tips
+- Review the [README](./README.md) for getting started instructions and the Atomic Traceability Model overview
 
 ## Project Status
 
-**Spec Kit** is under active development and maintained by GitHub staff **AND THE COMMUNITY**. We will do our best to respond to support, feature requests, and community questions in a timely manner.
+**Atomic Spec** is under active development. It is a customized fork of [GitHub's Spec Kit](https://github.com/github/spec-kit) that implements the Atomic Traceability Model — a governance framework enforcing Constitutional Prime Directives, Knowledge Station Gates, and Context Pinning. We will do our best to respond to support, feature requests, and community questions in a timely manner.
 
-## GitHub Support Policy
+## Support Policy
 
 Support for this project is limited to the resources listed above.
