@@ -124,13 +124,13 @@ fi
 # Validate required directories and files
 if [[ ! -d "$FEATURE_DIR" ]]; then
     echo "ERROR: Feature directory not found: $FEATURE_DIR" >&2
-    echo "Run /speckit.specify first to create the feature structure." >&2
+    echo "Run /atomicspec.specify first to create the feature structure." >&2
     exit 1
 fi
 
 if [[ ! -f "$IMPL_PLAN" ]]; then
     echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
-    echo "Run /speckit.plan first to create the implementation plan." >&2
+    echo "Run /atomicspec.plan first to create the implementation plan." >&2
     exit 1
 fi
 
@@ -195,7 +195,7 @@ validate_gates() {
                 echo "✓ GATE PASS: Tech Stack approved by user" >&2
             else
                 echo "✗ GATE FAIL: Tech Stack not approved (HITL checkpoint)" >&2
-                echo "  → Run /speckit.plan and complete Phase 0.5 approval" >&2
+                echo "  → Run /atomicspec.plan and complete Phase 0.5 approval" >&2
                 ((gate_failures++))
             fi
 
@@ -204,7 +204,7 @@ validate_gates() {
                 echo "✓ GATE PASS: Tech Stack validation completed" >&2
             else
                 echo "✗ GATE FAIL: Tech Stack validation not completed" >&2
-                echo "  → Run /speckit.plan and complete Phase 0.6/0.7 validation" >&2
+                echo "  → Run /atomicspec.plan and complete Phase 0.6/0.7 validation" >&2
                 ((gate_failures++))
             fi
             ;;
@@ -284,10 +284,10 @@ if $REQUIRE_TASKS; then
         # Legacy tasks.md exists - warn about migration
         echo "WARNING: Found legacy tasks.md file. Per Constitution Article IX," >&2
         echo "tasks should be in tasks/ directory with individual T-XXX-[name].md files." >&2
-        echo "Consider running /speckit.tasks to migrate to atomic task structure." >&2
+        echo "Consider running /atomicspec.tasks to migrate to atomic task structure." >&2
     else
         echo "ERROR: No task structure found in $FEATURE_DIR" >&2
-        echo "Run /speckit.tasks first to create atomic task files." >&2
+        echo "Run /atomicspec.tasks first to create atomic task files." >&2
         exit 1
     fi
 

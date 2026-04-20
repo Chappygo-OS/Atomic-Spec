@@ -2,10 +2,10 @@
 description: Analyze competitors following Station 03 discovery procedures. Creates structured competitive intelligence for use in downstream planning.
 handoffs:
   - label: Create Specification
-    agent: speckit.specify
+    agent: atomicspec.specify
     prompt: Use the competitive analysis to inform the feature spec
   - label: Create Plan
-    agent: speckit.plan
+    agent: atomicspec.plan
     prompt: Use competitive insights to inform technical decisions
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json
@@ -318,12 +318,12 @@ I've completed the competitive analysis. Here's the summary:
 
 **Your options:**
 
-1. "accept" - Keep this analysis for use in /speckit.plan and downstream
+1. "accept" - Keep this analysis for use in /atomicspec.plan and downstream
 2. "revise: [instructions]" - I'll update based on your feedback
 3. "reject" - Delete the entire competitive-analysis/ folder
 
 **Important**: If you choose "reject", this analysis will be deleted.
-Future commands (/speckit.plan, /speckit.tasks) will proceed WITHOUT
+Future commands (/atomicspec.plan, /atomicspec.tasks) will proceed WITHOUT
 competitive context - they'll make decisions based on general knowledge
 only. This is by design - no analysis means no competitive influence.
 
@@ -342,14 +342,14 @@ only. This is by design - no analysis means no competitive influence.
 
   **What this means for future commands:**
 
-  - /speckit.plan will make tech decisions based on general knowledge
-  - /speckit.tasks will not reference competitor patterns
+  - /atomicspec.plan will make tech decisions based on general knowledge
+  - /atomicspec.tasks will not reference competitor patterns
   - No wedge/positioning guidance will be available
 
   This is intentional - you chose not to use competitive analysis,
   so downstream commands won't assume competitive context exists.
 
-  You can always re-run /speckit.AnalyzeCompetitors later if needed.
+  You can always re-run /atomicspec.AnalyzeCompetitors later if needed.
   ══════════════════════════════════════════════════════════════
   ```
 

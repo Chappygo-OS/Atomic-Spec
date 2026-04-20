@@ -24,7 +24,7 @@ backend:
 
 ### 2. Task Generator Detects Platform
 
-During `/speckit.tasks`, Section 4.2.4 automatically:
+During `/atomicspec.tasks`, Section 4.2.4 automatically:
 1. Reads platform from registry
 2. Falls back to file pattern scanning if no registry
 3. Selects appropriate verification templates

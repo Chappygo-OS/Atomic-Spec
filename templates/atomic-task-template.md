@@ -20,7 +20,7 @@
 ### Project Standards (from registry)
 
 <!--
-  Extracted from specs/_defaults/registry.yaml during /speckit.tasks
+  Extracted from specs/_defaults/registry.yaml during /atomicspec.tasks
   If no registry exists, this section will note "No registry - using plan.md decisions"
 -->
 
@@ -39,7 +39,7 @@
 
 <!--
   Extracted from relevant .specify/subagents/[domain].md or
-  .specify/knowledge/stations/[XX]-[domain].md during /speckit.tasks
+  .specify/knowledge/stations/[XX]-[domain].md during /atomicspec.tasks
 
   If no domain knowledge exists, note: "No domain knowledge - using plan.md decisions"
 -->
@@ -65,7 +65,7 @@
 
 <!--
   One paragraph summarizing the feature this task belongs to.
-  Extracted from plan.md during /speckit.tasks generation.
+  Extracted from plan.md during /atomicspec.tasks generation.
 -->
 
 [Brief description of the feature and its purpose]

@@ -2,10 +2,10 @@
 description: Create or update the feature specification from a natural language feature description.
 handoffs: 
   - label: Build Technical Plan
-    agent: speckit.plan
+    agent: atomicspec.plan
     prompt: Create a plan for the spec. I am building with...
   - label: Clarify Spec Requirements
-    agent: speckit.clarify
+    agent: atomicspec.clarify
     prompt: Clarify specification requirements
     send: true
 scripts:
@@ -23,7 +23,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+The text the user typed after `/atomicspec.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
 Given that feature description, do this:
 
@@ -67,7 +67,7 @@ Given that feature description, do this:
 
    d. **Platform value**: The selected platform will be stored in the spec.md output as a header field: `Platform: [value]`
 
-   **NOTE**: Downstream commands (`/speckit.plan`, `/speckit.build`, etc.) will inherit this platform setting from the spec. This ensures consistent platform context throughout the entire feature lifecycle.
+   **NOTE**: Downstream commands (`/atomicspec.plan`, `/atomicspec.build`, etc.) will inherit this platform setting from the spec. This ensures consistent platform context throughout the entire feature lifecycle.
 
 1. **Check Project Defaults Registry** (per Constitution Directive 7):
 
@@ -91,7 +91,7 @@ Given that feature description, do this:
    | API      | [versioning], [pagination], [error_format] |
    | Database | [type], [tenancy_model], [query_style] |
 
-   These can be overridden per-feature during /speckit.plan
+   These can be overridden per-feature during /atomicspec.plan
    with explicit justification.
    ══════════════════════════════════════════════════════════════
    ```
@@ -210,7 +210,7 @@ Given that feature description, do this:
       
       ## Notes
       
-      - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+      - Items marked incomplete require spec updates before `/atomicspec.clarify` or `/atomicspec.plan`
       ```
 
    b. **Run Validation Check**: Review the spec against each checklist item:
@@ -264,7 +264,7 @@ Given that feature description, do this:
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
-8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/atomicspec.clarify` or `/atomicspec.plan`).
 
 **NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
 

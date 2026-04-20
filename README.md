@@ -1,6 +1,5 @@
 <div align="center">
-    <img src="./media/logo_large.webp" alt="Spec Kit Logo" width="200" height="200"/>
-    <h1>Custom Speckit - Exact Assembly Line</h1>
+    <h1>Atomic Spec</h1>
     <h3><em>Atomic Traceability Model for AI-Driven Development</em></h3>
 </div>
 
@@ -10,9 +9,9 @@
 
 ---
 
-## What's Different in Custom Speckit - Exact Assembly Line?
+## What's Different in Atomic Spec?
 
-This fork implements the **Atomic Traceability Model**, a governance upgrade based on the "Andre/Mable AI workflow" that enforces:
+This fork implements the **Atomic Traceability Model**, a governance upgrade that enforces:
 
 1. **Constitutional Prime Directives** - Eight non-negotiable rules in `memory/constitution.md` (Article IX)
 2. **Knowledge Station Gates** - 18 governance checkpoints that MUST pass before phase transitions
@@ -28,19 +27,33 @@ This fork implements the **Atomic Traceability Model**, a governance upgrade bas
 | Directive | Rule |
 |-----------|------|
 | **1. Directory Supremacy** | Every feature MUST have an `index.md` (dashboard) and `traceability.md` (matrix) |
-| **2. Atomic Injunction** | `/speckit.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
-| **3. Context Pinning** | During `/speckit.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
+| **2. Atomic Injunction** | `/atomicspec.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
+| **3. Context Pinning** | During `/atomicspec.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
 | **4. Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
 | **5. Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then specific station |
-| **6. Human-In-The-Loop** | During `/speckit.plan`, AI MUST pause at 4 checkpoints for user approval |
+| **6. Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval |
 | **7. Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
 | **8. Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
 
 ---
 
+## The Assembly Line Mental Model
+
+Atomic Spec treats AI-driven development like a **factory assembly line**, not a freeform workshop. Every phase of your work is a **station**, and the product (your code) moves from one station to the next only when it passes inspection.
+
+- **Stations** — each phase (specify → plan → tasks → implement) is a discrete station with a clear job. Knowledge Stations in `.specify/knowledge/stations/` extend this: 18 procedural guides covering every aspect of building a SaaS product.
+- **Deliverables** — each station outputs tangible artifacts: a spec file, a plan document, atomic task files, production code. If you can't open it, read it, run it, or test it, it's not a deliverable.
+- **Gates** — each station ends with objective pass/fail criteria. "Feels good" is never a gate. The spec has edge cases or it doesn't. The tenancy model is decided or it isn't.
+- **Core rule** — **no gate pass → no proceeding**. You cannot enter planning without a passing spec. You cannot generate tasks without a passing plan. You cannot implement without passing gates.
+
+This is the entire reason Atomic Spec exists: **AI coding agents produce drift when they operate without gates**. The assembly line replaces vibes with checkpoints.
+
+---
+
 ## Table of Contents
 
-- [Quick Start (Custom Speckit - Exact Assembly Line)](#quick-start-custom-speckit---exact-assembly-line)
+- [The Assembly Line Mental Model](#the-assembly-line-mental-model)
+- [Quick Start (Atomic Spec)](#quick-start-atomic-spec)
 - [Project Defaults Registry](#project-defaults-registry)
 - [Self-Contained Tasks (Knowledge Wiring)](#self-contained-tasks-knowledge-wiring)
 - [Dynamic Agent Discovery](#dynamic-agent-discovery)
@@ -52,11 +65,11 @@ This fork implements the **Atomic Traceability Model**, a governance upgrade bas
 
 ---
 
-## Quick Start (Custom Speckit - Exact Assembly Line)
+## Quick Start (Atomic Spec)
 
 ### Option 1: Initialize Script (Recommended)
 
-Use the initialization scripts to bootstrap a new project with Custom Speckit - Exact Assembly Line:
+Use the initialization scripts to bootstrap a new project with Atomic Spec:
 
 **PowerShell (Windows):**
 ```powershell
@@ -78,7 +91,7 @@ Use the initialization scripts to bootstrap a new project with Custom Speckit - 
    - `memory/` - Constitution with Article IX
    - `scripts/` - Utility scripts
 
-2. For Claude Code, create `.claude/commands/` and copy command files from `templates/commands/` with `speckit.` prefix.
+2. For Claude Code, create `.claude/commands/` and copy command files from `templates/commands/` with `atomicspec.` prefix.
 
 ### After Initialization
 
@@ -87,10 +100,10 @@ cd "your-project"
 git checkout -b 001-your-feature-name
 
 # Then use Claude Code commands:
-/speckit.specify "Your feature description"
-/speckit.plan
-/speckit.tasks
-/speckit.implement
+/atomicspec.specify "Your feature description"
+/atomicspec.plan
+/atomicspec.tasks
+/atomicspec.implement
 ```
 
 ---
@@ -174,7 +187,7 @@ All changes are logged in `specs/_defaults/changelog.md`:
 
 ### The Problem
 
-During `/speckit.implement`, **Context Pinning** (Directive 3) prevents reading:
+During `/atomicspec.implement`, **Context Pinning** (Directive 3) prevents reading:
 - `plan.md`, `spec.md`
 - `.specify/knowledge/stations/*`
 - `.specify/subagents/*`
@@ -184,7 +197,7 @@ This meant subagents were "blind" to project patterns and had to guess.
 
 ### The Solution
 
-During `/speckit.tasks`, ALL context is **embedded INTO each task file**:
+During `/atomicspec.tasks`, ALL context is **embedded INTO each task file**:
 
 ```markdown
 # T-025-create-user-repository
@@ -296,7 +309,7 @@ The agent will be automatically discovered and matched when features mention key
 ### Phase Flow
 
 ```
-/speckit.specify  -->  /speckit.AnalyzeCompetitors (optional)  -->  /speckit.plan  -->  /speckit.tasks  -->  /speckit.implement
+/atomicspec.specify  -->  /atomicspec.AnalyzeCompetitors (optional)  -->  /atomicspec.plan  -->  /atomicspec.tasks  -->  /atomicspec.implement
      |                           |                                       |                    |                     |
      v                           v                                       v                    v                     v
   spec.md                  competitive-analysis/                   Phase 0.0: Registry    tasks/               Execute with
@@ -327,7 +340,7 @@ The agent will be automatically discovered and matched when features mention key
 
 ### Competitive Analysis (Optional)
 
-The `/speckit.AnalyzeCompetitors` command is **optional** but recommended for customer-facing products. It follows Station 03 (Discovery) procedures:
+The `/atomicspec.AnalyzeCompetitors` command is **optional** but recommended for customer-facing products. It follows Station 03 (Discovery) procedures:
 
 1. **User Research Check** - Asks if you have existing competitive research to share
 2. **Search Frame** - Defines primary, adjacent, and substitute categories
@@ -347,15 +360,15 @@ specs/[feature]/competitive-analysis/
 ```
 
 **HITL Review:** After analysis, you review the summary and can:
-- **Accept** - Keep for use in `/speckit.plan`
+- **Accept** - Keep for use in `/atomicspec.plan`
 - **Revise** - Request changes
 - **Reject** - Delete entirely (downstream commands proceed without competitive context)
 
-**Why "Reject" Deletes Everything:** If you don't want competitive analysis influencing decisions, the folder is deleted. This signals to `/speckit.plan` that no competitive context exists, so it makes decisions based on general knowledge only. This is intentional - no analysis means no competitive influence.
+**Why "Reject" Deletes Everything:** If you don't want competitive analysis influencing decisions, the folder is deleted. This signals to `/atomicspec.plan` that no competitive context exists, so it makes decisions based on general knowledge only. This is intentional - no analysis means no competitive influence.
 
 ### Human-In-The-Loop Checkpoint (Phase 0.5)
 
-During `/speckit.plan`, after Phase 0 (Research) completes, the AI **MUST PAUSE** and present all tech stack decisions for user approval:
+During `/atomicspec.plan`, after Phase 0 (Research) completes, the AI **MUST PAUSE** and present all tech stack decisions for user approval:
 
 ```
 ══════════════════════════════════════════════════════════════
@@ -381,14 +394,14 @@ Each phase requires passing specific Knowledge Station gates:
 
 | Phase | Command | Required Gates |
 |-------|---------|----------------|
-| Specification | `/speckit.specify` | Station 03 (Discovery), 04 (PRD), 05 (User Flows) |
-| Planning | `/speckit.plan` | Station 06 (API), 07 (Data), 08 (Auth), 12 (CI/CD), 13 (Security) |
-| Task Generation | `/speckit.tasks` | Validates all prior gates, creates atomic structure |
-| Implementation | `/speckit.implement` | Context Pinning enforced - reads only current task |
+| Specification | `/atomicspec.specify` | Station 03 (Discovery), 04 (PRD), 05 (User Flows) |
+| Planning | `/atomicspec.plan` | Station 06 (API), 07 (Data), 08 (Auth), 12 (CI/CD), 13 (Security) |
+| Task Generation | `/atomicspec.tasks` | Validates all prior gates, creates atomic structure |
+| Implementation | `/atomicspec.implement` | Context Pinning enforced - reads only current task |
 
 ### Context Pinning (Implementation Phase)
 
-During `/speckit.implement`, the AI operates under strict constraints:
+During `/atomicspec.implement`, the AI operates under strict constraints:
 
 **ALLOWED to read:**
 - `index.md` - Feature dashboard (entry point)
@@ -406,7 +419,7 @@ This prevents "kitchen sink" implementations and ensures focused, atomic executi
 
 ## Knowledge Stations
 
-Custom Speckit - Exact Assembly Line includes 18 Knowledge Stations in `.specify/knowledge/stations/`:
+Atomic Spec includes 18 Knowledge Stations in `.specify/knowledge/stations/`:
 
 | # | Station | Purpose | Gate Phase |
 |---|---------|---------|------------|
@@ -438,7 +451,7 @@ After running the full workflow, your project looks like:
 ```
 your-project/
 │
-│   PROJECT-WIDE DEFAULTS (/speckit.plan creates, all commands use):
+│   PROJECT-WIDE DEFAULTS (/atomicspec.plan creates, all commands use):
 │
 ├── specs/_defaults/
 │   ├── registry.yaml    # Source of truth for project-wide tech decisions
@@ -448,9 +461,9 @@ your-project/
 │   FEATURE-SPECIFIC FILES:
 │
 ├── specs/001-feature-name/
-│   ├── spec.md              # Feature specification (/speckit.specify)
+│   ├── spec.md              # Feature specification (/atomicspec.specify)
 │   │
-│   │   COMPETITIVE ANALYSIS (optional, /speckit.AnalyzeCompetitors):
+│   │   COMPETITIVE ANALYSIS (optional, /atomicspec.AnalyzeCompetitors):
 │   │
 │   ├── competitive-analysis/
 │   │   ├── summary.md       # Main reference doc (patterns, pains, wedge)
@@ -459,7 +472,7 @@ your-project/
 │   │       ├── competitor-1.md
 │   │       └── ...
 │   │
-│   │   IMPLEMENTATION PLANNING (/speckit.plan):
+│   │   IMPLEMENTATION PLANNING (/atomicspec.plan):
 │   │
 │   ├── plan.md              # Implementation plan
 │   ├── research.md          # Technical research
@@ -467,7 +480,7 @@ your-project/
 │   ├── quickstart.md        # Dev setup guide
 │   ├── contracts/           # API contracts (OpenAPI)
 │   │
-│   │   ATOMIC TRACEABILITY STRUCTURE (/speckit.tasks):
+│   │   ATOMIC TRACEABILITY STRUCTURE (/atomicspec.tasks):
 │   │
 │   ├── index.md             # Feature dashboard - THE entry point
 │   ├── traceability.md      # Requirement-to-task mapping matrix
@@ -518,26 +531,26 @@ Tasks follow a numbering scheme by phase:
 
 | Command | Description |
 |---------|-------------|
-| `/speckit.specify` | Create feature specification with Knowledge Station gates |
-| `/speckit.AnalyzeCompetitors` | **Optional** - Analyze competitors following Station 03 discovery procedures |
-| `/speckit.plan` | Create implementation plan with architecture gates |
-| `/speckit.tasks` | Generate atomic task files (index.md, traceability.md, tasks/) |
-| `/speckit.implement` | Execute tasks with Context Pinning |
-| `/speckit.cleanup` | Detect and remove orphaned code, unused components, dead routes |
+| `/atomicspec.specify` | Create feature specification with Knowledge Station gates |
+| `/atomicspec.AnalyzeCompetitors` | **Optional** - Analyze competitors following Station 03 discovery procedures |
+| `/atomicspec.plan` | Create implementation plan with architecture gates |
+| `/atomicspec.tasks` | Generate atomic task files (index.md, traceability.md, tasks/) |
+| `/atomicspec.implement` | Execute tasks with Context Pinning |
+| `/atomicspec.cleanup` | Detect and remove orphaned code, unused components, dead routes |
 
 ### Supporting Commands
 
 | Command | Description |
 |---------|-------------|
-| `/speckit.constitution` | View/update project constitution |
-| `/speckit.clarify` | Clarify underspecified requirements |
-| `/speckit.analyze` | Cross-artifact consistency analysis |
-| `/speckit.checklist` | Generate quality validation checklists |
-| `/speckit.taskstoissues` | Convert tasks to GitHub issues |
+| `/atomicspec.constitution` | View/update project constitution |
+| `/atomicspec.clarify` | Clarify underspecified requirements |
+| `/atomicspec.analyze` | Cross-artifact consistency analysis |
+| `/atomicspec.checklist` | Generate quality validation checklists |
+| `/atomicspec.taskstoissues` | Convert tasks to GitHub issues |
 
 ### Cleanup Command Details
 
-The `/speckit.cleanup` command helps maintain a clean codebase by detecting:
+The `/atomicspec.cleanup` command helps maintain a clean codebase by detecting:
 
 - **Frontend**: Orphan components, dead routes, unused stores
 - **Backend**: Unregistered routes, unused services, dead endpoints
@@ -563,7 +576,7 @@ The `/speckit.cleanup` command helps maintain a clean codebase by detecting:
 
 ## Two-Tier Governance System
 
-Custom Speckit - Exact Assembly Line implements a two-tier governance hierarchy:
+Atomic Spec implements a two-tier governance hierarchy:
 
 ### Tier 1: Constitution (`memory/constitution.md`)
 - Immutable project principles
@@ -716,7 +729,7 @@ specify init my-project --ai claude --debug
 
 | Variable          | Description                                                                                                                                                                                                                                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SPECIFY_FEATURE` | Override feature detection for non-Git repositories. Set to the feature directory name (e.g., `001-photo-albums`) to work on a specific feature when not using Git branches.<br/>**Must be set in the context of the agent you're working with prior to using `/speckit.plan` or follow-up commands.** |
+| `SPECIFY_FEATURE` | Override feature detection for non-Git repositories. Set to the feature directory name (e.g., `001-photo-albums`) to work on a specific feature when not using Git branches.<br/>**Must be set in the context of the agent you're working with prior to using `/atomicspec.plan` or follow-up commands.** |
 
 ## Core Philosophy
 
@@ -777,9 +790,9 @@ rm gcm-linux_amd64.2.6.1.deb
 
 ### Commands Not Available in Claude Code
 
-If `/speckit.*` commands don't appear:
+If `/atomicspec.*` commands don't appear:
 1. Ensure `.claude/commands/` directory exists in your project
-2. Verify command files are named `speckit.*.md` (e.g., `speckit.specify.md`)
+2. Verify command files are named `atomicspec.*.md` (e.g., `atomicspec.specify.md`)
 3. Restart Claude Code after adding commands
 
 ---
@@ -793,4 +806,4 @@ This project is licensed under the terms of the MIT open source license. Please 
 ## Credits
 
 - **Original Spec Kit**: [GitHub](https://github.com/github/spec-kit) by Den Delimarsky and John Lam
-- **Atomic Traceability Model**: Based on the "Andre/Mable AI workflow" methodology
+- **Atomic Traceability Model**: Inspired by ["Stop Vibe Coding (Until You Do This)"](https://www.youtube.com/watch?v=020qK_L_X_w) by [Leapable](https://www.youtube.com/@Leapableai)

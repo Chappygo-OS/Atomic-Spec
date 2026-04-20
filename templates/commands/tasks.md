@@ -2,11 +2,11 @@
 description: Generate atomic task files in tasks/ directory with index.md and traceability.md (Atomic Traceability Model)
 handoffs:
   - label: Analyze For Consistency
-    agent: speckit.analyze
+    agent: atomicspec.analyze
     prompt: Run a project analysis for consistency
     send: true
   - label: Implement Project
-    agent: speckit.implement
+    agent: atomicspec.implement
     prompt: Start the implementation in phases
     send: true
 scripts:
@@ -148,7 +148,7 @@ For EACH task, create a separate file in `tasks/`:
 
 <!--
   This section is set during task generation from plan.md and registry.yaml.
-  During /speckit.implement, this is the AUTHORITATIVE source for platform
+  During /atomicspec.implement, this is the AUTHORITATIVE source for platform
   and subagent configuration. DO NOT read plan.md or registry during implementation.
 -->
 
@@ -492,7 +492,7 @@ flutter analyze && flutter build apk --debug 2>&1 | grep "Built"
 
 ⚠️ **CRITICAL: This section enables self-contained implementation (Constitution Directive 8).**
 
-Per the Knowledge Wiring Plan, during `/speckit.implement`, Context Pinning prevents subagents from reading:
+Per the Knowledge Wiring Plan, during `/atomicspec.implement`, Context Pinning prevents subagents from reading:
 - `plan.md`, `spec.md`
 - `.specify/knowledge/stations/*`
 - `.specify/subagents/*`
@@ -556,7 +556,7 @@ Per the Knowledge Wiring Plan, during `/speckit.implement`, Context Pinning prev
    - Embed as YAML snippet in task file
 
 4. **Load Feature Summary**:
-   - Read `plan.md` (this is during /speckit.tasks, not /speckit.implement)
+   - Read `plan.md` (this is during /atomicspec.tasks, not /atomicspec.implement)
    - Extract one-paragraph feature summary
    - Embed in task file
 
@@ -704,9 +704,9 @@ Using `npm test` for an iOS task will cause verification failures. This section 
 **Step 1: Load Platform from Plan and Resolve Task Target**
 
 Per the canonical platform resolution in `_platform-resolution.md`:
-- For /speckit.tasks, plan.md is the **authoritative source**
+- For /atomicspec.tasks, plan.md is the **authoritative source**
 - If plan.md has no platform recorded, this is an ERROR - do not proceed
-- ERROR message: "Plan.md missing Platform: field. Re-run /speckit.plan to set platform."
+- ERROR message: "Plan.md missing Platform: field. Re-run /atomicspec.plan to set platform."
 
 Read `FEATURE_DIR/plan.md` and extract the `Platform:` field from header.
 
@@ -979,7 +979,7 @@ npm test -- --grep "AuthService"  # WRONG for iOS!
 
 ## Context Pinning Reminder
 
-Per Constitution Article IX, Directive 3, the subsequent `/speckit.implement` command will:
+Per Constitution Article IX, Directive 3, the subsequent `/atomicspec.implement` command will:
 - Read ONLY `index.md` for navigation
 - Read ONLY the specific `T-XXX-[name].md` for the current task
 - Update `traceability.md` after each completion

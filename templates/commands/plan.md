@@ -2,11 +2,11 @@
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
 handoffs:
   - label: Create Tasks
-    agent: speckit.tasks
+    agent: atomicspec.tasks
     prompt: Break the plan into tasks
     send: true
   - label: Create Checklist
-    agent: speckit.checklist
+    agent: atomicspec.checklist
     prompt: Create a checklist for the following domain...
 scripts:
   sh: scripts/bash/setup-plan.sh --json
@@ -67,7 +67,7 @@ Options:
     Description: "AI will use your competitive insights to inform technical decisions"
   - Label: "No competitive analysis"
     Description: "AI will make decisions based on general best practices"
-  - Label: "Run /speckit.AnalyzeCompetitors first"
+  - Label: "Run /atomicspec.AnalyzeCompetitors first"
     Description: "Stop here and run competitive analysis before planning"
 
 Question 3: "What level of detail do you want for HITL checkpoints?"
@@ -406,7 +406,7 @@ Before designing, load relevant stations and subagents based on feature domains.
 
 5. **Store loaded knowledge** for use in subsequent phases:
    - These patterns inform data model design
-   - Gate criteria will be embedded in task files during `/speckit.tasks`
+   - Gate criteria will be embedded in task files during `/atomicspec.tasks`
    - Rules will be applied during code review
 
 **Output**: Domain knowledge loaded into planning context, rules documented

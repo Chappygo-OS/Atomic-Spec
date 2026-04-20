@@ -779,13 +779,13 @@ Full report: specs/[branch]/cleanup-report.md
 
 ## Phase 7: Optional - Post-Implementation Cleanup
 
-At the end of `/speckit.implement`, after all tasks are complete, ask:
+At the end of `/atomicspec.implement`, after all tasks are complete, ask:
 
 ```
 Question: "Would you like to run cleanup scan to detect any orphaned code?"
 Header: "Cleanup"
 Options:
-  - Label: "Yes, run /speckit.cleanup"
+  - Label: "Yes, run /atomicspec.cleanup"
     Description: "Scan for orphaned components, dead routes, unused code"
   - Label: "No, skip for now"
     Description: "Feature is complete, skip cleanup scan"

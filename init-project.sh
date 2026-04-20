@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Initialize a new project with Custom Speckit (Atomic Traceability Model)
+# Initialize a new project with Atomic Spec (Atomic Traceability Model)
 #
 # Usage:
 #   ./init-project.sh /path/to/new/project
@@ -7,7 +7,7 @@
 
 set -e
 
-# Get script directory (where Custom Speckit lives)
+# Get script directory (where Atomic Spec lives)
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Parse arguments
@@ -44,7 +44,7 @@ if [[ -z "$TARGET_PATH" ]]; then
     exit 1
 fi
 
-echo "🚀 Initializing Custom Speckit (Atomic Traceability Model)"
+echo "🚀 Initializing Atomic Spec (Atomic Traceability Model)"
 echo "   Source: $SOURCE_DIR"
 echo "   Target: $TARGET_PATH"
 echo ""
@@ -71,17 +71,17 @@ for dir in ".specify" "templates" "memory" "scripts"; do
 done
 
 # Set up agent-specific commands based on selected AI agent
-# For Claude: Create .claude/commands/ with speckit.* prefixed commands
+# For Claude: Create .claude/commands/ with atomicspec.* prefixed commands
 # For others: Copy from existing agent directories if they exist
 
 if [[ "$AI_AGENT" == "claude" ]]; then
     echo "🤖 Setting up Claude Code commands..."
     mkdir -p "$TARGET_PATH/.claude/commands"
 
-    # Copy command files with speckit. prefix
-    for cmd in specify plan tasks implement analyze checklist clarify constitution taskstoissues cleanup; do
+    # Copy command files with atomicspec. prefix
+    for cmd in specify plan tasks implement analyze analyze-competitors checklist clarify constitution taskstoissues cleanup; do
         if [[ -f "$SOURCE_DIR/templates/commands/$cmd.md" ]]; then
-            cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/speckit.$cmd.md"
+            cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/atomicspec.$cmd.md"
         fi
     done
 else
@@ -159,17 +159,17 @@ EOF
 fi
 
 echo ""
-echo "✅ Custom Speckit initialized successfully!"
+echo "✅ Atomic Spec initialized successfully!"
 echo ""
 echo "📋 Next steps:"
 echo "   1. cd \"$TARGET_PATH\""
 echo "   2. git checkout -b 001-your-feature-name"
-echo "   3. Run: /speckit.specify \"Your feature description\""
+echo "   3. Run: /atomicspec.specify \"Your feature description\""
 echo ""
 echo "📚 Available commands:"
-echo "   /speckit.specify   - Create feature specification"
-echo "   /speckit.plan      - Create implementation plan"
-echo "   /speckit.tasks     - Generate atomic task files"
-echo "   /speckit.implement - Execute with Context Pinning"
-echo "   /speckit.cleanup   - Detect and remove orphaned code"
+echo "   /atomicspec.specify   - Create feature specification"
+echo "   /atomicspec.plan      - Create implementation plan"
+echo "   /atomicspec.tasks     - Generate atomic task files"
+echo "   /atomicspec.implement - Execute with Context Pinning"
+echo "   /atomicspec.cleanup   - Detect and remove orphaned code"
 echo ""

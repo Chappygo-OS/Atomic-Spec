@@ -214,4 +214,4 @@ _Station 03 requires at least one pain in each category:_
 
 ---
 
-_Analysis conducted as part of /speckit.AnalyzeCompetitors_
+_Analysis conducted as part of /atomicspec.AnalyzeCompetitors_

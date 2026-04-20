@@ -29,7 +29,7 @@ The mobile extension plan has **significant gaps** that will cause platform conf
 - Where it's read by each command
 - How it's enforced in subagent matching
 
-**Risk**: Platform detected in `/speckit.specify`, forgotten by `/speckit.tasks`.
+**Risk**: Platform detected in `/atomicspec.specify`, forgotten by `/atomicspec.tasks`.
 
 **Fix Needed**: Add explicit "Platform Context Propagation" section showing:
 ```
@@ -366,11 +366,11 @@ Both match `frontend-developer` agent, which has web expertise.
 
 **User request**: "Build an iOS subscription app"
 **What happens**:
-1. `/speckit.specify` detects "iOS" → sets `platform: mobile`
-2. `/speckit.plan` Phase 0.5 collects tech stack (no platform-specific billing question)
+1. `/atomicspec.specify` detects "iOS" → sets `platform: mobile`
+2. `/atomicspec.plan` Phase 0.5 collects tech stack (no platform-specific billing question)
 3. Phase 0.8 shows web UI options (user selects "Other")
 4. Phase 0.85 doesn't exist yet → skipped
-5. `/speckit.tasks` loads base Station 09 (Stripe) not mobile variant
+5. `/atomicspec.tasks` loads base Station 09 (Stripe) not mobile variant
 6. Tasks generated: "Integrate Stripe Checkout", "Create Stripe webhooks"
 7. Developer implements Stripe for iOS
 8. **App rejected by App Store** - must use IAP for digital goods
@@ -383,7 +383,7 @@ Both match `frontend-developer` agent, which has web expertise.
 
 **User request**: "Build a React Native app with payments"
 **What happens**:
-1. `/speckit.plan` Phase 0.1 discovers subagents
+1. `/atomicspec.plan` Phase 0.1 discovers subagents
 2. Spec has keywords: "React", "components", "payments"
 3. Agent matching: "React" → `frontend-developer` (web React specialist)
 4. Agent matching: "payments" → `payment-integration` (Stripe/web)
@@ -417,7 +417,7 @@ Both match `frontend-developer` agent, which has web expertise.
 **Later**: "Add user profiles feature" (project 2, same repo)
 **What happens**:
 1. Project 1: Platform detected as mobile, saved nowhere
-2. Project 2: `/speckit.specify` runs, no platform keywords in "user profiles"
+2. Project 2: `/atomicspec.specify` runs, no platform keywords in "user profiles"
 3. Platform defaults to web (per graceful degradation)
 4. Web tasks generated for mobile project
 5. Developer confused - "Why is this generating React code?"
@@ -430,9 +430,9 @@ Both match `frontend-developer` agent, which has web expertise.
 
 **User request**: "Build a product with web dashboard and mobile app"
 **What happens**:
-1. `/speckit.specify` detects "mobile" AND "web"
+1. `/atomicspec.specify` detects "mobile" AND "web"
 2. Sets `platform: both` (or unclear behavior)
-3. `/speckit.plan` doesn't know what to do with "both"
+3. `/atomicspec.plan` doesn't know what to do with "both"
 4. Shows web frameworks (ignores mobile half)
 5. Tasks generated for web only
 6. Mobile app never gets planned

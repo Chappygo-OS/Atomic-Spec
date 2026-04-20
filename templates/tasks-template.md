@@ -258,7 +258,7 @@ When task generation is complete:
 
 1. **Update index.md**: Set phase to "Implementation", populate task counts
 2. **Verify traceability.md**: Confirm 100% coverage
-3. **Ready for `/speckit.implement`**
+3. **Ready for `/atomicspec.implement`**
 
 ### Context Pinning Reminder
 

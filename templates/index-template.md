@@ -29,7 +29,7 @@ _Need guidance on specific rules?_
 
 <!--
   INSTRUCTIONS FOR AI AGENT (CONTEXT PINNING):
-  1. This file is your HOME during `/speckit.implement`.
+  1. This file is your HOME during `/atomicspec.implement`.
   2. Pick the next "Todo" task.
   3. READ ONLY that task file (e.g., tasks/T-001-setup.md).
   4. Execute the work.

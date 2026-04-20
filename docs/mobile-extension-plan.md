@@ -1,4 +1,4 @@
-# Plan: Extend Custom Speckit for Mobile App Development
+# Plan: Extend Atomic Spec for Mobile App Development
 
 **Status**: Draft - Saved for future implementation
 **Created**: 2026-03-02
@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Extend the existing web-focused Custom Speckit framework to support mobile app development (iOS, Android, cross-platform) while maintaining full backward compatibility with existing web workflows.
+Extend the existing web-focused Atomic Spec framework to support mobile app development (iOS, Android, cross-platform) while maintaining full backward compatibility with existing web workflows.
 
 **Approach**: Modular platform architecture - NOT a fork. Shared stations remain unchanged, platform-specific knowledge loaded dynamically based on target platform.
 
@@ -14,7 +14,7 @@ Extend the existing web-focused Custom Speckit framework to support mobile app d
 
 ## Problem Statement
 
-Custom Speckit is currently **~20% mobile-ready**:
+Atomic Spec is currently **~20% mobile-ready**:
 - **Works for mobile**: Workflow structure, atomic tasks, HITL checkpoints, registry protocol
 - **Web-only**: 7 of 18 stations assume REST/browser/Stripe, all 25 subagents are web-focused
 - **Missing entirely**: Push notifications, offline sync, deep linking, app store deployment, IAP billing
@@ -167,13 +167,13 @@ Custom Speckit is currently **~20% mobile-ready**:
 
 ## Workflow Changes
 
-### `/speckit.specify`
+### `/atomicspec.specify`
 Add Step 0: Platform Detection
 - Scan for keywords: "iOS", "Android", "mobile", "app"
 - Confirm with user via AskUserQuestion
 - Store in spec.md header: `platform: mobile`
 
-### `/speckit.plan`
+### `/atomicspec.plan`
 Add Phase 0.2: Platform Knowledge Loading
 - Read platform from spec.md
 - Load platform-specific station variants
@@ -184,7 +184,7 @@ Add Phase 0.85: Mobile Configuration HITL
 - Offline capability level
 - Push notification provider
 
-### `/speckit.tasks`
+### `/atomicspec.tasks`
 Add mobile task patterns:
 - T-010-019: Native project setup
 - T-040-049: Push notification infrastructure
@@ -197,7 +197,7 @@ Add mobile wiring checklist:
 - Deep link route registered
 - Offline data source connected
 
-### `/speckit.implement`
+### `/atomicspec.implement`
 Add mobile verification commands:
 - `xcodebuild` for iOS
 - `./gradlew` for Android
@@ -309,10 +309,10 @@ If mobile knowledge is missing:
 ## Verification
 
 After implementation:
-1. Run `/speckit.specify "Build a mobile app with push notifications and in-app purchases"` → should detect mobile, load mobile stations
-2. Run `/speckit.plan` → should show Phase 0.85 mobile HITL
-3. Run `/speckit.tasks` → should generate mobile-specific tasks with embedded mobile context
-4. Verify existing web workflow unchanged: `/speckit.specify "Build a REST API"` → should work as before
+1. Run `/atomicspec.specify "Build a mobile app with push notifications and in-app purchases"` → should detect mobile, load mobile stations
+2. Run `/atomicspec.plan` → should show Phase 0.85 mobile HITL
+3. Run `/atomicspec.tasks` → should generate mobile-specific tasks with embedded mobile context
+4. Verify existing web workflow unchanged: `/atomicspec.specify "Build a REST API"` → should work as before
 
 ---
 

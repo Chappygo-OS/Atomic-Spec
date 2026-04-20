@@ -88,10 +88,10 @@ Platform is determined in this priority order:
 
 | Command | Primary Source | Fallback |
 |---------|---------------|----------|
-| /speckit.specify | Registry -> Ask user | Store in spec.md |
-| /speckit.plan | spec.md -> Registry -> Ask user | Store in plan.md |
-| /speckit.tasks | plan.md | ERROR if missing |
-| /speckit.implement | task file | ERROR if missing |
+| /atomicspec.specify | Registry -> Ask user | Store in spec.md |
+| /atomicspec.plan | spec.md -> Registry -> Ask user | Store in plan.md |
+| /atomicspec.tasks | plan.md | ERROR if missing |
+| /atomicspec.implement | task file | ERROR if missing |
 
 Each command should read from its primary source. If missing, it's an error for downstream commands (they should have inherited it).
 
@@ -106,21 +106,21 @@ Each command should read from its primary source. If missing, it's an error for 
 FUNCTION resolvePlatform(command, context):
 
     SWITCH command:
-        CASE "/speckit.implement":
+        CASE "/atomicspec.implement":
             # Task file is authoritative - ERROR if missing
             IF context.task_file.platform IS NOT NULL:
                 RETURN context.task_file.platform
             ELSE:
-                ERROR("Task file missing platform. This is a /speckit.tasks generation error.")
+                ERROR("Task file missing platform. This is a /atomicspec.tasks generation error.")
 
-        CASE "/speckit.tasks":
+        CASE "/atomicspec.tasks":
             # Plan.md is authoritative - ERROR if missing
             IF context.plan_md.platform IS NOT NULL:
                 RETURN context.plan_md.platform
             ELSE:
-                ERROR("Plan.md missing Platform: field. Re-run /speckit.plan.")
+                ERROR("Plan.md missing Platform: field. Re-run /atomicspec.plan.")
 
-        CASE "/speckit.plan":
+        CASE "/atomicspec.plan":
             # Check spec.md first, then registry, then ask
             IF context.spec_md.platform IS NOT NULL:
                 RETURN context.spec_md.platform
@@ -131,7 +131,7 @@ FUNCTION resolvePlatform(command, context):
             STORE_IN(context.plan_md, "Platform: {platform}")
             RETURN platform
 
-        CASE "/speckit.specify":
+        CASE "/atomicspec.specify":
             # Registry is primary, ask if missing
             result = validateRegistry()  # See above
             STORE_IN(context.spec_md, "Platform: {result.platform}")
@@ -149,10 +149,10 @@ END FUNCTION
 
 | Scenario | Command | Message |
 |----------|---------|---------|
-| Missing in task file | /implement | "ERROR: Task file missing platform context. Re-generate tasks with /speckit.tasks." |
-| Missing in plan.md | /tasks | "ERROR: Plan.md missing Platform: field. Re-run /speckit.plan to set platform." |
+| Missing in task file | /implement | "ERROR: Task file missing platform context. Re-generate tasks with /atomicspec.tasks." |
+| Missing in plan.md | /tasks | "ERROR: Plan.md missing Platform: field. Re-run /atomicspec.plan to set platform." |
 | Missing everywhere | /plan | "WARNING: No platform found in spec.md or registry. Please specify target platform." |
-| Defaulting to web | Any | "WARNING: Defaulting to 'web' platform. Run /speckit.specify to set explicit platform." |
+| Defaulting to web | Any | "WARNING: Defaulting to 'web' platform. Run /atomicspec.specify to set explicit platform." |
 
 ---
 

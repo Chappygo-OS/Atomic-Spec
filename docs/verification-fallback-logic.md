@@ -269,7 +269,7 @@ def select_verification_command(platform, task_type, available_tools):
 
 ## Integration with Task Generation
 
-During `/speckit.tasks`, the task generator should:
+During `/atomicspec.tasks`, the task generator should:
 
 1. **Detect platform** (Section 4.2.4 Step 1)
 2. **Load verification templates** from `verification-commands.yaml`

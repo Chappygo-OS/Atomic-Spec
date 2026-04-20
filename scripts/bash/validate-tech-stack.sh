@@ -3,7 +3,7 @@
 # Tech Stack Validation Script
 #
 # Validates package compatibility, freshness, and security for the tech stack
-# defined in plan.md. This script is called during Phase 0.6 of /speckit.plan.
+# defined in plan.md. This script is called during Phase 0.6 of /atomicspec.plan.
 #
 # Usage: ./validate-tech-stack.sh [OPTIONS]
 #
@@ -334,7 +334,7 @@ main() {
 
     if [[ ! -f "$PLAN_FILE" ]]; then
         log_error "Plan file not found: $PLAN_FILE"
-        log_error "Run /speckit.plan first to create the implementation plan."
+        log_error "Run /atomicspec.plan first to create the implementation plan."
         exit 1
     fi
 

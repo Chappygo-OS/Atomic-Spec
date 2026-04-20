@@ -3,12 +3,12 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by the `/atomicspec.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Planning Configuration
 
 <!--
-  This section is filled during the Initial Configuration phase of /speckit.plan.
+  This section is filled during the Initial Configuration phase of /atomicspec.plan.
   The AI interviews the user using AskUserQuestion to gather preferences.
 -->
 
@@ -326,14 +326,14 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ```text
 specs/[###-feature]/
-├── spec.md              # Feature specification (/speckit.specify output)
-├── plan.md              # This file (/speckit.plan output)
-├── research.md          # Phase 0 output (/speckit.plan)
-├── data-model.md        # Phase 1 output (/speckit.plan)
-├── quickstart.md        # Phase 1 output (/speckit.plan)
-├── contracts/           # Phase 1 output (/speckit.plan)
+├── spec.md              # Feature specification (/atomicspec.specify output)
+├── plan.md              # This file (/atomicspec.plan output)
+├── research.md          # Phase 0 output (/atomicspec.plan)
+├── data-model.md        # Phase 1 output (/atomicspec.plan)
+├── quickstart.md        # Phase 1 output (/atomicspec.plan)
+├── contracts/           # Phase 1 output (/atomicspec.plan)
 │
-│   🆕 ATOMIC TRACEABILITY STRUCTURE (created by /speckit.tasks):
+│   🆕 ATOMIC TRACEABILITY STRUCTURE (created by /atomicspec.tasks):
 │
 ├── index.md             # Feature dashboard - entry point
 ├── traceability.md      # Requirement-to-task mapping matrix
@@ -346,7 +346,7 @@ specs/[###-feature]/
 
 <!--
   Per Constitution Article IX (Atomic Injunction):
-  - The /speckit.tasks command MUST create a tasks/ directory
+  - The /atomicspec.tasks command MUST create a tasks/ directory
   - It is FORBIDDEN to create a single tasks.md file
   - Each task is an individual T-XXX-[name].md file
 -->

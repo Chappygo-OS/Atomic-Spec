@@ -3,7 +3,7 @@
 # Tech Stack Validation Script (PowerShell)
 #
 # Validates package compatibility, freshness, and security for the tech stack
-# defined in plan.md. This script is called during Phase 0.6 of /speckit.plan.
+# defined in plan.md. This script is called during Phase 0.6 of /atomicspec.plan.
 #
 # Usage: ./validate-tech-stack.ps1 [OPTIONS]
 #
@@ -300,7 +300,7 @@ function Main {
 
     if (-not (Test-Path $PlanFile)) {
         Write-Err "Plan file not found: $PlanFile"
-        Write-Err "Run /speckit.plan first to create the implementation plan."
+        Write-Err "Run /atomicspec.plan first to create the implementation plan."
         exit 1
     }
 

@@ -7,8 +7,8 @@
 **Input**: User description: "$ARGUMENTS"
 
 <!--
-  NOTE: The Platform field is set during /speckit.specify (Phase 0 - Platform Detection).
-  All downstream commands (/speckit.plan, /speckit.build, etc.) will inherit this platform
+  NOTE: The Platform field is set during /atomicspec.specify (Phase 0 - Platform Detection).
+  All downstream commands (/atomicspec.plan, /atomicspec.build, etc.) will inherit this platform
   setting to ensure consistent platform context throughout the feature lifecycle.
 
   When Platform = "both", the single Platform field is all that is stored here.

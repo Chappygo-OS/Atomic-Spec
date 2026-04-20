@@ -177,14 +177,14 @@ category: category/subcategory
 
 ## Usage by Commands
 
-### /speckit.plan
+### /atomicspec.plan
 - Loads relevant subagents based on platform and features
 - Uses for domain-specific design decisions
 
-### /speckit.tasks
+### /atomicspec.tasks
 - Applies subagent knowledge to task generation
 - Embeds relevant context in task files
 
-### /speckit.implement
+### /atomicspec.implement
 - Loads subagent matching task domain
 - Applies domain-specific patterns

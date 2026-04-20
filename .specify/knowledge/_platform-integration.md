@@ -1,6 +1,6 @@
 # Platform Resolution Integration for plan.md
 
-This document provides the exact changes needed to integrate platform-aware station loading into the `/speckit.plan` command.
+This document provides the exact changes needed to integrate platform-aware station loading into the `/atomicspec.plan` command.
 
 ---
 
@@ -491,7 +491,7 @@ Before designing, load relevant stations and subagents based on feature domains.
 
 8. **Store loaded knowledge** for use in subsequent phases:
    - These patterns inform data model design
-   - Gate criteria will be embedded in task files during `/speckit.tasks`
+   - Gate criteria will be embedded in task files during `/atomicspec.tasks`
    - Rules will be applied during code review
    - **Platform context is passed to all downstream phases**
 

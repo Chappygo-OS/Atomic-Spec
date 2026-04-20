@@ -32,7 +32,7 @@ target_platform:
   #        - backend.* section MUST be populated for the API tier
   #        - The appropriate mobile section (ios.*, android.*, react_native.*, flutter.*)
   #          MUST be populated for the mobile tier
-  #        - /speckit.plan Phase 0.8 will interview for BOTH tech stacks
+  #        - /atomicspec.plan Phase 0.8 will interview for BOTH tech stacks
   primary: null
 
   # Mobile platforms (only if primary = mobile or both)
@@ -253,7 +253,7 @@ backend:
 # ============================================================================
 # TARGET PLATFORM (What are we building for?)
 # ============================================================================
-# This determines which Phase 0.8 questions are shown during /speckit.plan
+# This determines which Phase 0.8 questions are shown during /atomicspec.plan
 # ============================================================================
 target_platform:
   # Primary platform: web | ios | android | react-native | flutter | desktop

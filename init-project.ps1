@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Initialize a new project with Custom Speckit (Atomic Traceability Model)
+# Initialize a new project with Atomic Spec (Atomic Traceability Model)
 #
 # Usage:
 #   .\init-project.ps1 -TargetPath "D:\MyNewProject"
@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = "Stop"
 $SourcePath = $PSScriptRoot
 
-Write-Host "[INIT] Initializing Custom Speckit (Atomic Traceability Model)" -ForegroundColor Cyan
+Write-Host "[INIT] Initializing Atomic Spec (Atomic Traceability Model)" -ForegroundColor Cyan
 Write-Host "       Source: $SourcePath" -ForegroundColor Gray
 Write-Host "       Target: $TargetPath" -ForegroundColor Gray
 Write-Host ""
@@ -59,7 +59,7 @@ foreach ($dir in $directories) {
 }
 
 # Set up agent-specific commands based on selected AI agent
-# For Claude: Create .claude/commands/ with speckit.* prefixed commands
+# For Claude: Create .claude/commands/ with atomicspec.* prefixed commands
 # For others: Copy from existing agent directories if they exist
 
 $sourceCommandsPath = Join-Path $SourcePath "templates\commands"
@@ -73,11 +73,11 @@ if ($AIAgent -eq "claude") {
         New-Item -ItemType Directory -Path $claudeCommandsPath -Force | Out-Null
     }
 
-    # Copy command files with speckit. prefix
-    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "checklist", "clarify", "constitution", "taskstoissues", "cleanup")
+    # Copy command files with atomicspec. prefix
+    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "analyze-competitors", "checklist", "clarify", "constitution", "taskstoissues", "cleanup")
     foreach ($cmd in $commandFiles) {
         $sourceFile = Join-Path $sourceCommandsPath "$cmd.md"
-        $targetFile = Join-Path $claudeCommandsPath "speckit.$cmd.md"
+        $targetFile = Join-Path $claudeCommandsPath "atomicspec.$cmd.md"
         if (Test-Path $sourceFile) {
             Copy-Item $sourceFile -Destination $targetFile
         }
@@ -171,17 +171,17 @@ logs/
 }
 
 Write-Host ""
-Write-Host "[OK] Custom Speckit initialized successfully!" -ForegroundColor Green
+Write-Host "[OK] Atomic Spec initialized successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "   1. cd `"$TargetPath`"" -ForegroundColor White
 Write-Host "   2. git checkout -b 001-your-feature-name" -ForegroundColor White
-Write-Host "   3. Run: /speckit.specify `"Your feature description`"" -ForegroundColor White
+Write-Host "   3. Run: /atomicspec.specify `"Your feature description`"" -ForegroundColor White
 Write-Host ""
 Write-Host "Available commands:" -ForegroundColor Cyan
-Write-Host "   /speckit.specify   - Create feature specification" -ForegroundColor Gray
-Write-Host "   /speckit.plan      - Create implementation plan" -ForegroundColor Gray
-Write-Host "   /speckit.tasks     - Generate atomic task files" -ForegroundColor Gray
-Write-Host "   /speckit.implement - Execute with Context Pinning" -ForegroundColor Gray
-Write-Host "   /speckit.cleanup   - Detect and remove orphaned code" -ForegroundColor Gray
+Write-Host "   /atomicspec.specify   - Create feature specification" -ForegroundColor Gray
+Write-Host "   /atomicspec.plan      - Create implementation plan" -ForegroundColor Gray
+Write-Host "   /atomicspec.tasks     - Generate atomic task files" -ForegroundColor Gray
+Write-Host "   /atomicspec.implement - Execute with Context Pinning" -ForegroundColor Gray
+Write-Host "   /atomicspec.cleanup   - Detect and remove orphaned code" -ForegroundColor Gray
 Write-Host ""

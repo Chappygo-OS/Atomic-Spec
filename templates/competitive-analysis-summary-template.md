@@ -6,10 +6,10 @@
 **Status**: [DRAFT | APPROVED | REJECTED]
 
 <!--
-  This document summarizes competitive intelligence gathered via /speckit.AnalyzeCompetitors.
+  This document summarizes competitive intelligence gathered via /atomicspec.AnalyzeCompetitors.
 
   DOWNSTREAM USAGE:
-  - /speckit.plan checks for this file's existence
+  - /atomicspec.plan checks for this file's existence
   - If present, AI uses wedge/patterns to inform tech decisions
   - If absent (user rejected or never ran), AI proceeds without competitive context
 

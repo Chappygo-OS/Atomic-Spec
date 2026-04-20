@@ -2,10 +2,38 @@
 
 <!-- markdownlint-disable MD024 -->
 
+> **Note**: Versions 0.0.1–0.0.22 are the upstream changelog from [github/spec-kit](https://github.com/github/spec-kit), the project this fork is based on. Issue links below reference the upstream repository. Atomic Spec versioning begins at 0.1.0.
+
 All notable changes to the Specify CLI and templates are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-04-20
+
+### Added
+
+- **Atomic Traceability Model** — Eight Constitutional Prime Directives enforced across all commands
+- **Atomic Injunction** — `/atomicspec.tasks` generates a `tasks/` directory with individual `T-XXX-[name].md` files; single `tasks.md` is forbidden
+- **Context Pinning** — During `/atomicspec.implement`, AI may only read `index.md`, the current task file, and `traceability.md`
+- **Knowledge Station Gates** — 18 procedural station guides with gate criteria that must pass before phase transitions
+- **Project Defaults Registry** — `specs/_defaults/registry.yaml` with 80+ technical decisions enforced across all commands
+- **Human-In-The-Loop checkpoints** — 4 mandatory pauses during `/atomicspec.plan` for tech stack, validation, UI, and registry sync
+- **Mobile platform support** — 146 mobile subagents organized by lifecycle phase (iOS, Android, cross-platform, push notifications, offline sync, IAP, app store deployment)
+- **Composite platform support** — Backend + mobile pipelines with platform-aware knowledge routing
+- **Dynamic agent discovery** — Subagents matched by semantic similarity to feature keywords, never hard-coded
+- **`/atomicspec.analyze-competitors`** — New command following Station 03 competitive analysis procedures
+- **`/atomicspec.constitution`** — New command to author the project constitution (Articles I-VIII)
+- **Renamed all commands** from `speckit.*` → `atomicspec.*` prefix for discoverability
+- **Assembly Line mental model** — Clear explanation of Stations, Deliverables, Gates, and Context Pinning in README
+
+### Changed
+
+- Forked from [github/spec-kit](https://github.com/github/spec-kit) v0.0.22 as the governance foundation
+- Project renamed from "Custom Speckit - Exact Assembly Line" to **Atomic Spec**
+- Inspired by ["Stop Vibe Coding (Until You Do This)"](https://www.youtube.com/watch?v=020qK_L_X_w) by [Leapable](https://www.youtube.com/@Leapableai)
+
+---
 
 ## [0.0.22] - 2025-11-07
 
@@ -64,14 +92,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for using `.` as a shorthand for current directory in `specify init .` command, equivalent to `--here` flag but more intuitive for users.
-- Use the `/speckit.` command prefix to easily discover Spec Kit-related commands.
+- Use the `/atomicspec.` command prefix to easily discover Spec Kit-related commands.
 - Refactor the prompts and templates to simplify their capabilities and how they are tracked. No more polluting things with tests when they are not needed.
 - Ensure that tasks are created per user story (simplifies testing and validation).
 - Add support for Visual Studio Code prompt shortcuts and automatic script execution.
 
 ### Changed
 
-- All command files now prefixed with `speckit.` (e.g., `speckit.specify.md`, `speckit.plan.md`) for better discoverability and differentiation in IDE/CLI command palettes and file explorers
+- All command files now prefixed with `atomicspec.` (e.g., `atomicspec.specify.md`, `atomicspec.plan.md`) for better discoverability and differentiation in IDE/CLI command palettes and file explorers
 
 ## [0.0.17] - 2025-09-22
 

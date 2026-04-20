@@ -100,13 +100,13 @@ if ($PathsOnly) {
 # Validate required directories and files
 if (-not (Test-Path $paths.FEATURE_DIR -PathType Container)) {
     Write-Output "ERROR: Feature directory not found: $($paths.FEATURE_DIR)"
-    Write-Output "Run /speckit.specify first to create the feature structure."
+    Write-Output "Run /atomicspec.specify first to create the feature structure."
     exit 1
 }
 
 if (-not (Test-Path $paths.IMPL_PLAN -PathType Leaf)) {
     Write-Output "ERROR: plan.md not found in $($paths.FEATURE_DIR)"
-    Write-Output "Run /speckit.plan first to create the implementation plan."
+    Write-Output "Run /atomicspec.plan first to create the implementation plan."
     exit 1
 }
 
@@ -155,7 +155,7 @@ function Test-Gates {
                 Write-Host "✓ GATE PASS: Tech Stack approved by user"
             } else {
                 Write-Host "✗ GATE FAIL: Tech Stack not approved (HITL checkpoint)"
-                Write-Host "  → Run /speckit.plan and complete Phase 0.5 approval"
+                Write-Host "  → Run /atomicspec.plan and complete Phase 0.5 approval"
                 $gateFailures++
             }
 
@@ -165,7 +165,7 @@ function Test-Gates {
                 Write-Host "✓ GATE PASS: Tech Stack validation completed"
             } else {
                 Write-Host "✗ GATE FAIL: Tech Stack validation not completed"
-                Write-Host "  → Run /speckit.plan and complete Phase 0.6/0.7 validation"
+                Write-Host "  → Run /atomicspec.plan and complete Phase 0.6/0.7 validation"
                 $gateFailures++
             }
         }
@@ -249,10 +249,10 @@ if ($RequireTasks) {
         # Legacy tasks.md exists - warn about migration
         Write-Warning "Found legacy tasks.md file. Per Constitution Article IX,"
         Write-Warning "tasks should be in tasks/ directory with individual T-XXX-[name].md files."
-        Write-Warning "Consider running /speckit.tasks to migrate to atomic task structure."
+        Write-Warning "Consider running /atomicspec.tasks to migrate to atomic task structure."
     } else {
         Write-Output "ERROR: No task structure found in $($paths.FEATURE_DIR)"
-        Write-Output "Run /speckit.tasks first to create atomic task files."
+        Write-Output "Run /atomicspec.tasks first to create atomic task files."
         exit 1
     }
 

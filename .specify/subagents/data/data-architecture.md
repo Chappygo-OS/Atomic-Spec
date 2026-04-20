@@ -85,6 +85,6 @@ When this subagent is used, produce:
 
 ## Integration Points
 
-- **Feeds into**: `/speckit.tasks` for database setup tasks, `/speckit.implement` for schema creation
+- **Feeds into**: `/atomicspec.tasks` for database setup tasks, `/atomicspec.implement` for schema creation
 - **Depends on**: spec.md (requirements), API contracts (what data flows through endpoints)
 - **Validates with**: Gate checklist above, tenant isolation test plan execution
