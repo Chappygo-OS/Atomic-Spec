@@ -1,8 +1,42 @@
 [project]
-name = "specify-cli"
-version = "0.0.22"
-description = "Specify CLI, part of GitHub Spec Kit. A tool to bootstrap your projects for Spec-Driven Development (SDD)."
+name = "atomic-spec"
+version = "0.1.0"
+description = "Atomic Traceability for AI-Driven Development — a governance framework that constrains AI coding agents via gated, atomic, context-pinned phases."
+readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "Mohammad Khoddami", email = "chappygoweb@gmail.com" },
+]
+maintainers = [
+    { name = "Mohammad Khoddami", email = "chappygoweb@gmail.com" },
+]
+keywords = [
+    "spec-driven-development",
+    "sdd",
+    "ai-agents",
+    "claude-code",
+    "traceability",
+    "atomic-tasks",
+    "governance",
+    "scaffolding",
+    "cli",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Build Tools",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Environment :: Console",
+    "Typing :: Typed",
+]
 dependencies = [
     "typer",
     "rich",
@@ -12,8 +46,15 @@ dependencies = [
     "truststore>=0.10.4",
 ]
 
+[project.urls]
+Homepage      = "https://github.com/Airchitekt/atomic-spec"
+Repository    = "https://github.com/Airchitekt/atomic-spec"
+Issues        = "https://github.com/Airchitekt/atomic-spec/issues"
+Documentation = "https://github.com/Airchitekt/atomic-spec#readme"
+Changelog     = "https://github.com/Airchitekt/atomic-spec/releases"
+
 [project.scripts]
-specify = "specify_cli:main"
+atomicspec = "specify_cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -21,4 +62,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/specify_cli"]
-

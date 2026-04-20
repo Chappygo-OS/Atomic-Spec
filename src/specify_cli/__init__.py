@@ -10,18 +10,18 @@
 # ]
 # ///
 """
-Specify CLI - Setup tool for Specify projects
+Atomic Spec CLI - Setup tool for projects governed by the Atomic Traceability Model.
 
 Usage:
-    uvx specify-cli.py init <project-name>
-    uvx specify-cli.py init .
-    uvx specify-cli.py init --here
+    uvx atomic-spec init <project-name>
+    uvx atomic-spec init .
+    uvx atomic-spec init --here
 
 Or install globally:
-    uv tool install --from specify-cli.py specify-cli
-    specify init <project-name>
-    specify init .
-    specify init --here
+    uv tool install atomic-spec
+    atomicspec init <project-name>
+    atomicspec init .
+    atomicspec init --here
 """
 
 import os
@@ -232,16 +232,16 @@ SCRIPT_TYPE_CHOICES = {"sh": "POSIX Shell (bash/zsh)", "ps": "PowerShell"}
 
 CLAUDE_LOCAL_PATH = Path.home() / ".claude" / "local" / "claude"
 
-BANNER = """
-███████╗██████╗ ███████╗ ██████╗██╗███████╗██╗   ██╗
-██╔════╝██╔══██╗██╔════╝██╔════╝██║██╔════╝╚██╗ ██╔╝
-███████╗██████╔╝█████╗  ██║     ██║█████╗   ╚████╔╝ 
-╚════██║██╔═══╝ ██╔══╝  ██║     ██║██╔══╝    ╚██╔╝  
-███████║██║     ███████╗╚██████╗██║██║        ██║   
-╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝   
+BANNER = r"""
+ █████╗ ████████╗ ██████╗ ███╗   ███╗██╗ ██████╗    ███████╗██████╗ ███████╗ ██████╗
+██╔══██╗╚══██╔══╝██╔═══██╗████╗ ████║██║██╔════╝    ██╔════╝██╔══██╗██╔════╝██╔════╝
+███████║   ██║   ██║   ██║██╔████╔██║██║██║         ███████╗██████╔╝█████╗  ██║
+██╔══██║   ██║   ██║   ██║██║╚██╔╝██║██║██║         ╚════██║██╔═══╝ ██╔══╝  ██║
+██║  ██║   ██║   ╚██████╔╝██║ ╚═╝ ██║██║╚██████╗    ███████║██║     ███████╗╚██████╗
+╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═╝ ╚═════╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝
 """
 
-TAGLINE = "Atomic Spec - Atomic Traceability for AI-Driven Development"
+TAGLINE = "Atomic Traceability for AI-Driven Development"
 class StepTracker:
     """Track and render hierarchical steps without emojis, similar to Claude Code tree output.
     Supports live auto-refresh via an attached refresh callback.
@@ -434,8 +434,8 @@ class BannerGroup(TyperGroup):
 
 
 app = typer.Typer(
-    name="specify",
-    help="Setup tool for Specify spec-driven development projects",
+    name="atomicspec",
+    help="Atomic Spec - governance CLI for spec-driven development with AI agents. Bootstraps projects with the Atomic Traceability Model: gated phases, atomic tasks, and context-pinned implementation.",
     add_completion=False,
     invoke_without_command=True,
     cls=BannerGroup,
@@ -460,7 +460,7 @@ def callback(ctx: typer.Context):
     """Show banner when no subcommand is provided."""
     if ctx.invoked_subcommand is None and "--help" not in sys.argv and "-h" not in sys.argv:
         show_banner()
-        console.print(Align.center("[dim]Run 'specify --help' for usage information[/dim]"))
+        console.print(Align.center("[dim]Run 'atomicspec --help' for usage information[/dim]"))
         console.print()
 
 def run_command(cmd: list[str], check_return: bool = True, capture: bool = False, shell: bool = False) -> Optional[str]:
@@ -491,11 +491,11 @@ def check_tool(tool: str, tracker: StepTracker = None) -> bool:
     Returns:
         True if tool is found, False otherwise
     """
-    # Special handling for Claude CLI after `claude migrate-installer`
-    # See: https://github.com/github/spec-kit/issues/123
+    # Special handling for Claude CLI after `claude migrate-installer`.
     # The migrate-installer command REMOVES the original executable from PATH
-    # and creates an alias at ~/.claude/local/claude instead
-    # This path should be prioritized over other claude executables in PATH
+    # and creates an alias at ~/.claude/local/claude instead. This path should
+    # be prioritized over other claude executables in PATH.
+    # (Behaviour inherited from upstream Spec Kit — see github/spec-kit#123 for origin.)
     if tool == "claude":
         if CLAUDE_LOCAL_PATH.exists() and CLAUDE_LOCAL_PATH.is_file():
             if tracker:
@@ -512,7 +512,7 @@ def check_tool(tool: str, tracker: StepTracker = None) -> bool:
     
     return found
 
-def is_git_repo(path: Path = None) -> bool:
+def is_git_repo(path: Optional[Path] = None) -> bool:
     """Check if the specified path is inside a git repository."""
     if path is None:
         path = Path.cwd()
@@ -549,7 +549,7 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> Tuple[bool, Option
             console.print("[cyan]Initializing git repository...[/cyan]")
         subprocess.run(["git", "init"], check=True, capture_output=True, text=True)
         subprocess.run(["git", "add", "."], check=True, capture_output=True, text=True)
-        subprocess.run(["git", "commit", "-m", "Initial commit from Specify template"], check=True, capture_output=True, text=True)
+        subprocess.run(["git", "commit", "-m", "Initial commit from Atomic Spec template"], check=True, capture_output=True, text=True)
         if not quiet:
             console.print("[green]✓[/green] Git repository initialized")
         return True, None
@@ -634,7 +634,7 @@ def merge_json_files(existing_path: Path, new_content: dict, verbose: bool = Fal
 
     return merged
 
-def download_template_from_github(ai_assistant: str, download_dir: Path, *, script_type: str = "sh", verbose: bool = True, show_progress: bool = True, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Tuple[Path, dict]:
+def download_template_from_github(ai_assistant: str, download_dir: Path, *, script_type: str = "sh", verbose: bool = True, show_progress: bool = True, client: Optional[httpx.Client] = None, debug: bool = False, github_token: Optional[str] = None) -> Tuple[Path, dict]:
     repo_owner = "github"
     repo_name = "spec-kit"
     if client is None:
@@ -748,7 +748,35 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, scri
     }
     return zip_path, metadata
 
-def download_and_extract_template(project_path: Path, ai_assistant: str, script_type: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None, client: httpx.Client = None, debug: bool = False, github_token: str = None) -> Path:
+def safe_extractall(zip_ref: zipfile.ZipFile, dest: Path) -> None:
+    """Extract zip contents to dest with path-traversal protection (zip slip).
+
+    Validates every member's resolved path is within dest before extraction.
+    """
+    dest_real = os.path.realpath(dest)
+    for member in zip_ref.infolist():
+        member_path = os.path.realpath(os.path.join(dest_real, member.filename))
+        if not (member_path == dest_real or member_path.startswith(dest_real + os.sep)):
+            raise RuntimeError(f"Zip slip blocked: {member.filename!r} escapes {dest}")
+    zip_ref.extractall(dest)
+
+
+def _quote_path_for_shell(path: Path) -> str:
+    """Quote a filesystem path for the current platform's shell.
+
+    POSIX uses shlex.quote (single-quote wrapping). Windows cmd.exe needs
+    double-quote wrapping; setx stores embedded quotes literally, so we only
+    quote when the path contains shell-sensitive characters.
+    """
+    s = str(path)
+    if os.name == "nt":
+        if any(c in s for c in ' \t&|<>^"'):
+            return '"' + s.replace('"', '\\"') + '"'
+        return s
+    return shlex.quote(s)
+
+
+def download_and_extract_template(project_path: Path, ai_assistant: str, script_type: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: Optional["StepTracker"] = None, client: Optional[httpx.Client] = None, debug: bool = False, github_token: Optional[str] = None) -> Path:
     """Download the latest release and extract it to create a new project.
     Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup)
     """
@@ -800,7 +828,7 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, script_
             if is_current_dir:
                 with tempfile.TemporaryDirectory() as temp_dir:
                     temp_path = Path(temp_dir)
-                    zip_ref.extractall(temp_path)
+                    safe_extractall(zip_ref, temp_path)
 
                     extracted_items = list(temp_path.iterdir())
                     if tracker:
@@ -843,7 +871,7 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, script_
                     if verbose and not tracker:
                         console.print(f"[cyan]Template files merged into current directory[/cyan]")
             else:
-                zip_ref.extractall(project_path)
+                safe_extractall(zip_ref, project_path)
 
                 extracted_items = list(project_path.iterdir())
                 if tracker:
@@ -869,18 +897,25 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, script_
                     elif verbose:
                         console.print(f"[cyan]Flattened nested directory structure[/cyan]")
 
-    except Exception as e:
+    except zipfile.BadZipFile as e:
+        err = f"Downloaded template is not a valid zip archive: {e}"
         if tracker:
-            tracker.error("extract", str(e))
-        else:
-            if verbose:
-                console.print(f"[red]Error extracting template:[/red] {e}")
-                if debug:
-                    console.print(Panel(str(e), title="Extraction Error", border_style="red"))
-
+            tracker.error("extract", err)
+        elif verbose:
+            console.print(f"[red]Corrupt template archive:[/red] {err}")
         if not is_current_dir and project_path.exists():
             shutil.rmtree(project_path)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
+    except (OSError, shutil.Error, RuntimeError) as e:
+        if tracker:
+            tracker.error("extract", str(e))
+        elif verbose:
+            console.print(f"[red]Error extracting template:[/red] {e}")
+            if debug:
+                console.print(Panel(str(e), title="Extraction Error", border_style="red"))
+        if not is_current_dir and project_path.exists():
+            shutil.rmtree(project_path)
+        raise typer.Exit(1) from e
     else:
         if tracker:
             tracker.complete("extract")
@@ -956,8 +991,8 @@ def init(
     github_token: str = typer.Option(None, "--github-token", help="GitHub token to use for API requests (or set GH_TOKEN or GITHUB_TOKEN environment variable)"),
 ):
     """
-    Initialize a new Specify project from the latest template.
-    
+    Initialize a new Atomic Spec project from the latest template.
+
     This command will:
     1. Check that required tools are installed (git is optional)
     2. Let you choose your AI assistant
@@ -965,19 +1000,19 @@ def init(
     4. Extract the template to a new project directory or current directory
     5. Initialize a fresh git repository (if not --no-git and no existing repo)
     6. Optionally set up AI assistant commands
-    
+
     Examples:
-        specify init my-project
-        specify init my-project --ai claude
-        specify init my-project --ai copilot --no-git
-        specify init --ignore-agent-tools my-project
-        specify init . --ai claude         # Initialize in current directory
-        specify init .                     # Initialize in current directory (interactive AI selection)
-        specify init --here --ai claude    # Alternative syntax for current directory
-        specify init --here --ai codex
-        specify init --here --ai codebuddy
-        specify init --here
-        specify init --here --force  # Skip confirmation when current directory not empty
+        atomicspec init my-project
+        atomicspec init my-project --ai claude
+        atomicspec init my-project --ai copilot --no-git
+        atomicspec init --ignore-agent-tools my-project
+        atomicspec init . --ai claude         # Initialize in current directory
+        atomicspec init .                     # Initialize in current directory (interactive AI selection)
+        atomicspec init --here --ai claude    # Alternative syntax for current directory
+        atomicspec init --here --ai codex
+        atomicspec init --here --ai codebuddy
+        atomicspec init --here
+        atomicspec init --here --force  # Skip confirmation when current directory not empty
     """
 
     show_banner()
@@ -1026,7 +1061,7 @@ def init(
     current_dir = Path.cwd()
 
     setup_lines = [
-        "[cyan]Specify Project Setup[/cyan]",
+        "[cyan]Atomic Spec Project Setup[/cyan]",
         "",
         f"{'Project':<15} [green]{project_path.name}[/green]",
         f"{'Working Path':<15} [dim]{current_dir}[/dim]",
@@ -1091,9 +1126,7 @@ def init(
     console.print(f"[cyan]Selected AI assistant:[/cyan] {selected_ai}")
     console.print(f"[cyan]Selected script type:[/cyan] {selected_script}")
 
-    tracker = StepTracker("Initialize Specify Project")
-
-    sys._specify_tracker_active = True
+    tracker = StepTracker("Initialize Atomic Spec Project")
 
     tracker.add("precheck", "Check required tools")
     tracker.complete("precheck", "ok")
@@ -1208,7 +1241,7 @@ def init(
     # Add Codex-specific setup step if needed
     if selected_ai == "codex":
         codex_path = project_path / ".codex"
-        quoted_path = shlex.quote(str(codex_path))
+        quoted_path = _quote_path_for_shell(codex_path)
         if os.name == "nt":  # Windows
             cmd = f"setx CODEX_HOME {quoted_path}"
         else:  # Unix-like systems
@@ -1267,14 +1300,14 @@ def check():
 
     # Check VS Code variants (not in agent config)
     tracker.add("code", "Visual Studio Code")
-    code_ok = check_tool("code", tracker=tracker)
+    check_tool("code", tracker=tracker)
 
     tracker.add("code-insiders", "Visual Studio Code Insiders")
-    code_insiders_ok = check_tool("code-insiders", tracker=tracker)
+    check_tool("code-insiders", tracker=tracker)
 
     console.print(tracker.render())
 
-    console.print("\n[bold green]Specify CLI is ready to use![/bold green]")
+    console.print("\n[bold green]Atomic Spec CLI is ready to use![/bold green]")
 
     if not git_ok:
         console.print("[dim]Tip: Install git for repository management[/dim]")
@@ -1293,7 +1326,7 @@ def version():
     # Get CLI version from package metadata
     cli_version = "unknown"
     try:
-        cli_version = importlib.metadata.version("specify-cli")
+        cli_version = importlib.metadata.version("atomic-spec")
     except Exception:
         # Fallback: try reading from pyproject.toml if running from source
         try:
@@ -1333,9 +1366,10 @@ def version():
                 try:
                     dt = datetime.fromisoformat(release_date.replace('Z', '+00:00'))
                     release_date = dt.strftime("%Y-%m-%d")
-                except Exception:
+                except (ValueError, AttributeError):
                     pass
-    except Exception:
+    except (httpx.HTTPError, json.JSONDecodeError, KeyError):
+        # Graceful degradation: template_version/release_date stay as "unknown"
         pass
 
     info_table = Table(show_header=False, box=None, padding=(0, 2))

@@ -101,22 +101,22 @@ SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 # Get feature paths and validate branch
-eval $(get_feature_paths)
+load_feature_paths
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then
     if $JSON_MODE; then
         # Minimal JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS_DIR":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS_DIR"
     else
         echo "REPO_ROOT: $REPO_ROOT"
         echo "BRANCH: $CURRENT_BRANCH"
         echo "FEATURE_DIR: $FEATURE_DIR"
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN"
-        echo "TASKS: $TASKS"
+        echo "TASKS_DIR: $TASKS_DIR"
     fi
     exit 0
 fi
@@ -276,15 +276,19 @@ fi
 
 # Check for atomic task structure if required (Constitution Article IX compliance)
 if $REQUIRE_TASKS; then
-    # Check for tasks/ directory (Atomic Traceability Model)
+    # Per Constitution Article IX (Directive 2: Atomic Injunction), the canonical
+    # output is a tasks/ directory of T-XXX-[name].md files. A single tasks.md
+    # is FORBIDDEN.
     if [[ -d "$TASKS_DIR" ]] && [[ -n "$(ls -A "$TASKS_DIR" 2>/dev/null)" ]]; then
         # Atomic structure exists - this is the correct format
         :
-    elif [[ -f "$TASKS" ]]; then
-        # Legacy tasks.md exists - warn about migration
-        echo "WARNING: Found legacy tasks.md file. Per Constitution Article IX," >&2
-        echo "tasks should be in tasks/ directory with individual T-XXX-[name].md files." >&2
-        echo "Consider running /atomicspec.tasks to migrate to atomic task structure." >&2
+    elif [[ -f "$FEATURE_DIR/tasks.md" ]]; then
+        # Legacy tasks.md detected - refuse to proceed; require explicit migration
+        echo "ERROR: Found legacy tasks.md in $FEATURE_DIR" >&2
+        echo "Per Constitution Article IX (Directive 2), a single tasks.md is FORBIDDEN." >&2
+        echo "Run: scripts/bash/migrate-legacy-tasks.sh \"$FEATURE_DIR\"" >&2
+        echo "to convert it to the atomic tasks/ directory structure." >&2
+        exit 1
     else
         echo "ERROR: No task structure found in $FEATURE_DIR" >&2
         echo "Run /atomicspec.tasks first to create atomic task files." >&2
@@ -322,9 +326,6 @@ fi
 if $INCLUDE_TASKS; then
     if [[ -d "$TASKS_DIR" ]] && [[ -n "$(ls -A "$TASKS_DIR" 2>/dev/null)" ]]; then
         docs+=("tasks/")
-    elif [[ -f "$TASKS" ]]; then
-        # Legacy support
-        docs+=("tasks.md")
     fi
 fi
 
@@ -356,9 +357,5 @@ else
 
     if $INCLUDE_TASKS; then
         check_dir "$TASKS_DIR" "tasks/"
-        # Legacy fallback
-        if [[ ! -d "$TASKS_DIR" ]]; then
-            check_file "$TASKS" "tasks.md (legacy)"
-        fi
     fi
 fi

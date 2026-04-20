@@ -18,6 +18,11 @@ function Get-RepoRoot {
 function Get-CurrentBranch {
     # First check if SPECIFY_FEATURE environment variable is set
     if ($env:SPECIFY_FEATURE) {
+        # Defense-in-depth: reject unsafe characters early
+        if ($env:SPECIFY_FEATURE -notmatch '^[0-9]{3}-[a-z0-9-]+$') {
+            Write-Error "SPECIFY_FEATURE contains invalid characters: $($env:SPECIFY_FEATURE). Expected pattern: ^[0-9]{3}-[a-z0-9-]+$ (e.g., 001-my-feature)"
+            exit 1
+        }
         return $env:SPECIFY_FEATURE
     }
     
@@ -93,6 +98,9 @@ function Get-FeatureDir {
 }
 
 function Get-FeaturePathsEnv {
+    # Per Constitution Article IX (Directive 2: Atomic Injunction), this function
+    # does NOT expose a TASKS path for a single tasks.md file. The canonical task
+    # artifact is the tasks/ directory of T-XXX-[name].md files, exposed as TASKS_DIR.
     $repoRoot = Get-RepoRoot
     $currentBranch = Get-CurrentBranch
     $hasGit = Test-HasGit
@@ -105,7 +113,6 @@ function Get-FeaturePathsEnv {
         FEATURE_DIR    = $featureDir
         FEATURE_SPEC   = Join-Path $featureDir 'spec.md'
         IMPL_PLAN      = Join-Path $featureDir 'plan.md'
-        TASKS          = Join-Path $featureDir 'tasks.md'
         TASKS_DIR      = Join-Path $featureDir 'tasks'
         INDEX          = Join-Path $featureDir 'index.md'
         TRACEABILITY   = Join-Path $featureDir 'traceability.md'

@@ -16,6 +16,12 @@ get_repo_root() {
 get_current_branch() {
     # First check if SPECIFY_FEATURE environment variable is set
     if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
+        # Defense-in-depth: reject shell-unsafe characters early
+        if [[ ! "$SPECIFY_FEATURE" =~ ^[0-9]{3}-[a-z0-9-]+$ ]]; then
+            echo "ERROR: SPECIFY_FEATURE contains invalid characters: $SPECIFY_FEATURE" >&2
+            echo "Expected pattern: ^[0-9]{3}-[a-z0-9-]+$ (e.g., 001-my-feature)" >&2
+            exit 1
+        fi
         echo "$SPECIFY_FEATURE"
         return
     fi
@@ -124,34 +130,32 @@ find_feature_dir_by_prefix() {
     fi
 }
 
-get_feature_paths() {
-    local repo_root=$(get_repo_root)
-    local current_branch=$(get_current_branch)
-    local has_git_repo="false"
-
+# Load feature paths into the caller's scope as direct variable assignments.
+#
+# SECURITY: This replaces the deprecated `get_feature_paths` + `eval $(...)` pattern.
+# Setting variables directly eliminates the shell-eval injection surface that existed
+# when branch names or $SPECIFY_FEATURE flowed through a heredoc-generated script.
+#
+# Per Constitution Article IX (Directive 2: Atomic Injunction), this function does
+# NOT define a TASKS path for a single `tasks.md` file. The canonical task artifact
+# is the `tasks/` directory of T-XXX-[name].md files, exposed as TASKS_DIR.
+load_feature_paths() {
+    REPO_ROOT=$(get_repo_root)
+    CURRENT_BRANCH=$(get_current_branch)
+    HAS_GIT="false"
     if has_git; then
-        has_git_repo="true"
+        HAS_GIT="true"
     fi
-
-    # Use prefix-based lookup to support multiple branches per spec
-    local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
-
-    cat <<EOF
-REPO_ROOT='$repo_root'
-CURRENT_BRANCH='$current_branch'
-HAS_GIT='$has_git_repo'
-FEATURE_DIR='$feature_dir'
-FEATURE_SPEC='$feature_dir/spec.md'
-IMPL_PLAN='$feature_dir/plan.md'
-TASKS='$feature_dir/tasks.md'
-TASKS_DIR='$feature_dir/tasks'
-INDEX='$feature_dir/index.md'
-TRACEABILITY='$feature_dir/traceability.md'
-RESEARCH='$feature_dir/research.md'
-DATA_MODEL='$feature_dir/data-model.md'
-QUICKSTART='$feature_dir/quickstart.md'
-CONTRACTS_DIR='$feature_dir/contracts'
-EOF
+    FEATURE_DIR=$(find_feature_dir_by_prefix "$REPO_ROOT" "$CURRENT_BRANCH")
+    FEATURE_SPEC="$FEATURE_DIR/spec.md"
+    IMPL_PLAN="$FEATURE_DIR/plan.md"
+    TASKS_DIR="$FEATURE_DIR/tasks"
+    INDEX="$FEATURE_DIR/index.md"
+    TRACEABILITY="$FEATURE_DIR/traceability.md"
+    RESEARCH="$FEATURE_DIR/research.md"
+    DATA_MODEL="$FEATURE_DIR/data-model.md"
+    QUICKSTART="$FEATURE_DIR/quickstart.md"
+    CONTRACTS_DIR="$FEATURE_DIR/contracts"
 }
 
 #==============================================================================

@@ -82,7 +82,6 @@ if ($PathsOnly) {
             FEATURE_DIR  = $paths.FEATURE_DIR
             FEATURE_SPEC = $paths.FEATURE_SPEC
             IMPL_PLAN    = $paths.IMPL_PLAN
-            TASKS        = $paths.TASKS
             TASKS_DIR    = $paths.TASKS_DIR
         } | ConvertTo-Json -Compress
     } else {
@@ -91,7 +90,6 @@ if ($PathsOnly) {
         Write-Output "FEATURE_DIR: $($paths.FEATURE_DIR)"
         Write-Output "FEATURE_SPEC: $($paths.FEATURE_SPEC)"
         Write-Output "IMPL_PLAN: $($paths.IMPL_PLAN)"
-        Write-Output "TASKS: $($paths.TASKS)"
         Write-Output "TASKS_DIR: $($paths.TASKS_DIR)"
     }
     exit 0
@@ -238,18 +236,23 @@ if ($CheckGates) {
 
 # Check for atomic task structure if required (Constitution Article IX compliance)
 if ($RequireTasks) {
-    # Check for tasks/ directory (Atomic Traceability Model)
+    # Per Constitution Article IX (Directive 2: Atomic Injunction), the canonical
+    # output is a tasks/ directory of T-XXX-[name].md files. A single tasks.md
+    # is FORBIDDEN.
     $hasAtomicTasks = (Test-Path $paths.TASKS_DIR -PathType Container) -and
                       (Get-ChildItem -Path $paths.TASKS_DIR -ErrorAction SilentlyContinue | Select-Object -First 1)
-    $hasLegacyTasks = Test-Path $paths.TASKS -PathType Leaf
+    $legacyTasksPath = Join-Path $paths.FEATURE_DIR 'tasks.md'
+    $hasLegacyTasks = Test-Path $legacyTasksPath -PathType Leaf
 
     if ($hasAtomicTasks) {
         # Atomic structure exists - this is the correct format
     } elseif ($hasLegacyTasks) {
-        # Legacy tasks.md exists - warn about migration
-        Write-Warning "Found legacy tasks.md file. Per Constitution Article IX,"
-        Write-Warning "tasks should be in tasks/ directory with individual T-XXX-[name].md files."
-        Write-Warning "Consider running /atomicspec.tasks to migrate to atomic task structure."
+        # Legacy tasks.md detected - refuse to proceed; require explicit migration
+        Write-Output "ERROR: Found legacy tasks.md in $($paths.FEATURE_DIR)"
+        Write-Output "Per Constitution Article IX (Directive 2), a single tasks.md is FORBIDDEN."
+        Write-Output "Run: scripts/powershell/migrate-legacy-tasks.ps1 -FeatureDir `"$($paths.FEATURE_DIR)`""
+        Write-Output "to convert it to the atomic tasks/ directory structure."
+        exit 1
     } else {
         Write-Output "ERROR: No task structure found in $($paths.FEATURE_DIR)"
         Write-Output "Run /atomicspec.tasks first to create atomic task files."
@@ -291,9 +294,6 @@ if ($IncludeTasks) {
     if ((Test-Path $paths.TASKS_DIR -PathType Container) -and
         (Get-ChildItem -Path $paths.TASKS_DIR -ErrorAction SilentlyContinue | Select-Object -First 1)) {
         $docs += 'tasks/'
-    } elseif (Test-Path $paths.TASKS) {
-        # Legacy support
-        $docs += 'tasks.md'
     }
 }
 
@@ -322,9 +322,5 @@ if ($Json) {
 
     if ($IncludeTasks) {
         Test-DirHasFiles -Path $paths.TASKS_DIR -Description 'tasks/' | Out-Null
-        # Legacy fallback
-        if (-not (Test-Path $paths.TASKS_DIR -PathType Container)) {
-            Test-FileExists -Path $paths.TASKS -Description 'tasks.md (legacy)' | Out-Null
-        }
     }
 }

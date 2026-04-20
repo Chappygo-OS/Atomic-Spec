@@ -325,7 +325,7 @@ detect_ecosystem() {
 
 main() {
     # Get feature paths
-    eval $(get_feature_paths)
+    load_feature_paths
 
     # Determine plan file
     if [[ -z "$PLAN_FILE" ]]; then

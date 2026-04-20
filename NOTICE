@@ -1,0 +1,23 @@
+Atomic Spec
+===========
+
+This project is a fork of GitHub Spec Kit (https://github.com/github/spec-kit),
+licensed under the MIT License. The original copyright notice is preserved in
+the LICENSE file.
+
+Original work:
+  Copyright (c) GitHub, Inc.
+
+Modifications and additional work in this fork:
+  Copyright (c) 2025-present Mohammad Khoddami and Atomic Spec contributors.
+
+Substantial additions in this fork include:
+  - Atomic Traceability Model (Eight Prime Directives, memory/constitution.md Article IX)
+  - Knowledge Station system (.specify/knowledge/stations/, 18 stations)
+  - Dynamic subagent discovery (.specify/subagents/, 167+ agents)
+  - Project Defaults Registry (specs/_defaults/registry.yaml)
+  - Four-phase atomic command pipeline (/atomicspec.specify, .plan, .tasks, .implement)
+  - Context Pinning enforcement during implementation
+  - Composite platform support (backend + mobile pipelines)
+
+All additional work is released under the same MIT License terms as the original.
