@@ -34,6 +34,16 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Registry Protocol (Constitution Directive 7)
+
+Follow `_registry-protocol.md`:
+
+- **On entry**: Read `specs/_defaults/registry.yaml`. Focus on sections relevant to checklist authoring — `governance.quality_gates`, `testing.*`, `conventions.*`, and any project-wide acceptance-criteria standards the registry already encodes.
+- **During**: If the checklist surfaces a quality dimension or gate that should apply to every feature (e.g., "all API specs must quantify rate limits"), apply Scenario A/B/C from the protocol (re-use, add-to-registry via HITL, or deviate with documentation).
+- **On exit**: If new project-wide gate types emerged from the checklist, HITL-prompt the user to add them to `governance.quality_gates`.
+
+If the registry file is absent, warn and proceed without defaults (graceful degradation).
+
 ## Execution Steps
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.

@@ -42,7 +42,7 @@ Key architectural components that span multiple files:
 - **`.specify/subagents/`** — 21+ base subagents plus 146 mobile-specific ones organized by lifecycle phase (01-Discovery through 14-Documentation). Matched dynamically by **semantic similarity** between feature keywords and YAML frontmatter `description`, NOT hard-coded.
 - **`specs/_defaults/registry.yaml`** — the Project Defaults Registry. 80+ technical decisions (architecture pattern, data access style, tenancy model, etc.). Every command reads this on entry and offers to update it on exit (with HITL approval).
 - **`memory/constitution.md`** — Article IX hardcodes the 8 Prime Directives. Articles I-VIII are `[PLACEHOLDER]` sections filled in by `/atomicspec.constitution` in consumer projects.
-- **`src/specify_cli/__init__.py`** — the `specify` Python CLI. Thin wrapper that downloads template releases from `github/spec-kit` and sets up agent-specific command directories. **Note:** it downloads from upstream, not this fork — if you make breaking template changes, this is relevant.
+- **`src/specify_cli/__init__.py`** — the `atomicspec` Python CLI (PyPI distribution name: `atomic-spec`). Thin wrapper that downloads template releases and sets up agent-specific command directories. **Note:** the CLI's `repo_owner`/`repo_name` still point at upstream `github/spec-kit` for release zips — that path is orthogonal to the `init-project.sh` installer this repo documents. The v0.1.0 release will either repoint the CLI or publish release zips here; until then, `init-project.sh` is the canonical install path.
 
 ## Critical Conventions
 
@@ -74,7 +74,8 @@ Supported agents: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`. The init 
 **Python CLI (for distribution via PyPI):**
 ```bash
 # Install
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+# Planned for v0.1.0 release
+uv tool install atomic-spec
 
 # Initialize
 specify init <project-name> --ai claude
@@ -96,5 +97,5 @@ All scripts have PowerShell equivalents in `scripts/powershell/`.
 - **Never edit `memory/constitution.md` Article IX** unless explicitly changing framework governance. Articles I-VIII are intentional placeholders.
 - **Templates carry `{{placeholder}}` tokens** that get resolved at copy time. Don't "fix" them thinking they're bugs.
 - **Remotes are clean** — only `origin` points to `Airchitekt/atomic-spec`. Any stale `upstream`/duplicate remotes have been removed.
-- **`src/specify_cli/__init__.py` downloads templates from `github/spec-kit`** (upstream), not from this fork. Changes to templates in this repo are not picked up by `specify init` until reconciled with upstream or the CLI is patched to point here.
-- **Avoid adding new `tasks.md` references** anywhere. The atomic `tasks/` directory is the only correct output. Some stale references still exist in `spec-driven.md` and `templates/commands/analyze.md` — these are bugs to fix, not patterns to follow.
+- **`src/specify_cli/__init__.py` still downloads templates from `github/spec-kit`** (upstream) — the `repo_owner`/`repo_name` constants were not repointed. This means `atomicspec init` (via PyPI once published, or `uvx --from .`) does NOT currently pick up template changes in this repo. The `init-project.sh` / `init-project.ps1` installers are the only install path that uses this repo's templates. Repointing the CLI to `Airchitekt/atomic-spec` releases is a known follow-up task (requires setting up release automation here).
+- **Avoid adding new `tasks.md` references** anywhere. The atomic `tasks/` directory is the only correct output. Canonical per-feature artifacts: `index.md`, `traceability.md`, `tasks/T-XXX-[name].md`. The SDD/governance deep-dive lives in `atomic-traceability-model.md` (was previously `spec-driven.md`).

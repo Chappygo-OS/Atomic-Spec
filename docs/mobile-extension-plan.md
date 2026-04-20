@@ -1,6 +1,8 @@
 # Plan: Extend Atomic Spec for Mobile App Development
 
-**Status**: Draft - Saved for future implementation
+> **⚠️ HISTORICAL DOCUMENT.** This planning draft was written on 2026-03-02, before the mobile extension landed. The final implementation differs from the plan in places; in particular, any reference below to updating `tasks.md` should be read as "update the tasks command template / the atomic `tasks/` directory structure" since a single `tasks.md` is forbidden by the Atomic Injunction (Directive 2). Kept for historical context only.
+
+**Status**: Draft - Saved for future implementation (historical)
 **Created**: 2026-03-02
 **Author**: AI Planning Session
 

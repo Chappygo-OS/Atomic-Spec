@@ -599,55 +599,40 @@ Atomic Spec implements a two-tier governance hierarchy:
 
 Spec-Driven Development **flips the script** on traditional software development. For decades, code has been king - specifications were just scaffolding we built and discarded once the "real work" of coding began. Spec-Driven Development changes this: **specifications become executable**, directly generating working implementations rather than just guiding them.
 
-## Get Started (Original Method)
+## Get Started
 
-### 1. Install Specify CLI
+### 1. Install Atomic Spec into your project
 
-Choose your preferred installation method:
-
-#### Option 1: Persistent Installation (Recommended)
-
-Install once and use everywhere:
+The primary and supported installation path is the `init-project` script in this repo. It copies the framework (`.specify/`, `templates/`, `.claude/commands/`, registry scaffolding) directly into your target project.
 
 ```bash
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+# Clone this repo once
+git clone https://github.com/Airchitekt/atomic-spec.git
+cd atomic-spec
+
+# Initialize a new project with Atomic Spec
+# Bash (macOS / Linux / WSL)
+./init-project.sh /path/to/new/project --ai claude
+
+# PowerShell (Windows)
+.\init-project.ps1 -TargetPath "D:\path\to\new\project" -AIAgent "claude"
 ```
 
-Then use the tool directly:
+Supported `--ai` values: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`.
+
+After initialization, the four slash commands are available in your AI assistant: `/atomicspec.specify`, `/atomicspec.plan`, `/atomicspec.tasks`, `/atomicspec.implement` (plus optional `/atomicspec.clarify`, `/atomicspec.analyze-competitors`, `/atomicspec.checklist`, `/atomicspec.constitution`, `/atomicspec.cleanup`, `/atomicspec.analyze`, `/atomicspec.taskstoissues`).
+
+### 2. (Planned) PyPI install
+
+Once `v0.1.0` is published, a PyPI install path will be available:
 
 ```bash
-# Create new project
-specify init <PROJECT_NAME>
-
-# Or initialize in existing project
-specify init . --ai claude
-# or
-specify init --here --ai claude
-
-# Check installed tools
-specify check
+# Coming soon — v0.1.0
+uv tool install atomic-spec
+atomicspec init <PROJECT_NAME>
 ```
 
-To upgrade Specify, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
-
-```bash
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
-```
-
-#### Option 2: One-time Usage
-
-Run directly without installing:
-
-```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME>
-```
-
-**Benefits of persistent installation:**
-
-- Tool stays installed and available in PATH
-- No need to create shell aliases
-- Better tool management with `uv tool list`, `uv tool upgrade`, `uv tool uninstall`
-- Cleaner shell configuration
+Track the release on the [Airchitekt/atomic-spec releases page](https://github.com/Airchitekt/atomic-spec/releases).
 
 ## Supported AI Agents
 

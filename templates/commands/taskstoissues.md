@@ -14,6 +14,16 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Registry Protocol (Constitution Directive 7)
+
+Follow `_registry-protocol.md`:
+
+- **On entry**: Read `specs/_defaults/registry.yaml`. Focus on `integrations.issue_tracker` (labels, project/board mapping, assignee conventions) and `conventions.labels` so created issues inherit project-wide taxonomy.
+- **During**: When you are about to create an issue with a new label, project, or milestone that isn't in the registry, apply Scenario A/B/C from the protocol (re-use, add-to-registry via HITL, or deviate with documentation).
+- **On exit**: If the issue-creation pass introduced new label schemes or tracker conventions, HITL-prompt the user to persist them in `integrations.issue_tracker` / `conventions.labels`.
+
+If the registry file is absent, warn and proceed without defaults (graceful degradation).
+
 ## Outline
 
 1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").

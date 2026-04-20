@@ -2,81 +2,80 @@
 
 ## Prerequisites
 
-- **Linux/macOS** (or Windows; PowerShell scripts now supported without WSL)
-- AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), [Codebuddy CLI](https://www.codebuddy.ai/cli) or [Gemini CLI](https://github.com/google-gemini/gemini-cli)
-- [uv](https://docs.astral.sh/uv/) for package management
-- [Python 3.11+](https://www.python.org/downloads/)
+- **Linux / macOS / Windows** (PowerShell scripts work natively on Windows; no WSL required)
+- An AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor](https://cursor.sh/), or [Windsurf](https://codeium.com/windsurf)
 - [Git](https://git-scm.com/downloads)
+- (Planned, post-`v0.1.0`) [uv](https://docs.astral.sh/uv/) + [Python 3.11+](https://www.python.org/downloads/) — required only for the future PyPI install path
+
+## Supported AI Agents
+
+The init scripts currently set up commands for these five agents: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`. The Python CLI (once published) will support more.
 
 ## Installation
 
-### Initialize a New Project
-
-The easiest way to get started is to initialize a new project:
+### Step 1: Clone Atomic Spec
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME>
+git clone https://github.com/Airchitekt/atomic-spec.git
+cd atomic-spec
 ```
 
-Or initialize in the current directory:
+### Step 2: Initialize a new project
+
+**macOS / Linux / WSL:**
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init .
-# or use the --here flag
-uvx --from git+https://github.com/github/spec-kit.git specify init --here
+./init-project.sh /path/to/<PROJECT_NAME>
+# Defaults to --ai claude if omitted
+./init-project.sh /path/to/<PROJECT_NAME> --ai claude
+./init-project.sh /path/to/<PROJECT_NAME> --ai gemini
+./init-project.sh /path/to/<PROJECT_NAME> --ai copilot
+./init-project.sh /path/to/<PROJECT_NAME> --ai cursor
+./init-project.sh /path/to/<PROJECT_NAME> --ai windsurf
 ```
 
-### Specify AI Agent
+**Windows PowerShell:**
 
-You can proactively specify your AI agent during initialization:
+```powershell
+.\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>"
+.\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>" -AIAgent "claude"
+```
+
+### Step 3: Verify
+
+After initialization, the project directory should contain:
+
+- `.specify/` — knowledge stations, subagents, templates
+- `templates/` — spec, plan, task, registry templates
+- `.claude/commands/` (for `--ai claude`) — `atomicspec.*.md` slash commands
+- `specs/_defaults/registry.yaml` — Project Defaults Registry scaffold
+- `memory/constitution.md` — governance constitution with Article IX hardcoded
+
+In your AI agent, the following slash commands should now be available:
+
+- `/atomicspec.specify` — create feature specifications
+- `/atomicspec.plan` — generate implementation plans
+- `/atomicspec.tasks` — generate atomic task files
+- `/atomicspec.implement` — execute with Context Pinning
+- `/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.constitution`, `/atomicspec.analyze-competitors`, `/atomicspec.cleanup`, `/atomicspec.taskstoissues` — supporting commands
+
+## Future: PyPI install (`v0.1.0`+)
+
+Once Atomic Spec publishes to PyPI, the install path will shorten to:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --ai claude
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --ai gemini
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --ai copilot
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --ai codebuddy
+uv tool install atomic-spec
+atomicspec init <PROJECT_NAME>
+atomicspec init --here
 ```
 
-### Specify Script Type (Shell vs PowerShell)
-
-All automation scripts now have both Bash (`.sh`) and PowerShell (`.ps1`) variants.
-
-Auto behavior:
-
-- Windows default: `ps`
-- Other OS default: `sh`
-- Interactive mode: you'll be prompted unless you pass `--script`
-
-Force a specific script type:
-
-```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --script sh
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --script ps
-```
-
-### Ignore Agent Tools Check
-
-If you prefer to get the templates without checking for the right tools:
-
-```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <project_name> --ai claude --ignore-agent-tools
-```
-
-## Verification
-
-After initialization, you should see the following commands available in your AI agent:
-
-- `/atomicspec.specify` - Create specifications
-- `/atomicspec.plan` - Generate implementation plans  
-- `/atomicspec.tasks` - Break down into actionable tasks
-
-The `.specify/scripts` directory will contain both `.sh` and `.ps1` scripts.
+Track progress on [Airchitekt/atomic-spec releases](https://github.com/Airchitekt/atomic-spec/releases).
 
 ## Troubleshooting
 
 ### Git Credential Manager on Linux
 
-If you're having issues with Git authentication on Linux, you can install Git Credential Manager:
+If you're having issues with Git authentication on Linux, install Git Credential Manager:
 
 ```bash
 #!/usr/bin/env bash
@@ -89,4 +88,21 @@ echo "Configuring Git to use GCM..."
 git config --global credential.helper manager
 echo "Cleaning up..."
 rm gcm-linux_amd64.2.6.1.deb
+```
+
+### `init-project.sh` permission denied
+
+On macOS / Linux, make the script executable:
+
+```bash
+chmod +x init-project.sh
+```
+
+### Windows execution policy blocks `init-project.ps1`
+
+Allow the script to run for the current session:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\init-project.ps1 -TargetPath "D:\path\to\project" -AIAgent "claude"
 ```

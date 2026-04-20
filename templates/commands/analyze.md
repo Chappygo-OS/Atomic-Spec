@@ -186,7 +186,7 @@ At end of report, output a concise Next Actions block:
 
 - If CRITICAL issues exist: Recommend resolving before `/atomicspec.implement`
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /atomicspec.specify with refinement", "Run /atomicspec.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+- Provide explicit command suggestions: e.g., "Run /atomicspec.specify with refinement", "Run /atomicspec.plan to adjust architecture", "Manually add a task file in tasks/ to add coverage for 'performance-metrics'"
 
 ### 8. Offer Remediation
 

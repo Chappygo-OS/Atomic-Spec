@@ -7,7 +7,7 @@ This project uses GitHub issues to track bugs and feature requests. Please searc
 For help or questions about using this project, please:
 
 - Open a [GitHub issue](https://github.com/Airchitekt/atomic-spec/issues/new) for bug reports, feature requests, or questions about the Atomic Traceability Model
-- Check the [comprehensive guide](./spec-driven.md) for detailed documentation on the Spec-Driven Development process
+- Check the [Atomic Traceability Model guide](./atomic-traceability-model.md) for the governance model and Spec-Driven Development foundations
 - Review the [README](./README.md) for getting started instructions and the Atomic Traceability Model overview
 
 ## Project Status

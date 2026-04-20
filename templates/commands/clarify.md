@@ -23,12 +23,22 @@ Goal: Detect and reduce ambiguity or missing decision points in the active featu
 
 Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `/atomicspec.plan`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
 
+## Registry Protocol (Constitution Directive 7)
+
+Follow `_registry-protocol.md`:
+
+- **On entry**: Read `specs/_defaults/registry.yaml`. Focus on sections relevant to clarification — `terminology`, `conventions.files`, `governance.personas`, and any domain dictionary the project has already established.
+- **During**: When the user's answers introduce new project-wide terms, personas, or conventions, apply Scenario A/B/C from the protocol (re-use, add-to-registry via HITL, or document a deviation).
+- **On exit**: Scan the updated spec for new terminology or persona definitions. HITL-prompt the user to promote them into the registry so future features inherit them.
+
+If the registry file is absent, warn and proceed without defaults (graceful degradation).
+
 Execution steps:
 
 1. Run `{SCRIPT}` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
    - `FEATURE_DIR`
    - `FEATURE_SPEC`
-   - (Optionally capture `IMPL_PLAN`, `TASKS` for future chained flows.)
+   - (Optionally capture `IMPL_PLAN`, `TASKS_DIR` for future chained flows.)
    - If JSON parsing fails, abort and instruct user to re-run `/atomicspec.specify` or verify feature branch environment.
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 

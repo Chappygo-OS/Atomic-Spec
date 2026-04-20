@@ -161,15 +161,11 @@ If dependencies not met: **SKIP** task, move to next, report blocked status.
    - Check file paths in "Files to Create" (e.g., `repositories/` → data-architecture)
    - Check task objective keywords
 
-4. **Match to available subagent**:
+4. **Match to an available subagent via Dynamic Discovery**:
 
-   | Task Domain Indicators | Likely Agent Match |
-   |------------------------|-------------------|
-   | `repositories/`, `models/`, "database" | data-architecture |
-   | `routes/`, `controllers/`, "API", "endpoint" | backend-architect |
-   | `components/`, `pages/`, "React", "UI" | frontend-developer |
-   | `payment`, `billing`, `subscription` | payment-integration |
-   | `*.test.ts`, `*.spec.ts`, "test" | code-reviewer |
+   **Follow `_subagent-discovery.md`** — do NOT hardcode agent names in this step. The discovery protocol scans `.specify/subagents/`, reads YAML frontmatter, and scores each agent's `description` against the task's keywords and file paths. Whichever agent scores highest is the match.
+
+   If no agent scores above the minimum threshold, fall back to the Knowledge Station for the task's domain (via `.specify/knowledge/stations/00-station-map.md`). If neither resolves, implement the task yourself using the embedded context from the task file.
 
 5. **Spawn the matched subagent using Task tool**:
 

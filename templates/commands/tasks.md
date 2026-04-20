@@ -519,36 +519,21 @@ Per the Knowledge Wiring Plan, during `/atomicspec.implement`, Context Pinning p
 
 2. **Load Domain Rules** based on task type (DYNAMIC DISCOVERY):
 
-   **⚠️ DO NOT hard-code agent names. Match dynamically.**
+   **⚠️ Follow `_subagent-discovery.md`. DO NOT hard-code agent names here.**
 
-   a. **Scan available subagents** at `.specify/subagents/`:
-      - List all `**/*.md` files recursively (exclude files starting with `_`)
-      - Read YAML frontmatter to get `name` and `description` for each
+   Run the shared discovery protocol to pick an agent for this task:
 
-   b. **For each task**, extract domain keywords:
-      - Task objective keywords (e.g., "create repository", "add API endpoint")
-      - Files being created/modified (e.g., `repositories/`, `routes/`, `components/`)
-      - Technical terms in implementation steps
-
-   c. **Match task keywords to agent descriptions**:
-      - Compare task keywords against each agent's `description` field
-      - Select the agent with best keyword overlap
-      - **Example matches**:
-        - Task creates `repositories/*.ts` → Agent with "database", "data access" in description
-        - Task creates `routes/*.ts` → Agent with "API", "REST", "endpoints" in description
-        - Task creates `components/*.tsx` → Agent with "frontend", "UI", "components" in description
-
-   d. **Load matched agent and extract**:
+   1. Scan `.specify/subagents/` for `**/*.md` files (excluding `_*`) and read each agent's YAML frontmatter.
+   2. Derive task keywords from the task's objective, file paths, and technical terms.
+   3. Score each agent's `description` against the keywords; pick the highest scorer.
+   4. **Load the matched agent** and extract:
       - Key patterns/rules (e.g., "Every query MUST filter by tenant_id")
       - Required checks (e.g., "No naked queries")
       - Gate criteria checklist
+   5. **If no agent matches above the threshold**, fall back to `.specify/knowledge/stations/00-station-map.md` and extract rules from the relevant station.
+   6. **If neither subagent nor station exists**: Note "No domain knowledge - using plan.md decisions" in the task and continue.
 
-   e. **If no agent matches**, try station fallback:
-      - Read `.specify/knowledge/stations/00-station-map.md`
-      - Find relevant station based on task domain
-      - Extract rules from station file
-
-   If neither subagent nor station exists: Note "No domain knowledge - using plan.md decisions"
+   See `_subagent-discovery.md` for the complete scoring rules and graceful-degradation behavior.
 
 3. **Load API Context** (if task involves API):
    - Read `FEATURE_DIR/contracts/*.yaml` or `contracts/*.md`
@@ -682,16 +667,17 @@ their organization.
    - Task creates UI/components → Agent with "frontend" in name/description
    - Task involves payments → Agent with "payment" in name/description
 
-6. **Spawn agents in parallel** for efficiency:
+6. **Spawn agents in parallel** for efficiency. Agent names below are placeholders from dynamic discovery — the real names come from whichever agents the consumer project has installed. Do NOT hardcode these names:
 
    ```
-   # Multiple tasks can be generated simultaneously
-   Task(subagent_type: "data-architecture", prompt: "Generate T-010...", ...)
-   Task(subagent_type: "backend-architect", prompt: "Generate T-020...", ...)
-   Task(subagent_type: "frontend-developer", prompt: "Generate T-030...", ...)
+   # Multiple tasks can be generated simultaneously — subagent_type comes from
+   # the match produced by _subagent-discovery.md, not from this example.
+   Task(subagent_type: "<matched-agent-for-T-010>", prompt: "Generate T-010...", ...)
+   Task(subagent_type: "<matched-agent-for-T-020>", prompt: "Generate T-020...", ...)
+   Task(subagent_type: "<matched-agent-for-T-030>", prompt: "Generate T-030...", ...)
    ```
 
-7. **Fallback**: If a task doesn't match any available agent, generate it yourself using the embedded context approach from Section 4.2.2.
+7. **Fallback**: If a task doesn't match any available agent (via `_subagent-discovery.md`), generate it yourself using the embedded context approach from Section 4.2.2.
 
 #### 4.2.4 Platform-Aware Verification Commands (MANDATORY)
 

@@ -24,6 +24,16 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command creates structured competitive analysis following Station 03 (Discovery) procedures. The output is **optional** for downstream commands - if the user rejects it, delete it entirely so future commands proceed without competitive context.
 
+## Registry Protocol (Constitution Directive 7)
+
+Follow `_registry-protocol.md`:
+
+- **On entry**: Read `specs/_defaults/registry.yaml`. Focus on `market.*`, `audience.*`, and `positioning.*` sections so the analysis is anchored to the project's established market posture rather than derived in isolation.
+- **During**: If the research surfaces market segments, audience personas, or positioning axes the project has not yet declared, apply Scenario A/B/C from the protocol (re-use, add-to-registry via HITL, or flag a deviation).
+- **On exit**: Before writing `summary.md`, HITL-prompt the user to promote any newly surfaced positioning defaults into the registry so `/atomicspec.specify` and `/atomicspec.plan` can inherit them.
+
+If the registry file is absent, warn and proceed without defaults (graceful degradation).
+
 ## Phase 1: Setup & User Research Check
 
 1. **Parse the script output** to get FEATURE_DIR and other paths.

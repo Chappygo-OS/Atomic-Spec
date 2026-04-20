@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-> You have Spec Kit installed and want to upgrade to the latest version to get new features, bug fixes, or updated slash commands. This guide covers both upgrading the CLI tool and updating your project files.
+> You have Atomic Spec installed in one or more projects and want to refresh them with the latest framework files (knowledge stations, subagents, templates, slash commands, scripts).
 
 ---
 
@@ -8,43 +8,44 @@
 
 | What to Upgrade | Command | When to Use |
 |----------------|---------|-------------|
-| **CLI Tool Only** | `uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git` | Get latest CLI features without touching project files |
-| **Project Files** | `specify init --here --force --ai <your-agent>` | Update slash commands, templates, and scripts in your project |
-| **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
+| **Framework files in a project** | `./init-project.sh /path/to/project --ai <agent>` (re-run) | Pick up updated slash commands, templates, scripts, and knowledge stations |
+| **The Atomic Spec repo itself** | `git pull origin main` in the cloned `atomic-spec/` repo | Get the latest framework source before re-initializing any project |
+| **(Planned) PyPI CLI** | `uv tool install atomic-spec --force` | Available once `v0.1.0` publishes; will refresh the CLI without touching project files |
+
+> [!NOTE]
+> The standalone PyPI CLI is planned for `v0.1.0`. Until then, all upgrades happen by pulling this repo and re-running `init-project.sh` / `init-project.ps1` against each project directory.
 
 ---
 
-## Part 1: Upgrade the CLI Tool
+## Part 1: Refresh the Atomic Spec source
 
-The CLI tool (`specify`) is separate from your project files. Upgrade it to get the latest features and bug fixes.
-
-### If you installed with `uv tool install`
+The framework is distributed as files, not as a running service. Before upgrading any project, pull the latest version of the framework:
 
 ```bash
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+cd /path/to/atomic-spec
+git pull origin main
 ```
 
-### If you use one-shot `uvx` commands
+## Part 2: Re-initialize the project
 
-No upgrade needed—`uvx` always fetches the latest version. Just run your commands as normal:
+Run the initializer against the existing project directory. It overwrites the framework folders (`.specify/`, `templates/`, `memory/`, `scripts/`) while leaving your `specs/` directory and code untouched:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init --here --ai copilot
+# macOS / Linux / WSL
+./init-project.sh /path/to/existing/project --ai claude
+
+# Windows PowerShell
+.\init-project.ps1 -TargetPath "D:\path\to\existing\project" -AIAgent "claude"
 ```
 
-### Verify the upgrade
-
-```bash
-specify check
-```
-
-This shows installed tools and confirms the CLI is working.
+> [!WARNING]
+> Re-initialization **replaces** `.specify/`, `templates/`, `memory/`, and `scripts/` inside the target project. If you have customized any of those files in the project, commit them to git first, then reconcile after the upgrade.
 
 ---
 
 ## Part 2: Updating Project Files
 
-When Spec Kit releases new features (like new slash commands or updated templates), you need to refresh your project's Spec Kit files.
+When Atomic Spec releases new features (like new slash commands or updated templates), you need to refresh your project's Atomic Spec files.
 
 ### What gets updated?
 
@@ -60,7 +61,7 @@ Running `specify init --here --force` will update:
 These files are **never touched** by the upgrade—the template packages don't even contain them:
 
 - ✅ **Your specifications** (`specs/001-my-feature/spec.md`, etc.) - **CONFIRMED SAFE**
-- ✅ **Your implementation plans** (`specs/001-my-feature/plan.md`, `tasks.md`, etc.) - **CONFIRMED SAFE**
+- ✅ **Your implementation plans and tasks** (`specs/001-my-feature/plan.md`, `specs/001-my-feature/tasks/`, `specs/001-my-feature/index.md`, `specs/001-my-feature/traceability.md`, etc.) - **CONFIRMED SAFE**
 - ✅ **Your source code** - **CONFIRMED SAFE**
 - ✅ **Your git history** - **CONFIRMED SAFE**
 
@@ -165,7 +166,7 @@ Restart your IDE to refresh the command list.
 
 ```bash
 # Upgrade CLI (if using persistent install)
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+uv tool install atomic-spec --force  # planned for v0.1.0
 
 # Update project files to get new commands
 specify init --here --force --ai copilot
@@ -182,7 +183,7 @@ cp .specify/memory/constitution.md /tmp/constitution-backup.md
 cp -r .specify/templates /tmp/templates-backup
 
 # 2. Upgrade CLI
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+uv tool install atomic-spec --force  # planned for v0.1.0
 
 # 3. Update project
 specify init --here --force --ai copilot
@@ -230,7 +231,7 @@ The `--no-git` flag skips git initialization but doesn't affect file updates.
 
 ## Using `--no-git` Flag
 
-The `--no-git` flag tells Spec Kit to **skip git repository initialization**. This is useful when:
+The `--no-git` flag tells Atomic Spec to **skip git repository initialization**. This is useful when:
 
 - You manage version control differently (Mercurial, SVN, etc.)
 - Your project is part of a larger monorepo with existing git setup
@@ -270,9 +271,9 @@ export SPECIFY_FEATURE="001-my-feature"
 $env:SPECIFY_FEATURE = "001-my-feature"
 ```
 
-This tells Spec Kit which feature directory to use when creating specs, plans, and tasks.
+This tells Atomic Spec which feature directory to use when creating specs, plans, and tasks.
 
-**Why this matters:** Without git, Spec Kit can't detect your current branch name to determine the active feature. The environment variable provides that context manually.
+**Why this matters:** Without git, Atomic Spec can't detect your current branch name to determine the active feature. The environment variable provides that context manually.
 
 ---
 
@@ -327,11 +328,11 @@ This warning appears when you run `specify init --here` (or `specify init .`) in
 
 1. **The directory has existing content** - In the example, 25 files/folders
 2. **Files will be merged** - New template files will be added alongside your existing files
-3. **Some files may be overwritten** - If you already have Spec Kit files (`.claude/`, `.specify/`, etc.), they'll be replaced with the new versions
+3. **Some files may be overwritten** - If you already have Atomic Spec files (`.claude/`, `.specify/`, etc.), they'll be replaced with the new versions
 
 **What gets overwritten:**
 
-Only Spec Kit infrastructure files:
+Only Atomic Spec infrastructure files:
 
 - Agent command files (`.claude/commands/`, `.github/prompts/`, etc.)
 - Scripts in `.specify/scripts/`
@@ -343,7 +344,7 @@ Only Spec Kit infrastructure files:
 - Your `specs/` directory (specifications, plans, tasks)
 - Your source code files
 - Your `.git/` directory and git history
-- Any other files not part of Spec Kit templates
+- Any other files not part of Atomic Spec templates
 
 **How to respond:**
 
@@ -357,8 +358,8 @@ Only Spec Kit infrastructure files:
 
 **When you see this warning:**
 
-- ✅ **Expected** when upgrading an existing Spec Kit project
-- ✅ **Expected** when adding Spec Kit to an existing codebase
+- ✅ **Expected** when upgrading an existing Atomic Spec project
+- ✅ **Expected** when adding Atomic Spec to an existing codebase
 - ⚠️ **Unexpected** if you thought you were creating a new project in an empty directory
 
 **Prevention tip:** Before upgrading, commit or back up your `.specify/memory/constitution.md` if you customized it.
@@ -371,7 +372,7 @@ Verify the installation:
 # Check installed tools
 uv tool list
 
-# Should show specify-cli
+# Should show atomic-spec (once v0.1.0 is published)
 
 # Verify path
 which specify
@@ -382,8 +383,8 @@ which specify
 If not found, reinstall:
 
 ```bash
-uv tool uninstall specify-cli
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+uv tool uninstall atomic-spec  # planned for v0.1.0
+uv tool install atomic-spec  # planned for v0.1.0
 ```
 
 ### "Do I need to run specify every time I open my project?"
@@ -394,7 +395,7 @@ uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 The `specify` CLI tool is used for:
 
-- **Initial setup:** `specify init` to bootstrap Spec Kit in your project
+- **Initial setup:** `specify init` to bootstrap Atomic Spec in your project
 - **Upgrades:** `specify init --here --force` to update templates and commands
 - **Diagnostics:** `specify check` to verify tool installation
 
@@ -428,7 +429,7 @@ Once you've run `specify init`, the slash commands (like `/atomicspec.specify`, 
 
 ## Version Compatibility
 
-Spec Kit follows semantic versioning for major releases. The CLI and project files are designed to be compatible within the same major version.
+Atomic Spec follows semantic versioning for major releases. The CLI and project files are designed to be compatible within the same major version.
 
 **Best practice:** Keep both CLI and project files in sync by upgrading both together during major version changes.
 
@@ -439,6 +440,6 @@ Spec Kit follows semantic versioning for major releases. The CLI and project fil
 After upgrading:
 
 - **Test new slash commands:** Run `/atomicspec.constitution` or another command to verify everything works
-- **Review release notes:** Check [GitHub Releases](https://github.com/github/spec-kit/releases) for new features and breaking changes
+- **Review release notes:** Check [GitHub Releases](https://github.com/Airchitekt/atomic-spec/releases) for new features and breaking changes
 - **Update workflows:** If new commands were added, update your team's development workflows
 - **Check documentation:** Visit [github.io/spec-kit](https://github.github.io/spec-kit/) for updated guides

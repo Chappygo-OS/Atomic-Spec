@@ -1,14 +1,14 @@
 # Local Development Guide
 
-This guide shows how to iterate on the `specify` CLI locally without publishing a release or committing to `main` first.
+This guide shows how to iterate on the Atomic Spec CLI (entry point `atomicspec`) locally without publishing a release or committing to `main` first.
 
-> Scripts now have both Bash (`.sh`) and PowerShell (`.ps1`) variants. The CLI auto-selects based on OS unless you pass `--script sh|ps`.
+> Scripts ship as Bash (`.sh`) and PowerShell (`.ps1`) pairs. The CLI auto-selects based on OS unless you pass `--script sh|ps`.
 
 ## 1. Clone and Switch Branches
 
 ```bash
-git clone https://github.com/github/spec-kit.git
-cd spec-kit
+git clone https://github.com/Airchitekt/atomic-spec.git
+cd atomic-spec
 # Work on a feature branch
 git checkout -b your-feature-branch
 ```
@@ -19,14 +19,17 @@ You can execute the CLI via the module entrypoint without installing anything:
 
 ```bash
 # From repo root
-python -m src.specify_cli --help
-python -m src.specify_cli init demo-project --ai claude --ignore-agent-tools --script sh
+python -m specify_cli --help
+python -m specify_cli init demo-project --ai claude --ignore-agent-tools --script sh
 ```
+
+> [!NOTE]
+> The package name on PyPI is `atomic-spec` (see `pyproject.toml`), and the CLI entry point binary is `atomicspec`. The Python module remains `specify_cli` for now — renaming it would break imports throughout the code. Treat the module name as an implementation detail.
 
 If you prefer invoking the script file style (uses shebang):
 
 ```bash
-python src/specify_cli/__init__.py init demo-project --script ps
+python -m specify_cli init demo-project --script ps
 ```
 
 ## 3. Use Editable Install (Isolated Environment)
@@ -52,7 +55,7 @@ Re-running after code edits requires no reinstall because of editable mode.
 `uvx` can run from a local path (or a Git ref) to simulate user flows:
 
 ```bash
-uvx --from . specify init demo-uvx --ai copilot --ignore-agent-tools --script sh
+uvx --from . atomicspec init demo-uvx --ai copilot --ignore-agent-tools --script sh
 ```
 
 You can also point uvx at a specific branch without merging:
@@ -60,7 +63,7 @@ You can also point uvx at a specific branch without merging:
 ```bash
 # Push your working branch first
 git push origin your-feature-branch
-uvx --from git+https://github.com/github/spec-kit.git@your-feature-branch specify init demo-branch-test --script ps
+uvx --from git+https://github.com/Airchitekt/atomic-spec.git@your-feature-branch atomicspec init demo-branch-test --script ps
 ```
 
 ### 4a. Absolute Path uvx (Run From Anywhere)
@@ -68,23 +71,23 @@ uvx --from git+https://github.com/github/spec-kit.git@your-feature-branch specif
 If you're in another directory, use an absolute path instead of `.`:
 
 ```bash
-uvx --from /mnt/c/GitHub/spec-kit specify --help
-uvx --from /mnt/c/GitHub/spec-kit specify init demo-anywhere --ai copilot --ignore-agent-tools --script sh
+uvx --from /mnt/c/GitHub/atomic-spec atomicspec --help
+uvx --from /mnt/c/GitHub/atomic-spec atomicspec init demo-anywhere --ai copilot --ignore-agent-tools --script sh
 ```
 
 Set an environment variable for convenience:
 
 ```bash
-export SPEC_KIT_SRC=/mnt/c/GitHub/spec-kit
-uvx --from "$SPEC_KIT_SRC" specify init demo-env --ai copilot --ignore-agent-tools --script ps
+export ATOMIC_SPEC_SRC=/mnt/c/GitHub/atomic-spec
+uvx --from "$ATOMIC_SPEC_SRC" atomicspec init demo-env --ai copilot --ignore-agent-tools --script ps
 ```
 
 (Optional) Define a shell function:
 
 ```bash
-specify-dev() { uvx --from /mnt/c/GitHub/spec-kit specify "$@"; }
+atomicspec-dev() { uvx --from /mnt/c/GitHub/atomic-spec atomicspec "$@"; }
 # Then
-specify-dev --help
+atomicspec-dev --help
 ```
 
 ## 5. Testing Script Permission Logic
@@ -122,8 +125,8 @@ Install the built artifact into a fresh throwaway environment if needed.
 When testing `init --here` in a dirty directory, create a temp workspace:
 
 ```bash
-mkdir /tmp/spec-test && cd /tmp/spec-test
-python -m src.specify_cli init --here --ai claude --ignore-agent-tools --script sh  # if repo copied here
+mkdir /tmp/atomicspec-test && cd /tmp/atomicspec-test
+python -m specify_cli init --here --ai claude --ignore-agent-tools --script sh  # if repo copied here
 ```
 
 Or copy only the modified CLI portion if you want a lighter sandbox.
@@ -133,8 +136,8 @@ Or copy only the modified CLI portion if you want a lighter sandbox.
 If you need to bypass TLS validation while experimenting:
 
 ```bash
-specify check --skip-tls
-specify init demo --skip-tls --ai gemini --ignore-agent-tools --script ps
+atomicspec check --skip-tls
+atomicspec init demo --skip-tls --ai gemini --ignore-agent-tools --script ps
 ```
 
 (Use only for local experimentation.)
@@ -145,9 +148,9 @@ specify init demo --skip-tls --ai gemini --ignore-agent-tools --script ps
 |--------|---------|
 | Run CLI directly | `python -m src.specify_cli --help` |
 | Editable install | `uv pip install -e .` then `specify ...` |
-| Local uvx run (repo root) | `uvx --from . specify ...` |
-| Local uvx run (abs path) | `uvx --from /mnt/c/GitHub/spec-kit specify ...` |
-| Git branch uvx | `uvx --from git+URL@branch specify ...` |
+| Local uvx run (repo root) | `uvx --from . atomicspec ...` |
+| Local uvx run (abs path) | `uvx --from /mnt/c/GitHub/atomic-spec atomicspec ...` |
+| Git branch uvx | `uvx --from git+URL@branch atomicspec ...` |
 | Build wheel | `uv build` |
 
 ## 11. Cleaning Up

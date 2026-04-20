@@ -1,5 +1,7 @@
 # Mobile Extension Plan - Audit Report
 
+> **⚠️ HISTORICAL DOCUMENT.** This audit was produced during an earlier planning phase on 2026-03-02. Many of the issues it surfaces have since been addressed — notably, the `tasks.md` references below predate the Atomic Injunction (Directive 2), which now forbids a single `tasks.md` file in favor of a `tasks/` directory of `T-XXX-[name].md` files. Read this document for historical context only; do not use it as current guidance.
+
 **Audited**: 2026-03-02
 **Status**: Critical issues identified - Plan needs revision before implementation
 

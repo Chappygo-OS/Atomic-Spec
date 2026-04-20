@@ -207,6 +207,10 @@ specs/_defaults/
 2. **Prompt** user for each: "Add as project default?"
 3. **Update** registry.yaml AND changelog.md if approved
 
+**Exemption — `/atomicspec.constitution`**:
+
+The `/atomicspec.constitution` command is formally **exempt from the on-entry read step** of this Directive. Rationale: the constitution authors the governance values that the registry later enforces — reading the registry before authoring them would be circular. Constitution MAY still write to the registry on exit if the user approves seeding default governance values (e.g., `governance.quality_gates`, `governance.personas`).
+
 **HITL Requirements for Registry Updates**:
 
 Every registry change MUST:

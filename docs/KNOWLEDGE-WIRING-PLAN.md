@@ -1,7 +1,9 @@
 # Knowledge Wiring Plan: Fixing the Assembly Line Manual Integration
 
+> **⚠️ HISTORICAL DOCUMENT.** This plan was written on 2026-02-06, before the Knowledge Wiring implementation landed. `tasks.md` references below predate the Atomic Injunction (Directive 2) and refer to what is now the atomic `tasks/` directory of `T-XXX-[name].md` files. Retained for historical context; do not use as current guidance.
+
 **Date**: 2026-02-06
-**Status**: Proposed
+**Status**: Proposed (historical)
 **Problem**: Assembly Line Manual exists but is not being read or applied
 
 ---

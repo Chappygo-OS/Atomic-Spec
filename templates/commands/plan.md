@@ -94,7 +94,7 @@ If user selected "Yes, use specialized agents":
    - `description`: What it does and when to use it
    - `model`: Which model it prefers (if specified)
 
-3. **List discovered subagents to the user**:
+3. **List discovered subagents to the user** (names shown are **illustrative only** — real output is populated from the files actually present under `.specify/subagents/`):
    ```
    ══════════════════════════════════════════════════════════════
    📦 DISCOVERED SUBAGENTS
@@ -102,17 +102,18 @@ If user selected "Yes, use specialized agents":
 
    Found [N] specialized subagents in .specify/subagents/:
 
-   | Subagent              | Domain                                    |
-   |-----------------------|-------------------------------------------|
-   | backend-architect     | REST APIs, microservices, DB schemas      |
-   | api-documenter        | OpenAPI specs, SDK generation, dev docs   |
-   | database-optimizer    | SQL optimization, indexes, migrations     |
-   | [...]                 | [...]                                     |
+   | Subagent            | Domain (from YAML description)          |
+   |---------------------|-----------------------------------------|
+   | <name from file 1>  | <description from file 1>               |
+   | <name from file 2>  | <description from file 2>               |
+   | [...]               | [...]                                   |
 
-   These agents will be loaded automatically when their domain
-   is relevant to your feature (API design, data model, etc.)
+   These agents will be matched dynamically to tasks in later
+   phases per _subagent-discovery.md (semantic-similarity scoring).
    ══════════════════════════════════════════════════════════════
    ```
+
+   Do NOT hardcode or assume specific agent names exist — every entry in the rendered table must come from an actual file on disk.
 
 4. **If no subagents found** (empty folder), inform user:
    ```

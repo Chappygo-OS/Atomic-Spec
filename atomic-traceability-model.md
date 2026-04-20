@@ -1,3 +1,26 @@
+# The Atomic Traceability Model
+
+> **Atomic Spec** is a governance framework that implements Spec-Driven Development with strict traceability guarantees. This document explains the philosophy that the framework operationalizes.
+
+## From SDD to Atomic Traceability
+
+Spec-Driven Development (SDD, described below) is the **philosophy**: specifications become executable, generating working implementations rather than guiding them. Atomic Spec is the **governance** that makes SDD survive contact with AI coding agents.
+
+AI agents, left unconstrained, produce drift. They skip gates, invent file structures, read more context than needed, and quietly deviate from decisions made minutes earlier. The Atomic Traceability Model addresses this through **Eight Prime Directives** (see `memory/constitution.md` Article IX):
+
+1. **Directory Supremacy** — every feature has `index.md` + `traceability.md`
+2. **Atomic Injunction** — `/atomicspec.tasks` produces a `tasks/` directory of individual `T-XXX-[name].md` files; a single `tasks.md` is FORBIDDEN
+3. **Context Pinning** — during `/atomicspec.implement`, the AI reads only `index.md`, the current task file, and `traceability.md`
+4. **Gate Compliance** — Knowledge Station gates must pass before phase transitions
+5. **Knowledge Routing** — unknown decisions consult the Station Map, not random files
+6. **Human-In-The-Loop** — four mandatory checkpoints during `/atomicspec.plan`
+7. **Project Defaults Registry** — `specs/_defaults/registry.yaml` is the single source of truth for project-wide technical decisions
+8. **Self-Contained Tasks** — each task file embeds the context it needs to execute under Context Pinning
+
+The rest of this document covers the SDD philosophy that underpins those directives.
+
+---
+
 # Specification-Driven Development (SDD)
 
 ## The Power Inversion

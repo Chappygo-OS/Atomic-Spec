@@ -1,33 +1,34 @@
 # Quick Start Guide
 
-This guide will help you get started with Spec-Driven Development using Spec Kit.
+This guide walks you through bootstrapping a project with **Atomic Spec** — the Atomic Traceability Model for AI-driven development.
 
 > [!NOTE]
-> All automation scripts now provide both Bash (`.sh`) and PowerShell (`.ps1`) variants. The `specify` CLI auto-selects based on OS unless you pass `--script sh|ps`.
+> Automation scripts ship as Bash (`.sh`) and PowerShell (`.ps1`) pairs. Pick the matching installer for your OS.
 
 ## The 6-Step Process
 
 > [!TIP]
-> **Context Awareness**: Spec Kit commands automatically detect the active feature based on your current Git branch (e.g., `001-feature-name`). To switch between different specifications, simply switch Git branches.
+> **Context Awareness**: Atomic Spec commands automatically detect the active feature based on your current Git branch (e.g., `001-feature-name`). To switch between different specifications, simply switch Git branches.
 
-### Step 1: Install Specify
+### Step 1: Install Atomic Spec into your project
 
-**In your terminal**, run the `specify` CLI command to initialize your project:
-
-```bash
-# Create a new project directory
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME>
-
-# OR initialize in the current directory
-uvx --from git+https://github.com/github/spec-kit.git specify init .
-```
-
-Pick script type explicitly (optional):
+Clone this repo and run the initializer that matches your shell:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME> --script ps  # Force PowerShell
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME> --script sh  # Force POSIX shell
+git clone https://github.com/Airchitekt/atomic-spec.git
+cd atomic-spec
+
+# macOS / Linux / WSL
+./init-project.sh /path/to/<PROJECT_NAME> --ai claude
+
+# Windows PowerShell
+.\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>" -AIAgent "claude"
 ```
+
+The initializer copies `.specify/`, `templates/`, slash-command definitions, and the `specs/_defaults/registry.yaml` scaffold into the target project. Supported `--ai` values: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`.
+
+> [!NOTE]
+> A PyPI install (`uv tool install atomic-spec`) is planned for `v0.1.0`. Until then, use the init script above.
 
 ### Step 2: Define Your Constitution
 
@@ -159,6 +160,6 @@ Finally, implement the solution:
 
 ## Next Steps
 
-- Read the [complete methodology](../spec-driven.md) for in-depth guidance
+- Read the [Atomic Traceability Model](../atomic-traceability-model.md) for in-depth guidance
 - Check out [more examples](../templates) in the repository
-- Explore the [source code on GitHub](https://github.com/github/spec-kit)
+- Explore the [source code on GitHub](https://github.com/Airchitekt/atomic-spec)

@@ -56,13 +56,13 @@
     "cleanupCacheHistory": false,
     "disableGitFeatures": false,
     "globalMetadata": {
-      "_appTitle": "Spec Kit Documentation",
-      "_appName": "Spec Kit",
-      "_appFooter": "Spec Kit - A specification-driven development toolkit",
+      "_appTitle": "Atomic Spec Documentation",
+      "_appName": "Atomic Spec",
+      "_appFooter": "Atomic Spec - Atomic Traceability Model for AI-Driven Development",
       "_enableSearch": true,
       "_disableContribution": false,
       "_gitContribute": {
-        "repo": "https://github.com/github/spec-kit",
+        "repo": "https://github.com/Airchitekt/atomic-spec",
         "branch": "main"
       }
     }
