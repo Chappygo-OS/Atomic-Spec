@@ -331,25 +331,9 @@ Spec mentions "payment", "subscription"
   → Match: payment-integration ✓
 ```
 
-### Available Subagents
+### Default subagents
 
-| Agent | Domain |
-|-------|--------|
-| `backend-architect` | REST APIs, microservices, database schemas |
-| `data-architecture` | Database design, tenancy models, migrations |
-| `frontend-developer` | React components, responsive layouts, state management |
-| `payment-integration` | Stripe, PayPal, checkout flows, subscriptions |
-| `database-optimizer` | SQL optimization, indexes, query performance |
-| `deployment-engineer` | CI/CD, Docker, Kubernetes, infrastructure |
-| `code-reviewer` | Code quality, security, maintainability |
-| `typescript-pro` | Advanced TypeScript, generics, strict typing |
-| `python-pro` | Idiomatic Python, decorators, async/await |
-| `sql-pro` | Complex SQL, CTEs, window functions |
-| `ui-ux-designer` | Interface design, wireframes, accessibility |
-| `performance-engineer` | Profiling, bottlenecks, caching strategies |
-| `prompt-engineer` | LLM prompts, AI features, agent orchestration |
-
-The full roster lives at [`.specify/subagents/`](./.specify/subagents/) — 21 base agents (`ai/`, `backend/`, `business/`, `data/`, `design/`, `devops/`, `frontend/`, `languages/`, `review/`, `security/`, `testing/`) plus 146 mobile-specific agents under `mobile/` organized by lifecycle phase. Each agent is a markdown file with YAML frontmatter that `/atomicspec.tasks` and `/atomicspec.implement` read for routing.
+Atomic Spec ships with a curated set of recommended subagents in [`.specify/subagents/`](./.specify/subagents/) covering common domains (backend, frontend, data, devops, security, testing, review, design, AI, mobile, and more). They're defaults, not mandates — add your own, replace the ones you don't want, or delete the whole directory and start fresh. Each agent is a single markdown file with YAML frontmatter; the CLI discovers them by scanning the folder, so no registration step is needed.
 
 ### Adding Custom Agents
 
