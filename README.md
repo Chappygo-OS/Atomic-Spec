@@ -1,39 +1,64 @@
 <div align="center">
-    <h1>Atomic Spec</h1>
-    <h3><em>Atomic Traceability Model for AI-Driven Development</em></h3>
+
+# Atomic Spec
+
+### Stop your AI from vibe-coding.
+
+[![PyPI](https://img.shields.io/pypi/v/atomic-spec.svg?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/atomic-spec/)
+[![Python](https://img.shields.io/pypi/pyversions/atomic-spec.svg?logo=python&logoColor=white)](https://pypi.org/project/atomic-spec/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Agents supported](https://img.shields.io/badge/agents-17-8A2BE2)](#ai-coding-agents-supported)
+[![Status](https://img.shields.io/badge/status-v0.1.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
+
+**Spec-kit taught AI agents a workflow. Atomic Spec makes them obey it.** When `/atomicspec.implement` runs, the agent is *architecturally prevented* from reading `plan.md` or `spec.md` — it sees only the current task file, pre-loaded with every registry value, domain rule, and gate criterion it needs. No drifting mid-feature. No hallucinating a new approach on pass three. No 800-line "kitchen sink" PRs.
+
+```bash
+uv tool install atomic-spec
+atomicspec init my-project --ai claude
+```
+
 </div>
 
-<p align="center">
-    <strong>A customized fork of Spec Kit implementing the Atomic Traceability Model - a strict governance framework that eliminates "vibe coding" through Constitutional Prime Directives, Knowledge Station Gates, and Context Pinning.</strong>
-</p>
+> **TL;DR** — One AI instruction file isn't enough. Atomic Spec enforces **eight non-negotiable rules**: one task per file, AI sees only the current task during coding, human sign-off at four checkpoints, and a project registry that remembers every decision. If you've ever reviewed an AI PR and thought *"where did this pattern come from?"* — that's the problem this exists to kill.
 
 ---
 
-## What's Different in Atomic Spec?
+## Status
 
-This fork implements the **Atomic Traceability Model**, a governance upgrade that enforces:
+**v0.1.x · first public release.** The core governance model (Eight Prime Directives, Context Pinning, Atomic Injunction) is stable and exercised on every release. APIs and command names may evolve through v0.x. Claude Code is the reference implementation and validated end-to-end; 12 other agents are experimental (templates install correctly, agent-specific wiring not yet exhaustively tested). [See the agent tier table below](#ai-coding-agents-supported).
 
-1. **Constitutional Prime Directives** - Eight non-negotiable rules in `memory/constitution.md` (Article IX)
-2. **Knowledge Station Gates** - 18 governance checkpoints that MUST pass before phase transitions
-3. **Atomic Task Structure** - Individual task files instead of a single `tasks.md`
-4. **Context Pinning** - During implementation, AI can ONLY read `index.md` + current task file
-5. **Human-In-The-Loop** - Mandatory checkpoints for tech stack, validation, UI, and registry sync
-6. **Project Defaults Registry** - Central source of truth for project-wide technical decisions
-7. **Self-Contained Tasks** - All context embedded INTO task files for implementation
-8. **Dynamic Agent Discovery** - 21+ specialized subagents matched by semantic similarity
+---
 
-### The Eight Prime Directives
+## Why not just use [X]?
 
-| Directive | Rule |
-|-----------|------|
-| **1. Directory Supremacy** | Every feature MUST have an `index.md` (dashboard) and `traceability.md` (matrix) |
-| **2. Atomic Injunction** | `/atomicspec.tasks` is FORBIDDEN from creating a single `tasks.md` - must create `tasks/` directory with individual `T-XXX-[name].md` files |
-| **3. Context Pinning** | During `/atomicspec.implement`, AI is FORBIDDEN from reading `plan.md` - may ONLY read `index.md`, specific task file, and `traceability.md` |
-| **4. Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
-| **5. Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then specific station |
-| **6. Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval |
-| **7. Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
-| **8. Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
+Atomic Spec occupies a specific slot in the AI-coding ecosystem. Here's where it fits:
+
+| Tool | Enforcement | Context isolation | Cross-feature consistency | Audit trail |
+|------|-------------|-------------------|---------------------------|-------------|
+| `AGENTS.md` / `.cursorrules` / `CLAUDE.md` | Soft guidance in a single file | None | Relies on the agent re-reading | None |
+| `aider` conventions file | Soft guidance, per-session | None | Manual | Git history only |
+| `continue.dev` rules | Soft guidance, IDE-integrated | None | Manual | None |
+| `github/spec-kit` (upstream) | Workflow templates; agent is asked nicely | None (agent reads everything) | Templates, not enforced | None |
+| **Atomic Spec** | **Gated phases + forbidden-reads during implementation** | **Context Pinning: agent sees only current task file** | **Project Defaults Registry enforced on every command** | **Registry changelog + per-task traceability matrix** |
+
+If you want *recommendations* for your AI, the tools above are lighter and fine. If you want the AI to physically not be able to drift — because it cannot see the thing that would let it drift — that's what Atomic Spec adds.
+
+---
+
+## The Eight Prime Directives
+
+Article IX of `memory/constitution.md` hardcodes eight non-negotiable rules. Every command in the framework enforces them.
+
+| # | Directive | Rule |
+|---|-----------|------|
+| 1 | **Directory Supremacy** | Every feature MUST have an `index.md` (dashboard) and `traceability.md` (matrix) |
+| 2 | **Atomic Injunction** | `/atomicspec.tasks` is FORBIDDEN from creating a single `tasks.md` — must create `tasks/` directory with individual `T-XXX-[name].md` files |
+| 3 | **Context Pinning** | During `/atomicspec.implement`, AI is FORBIDDEN from reading `plan.md` — may ONLY read `index.md`, the specific task file, and `traceability.md` |
+| 4 | **Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
+| 5 | **Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then the specific station |
+| 6 | **Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval |
+| 7 | **Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
+| 8 | **Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
 
 ---
 
@@ -50,87 +75,100 @@ This is the entire reason Atomic Spec exists: **AI coding agents produce drift w
 
 ---
 
-## Table of Contents
+## Before and After
 
-- [The Assembly Line Mental Model](#the-assembly-line-mental-model)
-- [Quick Start (Atomic Spec)](#quick-start-atomic-spec)
-- [Project Defaults Registry](#project-defaults-registry)
-- [Self-Contained Tasks (Knowledge Wiring)](#self-contained-tasks-knowledge-wiring)
-- [Dynamic Agent Discovery](#dynamic-agent-discovery)
-- [Atomic Traceability Workflow](#atomic-traceability-workflow)
-- [Knowledge Stations](#knowledge-stations)
-- [Feature Directory Structure](#feature-directory-structure)
-- [Available Commands](#available-commands)
-- [Original Spec Kit Documentation](#original-spec-kit-documentation)
+<table>
+<tr>
+<th>Before — a single <code>tasks.md</code></th>
+<th>After — atomic <code>tasks/T-XXX-*.md</code> (enforced)</th>
+</tr>
+<tr>
+<td>
+
+```markdown
+# Tasks for 003-user-auth
+
+- [ ] Set up JWT library
+- [ ] Create /login endpoint
+- [ ] Add password hashing
+- [ ] Add rate limiting
+- [ ] Write tests
+- [ ] Add forgot-password flow
+... 34 more ...
+```
+
+**Problem:** AI reads the whole file on every
+implementation run. Context window fills with
+sibling tasks. No embedded decisions, so the
+agent re-derives the tech stack each pass —
+often differently. No way to trace which task
+satisfies which requirement.
+
+</td>
+<td>
+
+```
+specs/003-user-auth/
+├── index.md            # feature dashboard
+├── traceability.md     # FR → task matrix
+└── tasks/
+    ├── T-001-scaffold-jwt-config.md
+    ├── T-002-implement-login-endpoint.md
+    ├── T-003-password-hashing.md
+    └── ...
+```
+
+**Each task file embeds:** registry values it must
+obey, domain rules from the relevant subagent, a
+verification command, and which requirement (`FR-012`)
+it satisfies. During `/atomicspec.implement`, the
+agent is forbidden from reading anything else.
+
+</td>
+</tr>
+</table>
 
 ---
 
-## Quick Start (Atomic Spec)
+## Quick Start
 
-### Option 1: Initialize Script (Recommended)
-
-Use the initialization scripts to bootstrap a new project with Atomic Spec:
-
-**PowerShell (Windows):**
-```powershell
-.\init-project.ps1 -TargetPath "D:\MyNewProject" -AIAgent "claude"
-```
-
-**Bash (macOS/Linux):**
-```bash
-./init-project.sh /path/to/new/project --ai claude
-```
-
-**Supported AI Agents (via local installer):** `claude`, `gemini`, `copilot`, `cursor`, `windsurf`
-
-### AI agent support tiers (PyPI distribution)
-
-When installed via PyPI (`uv tool install atomic-spec`), Atomic Spec ships template bundles for **17 AI coding agents** across two tiers:
-
-| Agent | `--ai` value | Tier | Notes |
-|-------|--------------|------|-------|
-| Claude Code | `claude` | **Supported** | Reference implementation; validated end-to-end |
-| GitHub Copilot | `copilot` | **Supported** | VS Code chat modes; may require pointing Copilot at the installed command folder |
-| Gemini CLI | `gemini` | **Supported** | |
-| Cursor | `cursor-agent` | **Supported** | |
-| Windsurf | `windsurf` | **Supported** | |
-| Qwen Code | `qwen` | Experimental | |
-| opencode | `opencode` | Experimental | |
-| Codex CLI | `codex` | Experimental | |
-| Kilo Code | `kilocode` | Experimental | |
-| Auggie CLI | `auggie` | Experimental | |
-| CodeBuddy | `codebuddy` | Experimental | |
-| Qoder CLI | `qoder` | Experimental | |
-| Roo Code | `roo` | Experimental | |
-| Amazon Q Developer CLI | `q` | Experimental | |
-| Amp | `amp` | Experimental | |
-| SHAI | `shai` | Experimental | |
-| IBM Bob | `bob` | Experimental | |
-
-**What "Experimental" means:** command templates are installed into the agent's conventional `{folder}commands/` path. The **Eight Prime Directives still apply** — they are enforced by the templates themselves. However, agent-specific wiring has not been validated end-to-end. If you hit issues, file them with the `experimental` label; PRs to promote an agent to Supported tier are welcome. See [SUPPORT.md](./SUPPORT.md) for triage policy.
-
-### Option 2: Manual Setup
-
-1. Copy these directories to your project:
-   - `.specify/` - Knowledge stations and governance
-   - `templates/` - Spec templates including atomic task structure
-   - `memory/` - Constitution with Article IX
-   - `scripts/` - Utility scripts
-
-2. For Claude Code, create `.claude/commands/` and copy command files from `templates/commands/` with `atomicspec.` prefix.
-
-### After Initialization
+### Install
 
 ```bash
-cd "your-project"
+# Preferred: install the CLI as an isolated tool
+uv tool install atomic-spec
+
+# Alternative: pipx
+pipx install atomic-spec
+```
+
+### Initialize a project
+
+```bash
+atomicspec init my-project --ai claude     # or --ai cursor-agent, copilot, gemini, windsurf
+cd my-project
 git checkout -b 001-your-feature-name
-
-# Then use Claude Code commands:
-/atomicspec.specify "Your feature description"
-/atomicspec.plan
-/atomicspec.tasks
-/atomicspec.implement
 ```
+
+### Use the slash commands in your AI agent
+
+```text
+/atomicspec.constitution              # establish project principles (once)
+/atomicspec.specify "your feature"    # generate a spec with gate criteria
+/atomicspec.plan                      # produces plan.md, pauses at 4 HITL checkpoints
+/atomicspec.tasks                     # writes tasks/T-XXX-*.md (never a single tasks.md)
+/atomicspec.implement                 # Context-Pinned implementation, one task at a time
+```
+
+See [docs/quickstart.md](./docs/quickstart.md) for the full walkthrough, including optional commands (`/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.cleanup`, `/atomicspec.analyze-competitors`, `/atomicspec.taskstoissues`) and the `init-project.{sh,ps1}` script path for offline/local installs.
+
+### AI coding agents supported
+
+**Supported tier** (validated end-to-end): Claude Code · Cursor · GitHub Copilot · Gemini CLI · Windsurf
+
+**Experimental tier** (templates install correctly, agent-specific wiring not exhaustively tested): Qwen Code · opencode · Codex CLI · Kilo Code · Auggie CLI · CodeBuddy · Qoder CLI · Roo Code · Amazon Q Developer CLI · Amp · SHAI · IBM Bob
+
+Experimental-tier issues are labeled `experimental` and triaged best-effort. PRs that promote an agent to Supported tier are welcome — see [SUPPORT.md](./SUPPORT.md) for triage policy and promotion criteria.
 
 ---
 
@@ -278,7 +316,7 @@ Agent selection is **NOT hard-coded**. Instead:
 
 1. **Scan available agents**: Read all `*.md` files in `.specify/subagents/` (excluding `_*` files)
 2. **Extract metadata**: Parse YAML frontmatter for `name` and `description`
-3. **Match by similarity**: Compare spec/task keywords against agent descriptions
+3. **Match by keyword overlap**: Compare spec/task keywords against each agent's YAML `description`
 4. **Load relevant agents**: Only agents whose description matches the feature's needs
 
 ### Example Matching
@@ -310,7 +348,8 @@ Spec mentions "payment", "subscription"
 | `ui-ux-designer` | Interface design, wireframes, accessibility |
 | `performance-engineer` | Profiling, bottlenecks, caching strategies |
 | `prompt-engineer` | LLM prompts, AI features, agent orchestration |
-| ... and 8 more | See `.specify/subagents/` for full list |
+
+The full roster lives at [`.specify/subagents/`](./.specify/subagents/) — 21 base agents (`ai/`, `backend/`, `business/`, `data/`, `design/`, `devops/`, `frontend/`, `languages/`, `review/`, `security/`, `testing/`) plus 146 mobile-specific agents under `mobile/` organized by lifecycle phase. Each agent is a markdown file with YAML frontmatter that `/atomicspec.tasks` and `/atomicspec.implement` read for routing.
 
 ### Adding Custom Agents
 
@@ -616,160 +655,15 @@ Atomic Spec implements a two-tier governance hierarchy:
 
 ---
 
-## Original Spec Kit Documentation
+## Prior art
 
-<details>
-<summary>Click to expand the original Spec Kit documentation</summary>
+Atomic Spec forks [github/spec-kit](https://github.com/github/spec-kit) by Den Delimarsky and John Lam, adding the Atomic Traceability Model on top. The original Spec Kit introduced Spec-Driven Development as a practice; this fork makes it *enforced* rather than *encouraged*.
 
-## What is Spec-Driven Development?
+For upstream docs on Spec-Driven Development itself, see the [spec-kit repository](https://github.com/github/spec-kit). For the deep-dive on Atomic Traceability specifically, see [atomic-traceability-model.md](./atomic-traceability-model.md).
 
-Spec-Driven Development **flips the script** on traditional software development. For decades, code has been king - specifications were just scaffolding we built and discarded once the "real work" of coding began. Spec-Driven Development changes this: **specifications become executable**, directly generating working implementations rather than just guiding them.
-
-## Get Started
-
-### 1. Install Atomic Spec into your project
-
-The primary and supported installation path is the `init-project` script in this repo. It copies the framework (`.specify/`, `templates/`, `.claude/commands/`, registry scaffolding) directly into your target project.
-
-```bash
-# Clone this repo once
-git clone https://github.com/Chappygo-OS/Atomic-Spec.git
-cd atomic-spec
-
-# Initialize a new project with Atomic Spec
-# Bash (macOS / Linux / WSL)
-./init-project.sh /path/to/new/project --ai claude
-
-# PowerShell (Windows)
-.\init-project.ps1 -TargetPath "D:\path\to\new\project" -AIAgent "claude"
-```
-
-Supported `--ai` values: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`.
-
-After initialization, the four slash commands are available in your AI assistant: `/atomicspec.specify`, `/atomicspec.plan`, `/atomicspec.tasks`, `/atomicspec.implement` (plus optional `/atomicspec.clarify`, `/atomicspec.analyze-competitors`, `/atomicspec.checklist`, `/atomicspec.constitution`, `/atomicspec.cleanup`, `/atomicspec.analyze`, `/atomicspec.taskstoissues`).
-
-### 2. (Planned) PyPI install
-
-Once `v0.1.0` is published, a PyPI install path will be available:
-
-```bash
-# Coming soon — v0.1.0
-uv tool install atomic-spec
-atomicspec init <PROJECT_NAME>
-```
-
-Track the release on the [Chappygo-OS/Atomic-Spec releases page](https://github.com/Chappygo-OS/Atomic-Spec/releases).
-
-## Supported AI Agents
-
-| Agent                                                                                | Support | Notes                                                                                                                                     |
-| ------------------------------------------------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| [Qoder CLI](https://qoder.com/cli)                                                   | Yes     |                                                                                                                                           |
-| [Amazon Q Developer CLI](https://aws.amazon.com/developer/learning/q-developer-cli/) | Partial | Amazon Q Developer CLI [does not support](https://github.com/aws/amazon-q-developer-cli/issues/3064) custom arguments for slash commands. |
-| [Amp](https://ampcode.com/)                                                          | Yes     |                                                                                                                                           |
-| [Auggie CLI](https://docs.augmentcode.com/cli/overview)                              | Yes     |                                                                                                                                           |
-| [Claude Code](https://www.anthropic.com/claude-code)                                 | Yes     |                                                                                                                                           |
-| [CodeBuddy CLI](https://www.codebuddy.ai/cli)                                        | Yes     |                                                                                                                                           |
-| [Codex CLI](https://github.com/openai/codex)                                         | Yes     |                                                                                                                                           |
-| [Cursor](https://cursor.sh/)                                                         | Yes     |                                                                                                                                           |
-| [Gemini CLI](https://github.com/google-gemini/gemini-cli)                            | Yes     |                                                                                                                                           |
-| [GitHub Copilot](https://code.visualstudio.com/)                                     | Yes     |                                                                                                                                           |
-| [IBM Bob](https://www.ibm.com/products/bob)                                          | Yes     | IDE-based agent with slash command support                                                                                                |
-| [Jules](https://jules.google.com/)                                                   | Yes     |                                                                                                                                           |
-| [Kilo Code](https://github.com/Kilo-Org/kilocode)                                    | Yes     |                                                                                                                                           |
-| [opencode](https://opencode.ai/)                                                     | Yes     |                                                                                                                                           |
-| [Qwen Code](https://github.com/QwenLM/qwen-code)                                     | Yes     |                                                                                                                                           |
-| [Roo Code](https://roocode.com/)                                                     | Yes     |                                                                                                                                           |
-| [SHAI (OVHcloud)](https://github.com/ovh/shai)                                       | Yes     |                                                                                                                                           |
-| [Windsurf](https://windsurf.com/)                                                    | Yes     |                                                                                                                                           |
-
-## Specify CLI Reference
-
-The `specify` command supports the following options:
-
-### Commands
-
-| Command | Description                                                                                                                                             |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Initialize a new Specify project from the latest template                                                                                               |
-| `check` | Check for installed tools (`git`, `claude`, `gemini`, `code`/`code-insiders`, `cursor-agent`, `windsurf`, `qwen`, `opencode`, `codex`, `shai`, `qoder`) |
-
-### `specify init` Arguments & Options
-
-| Argument/Option        | Type     | Description                                                                                                                                                                                  |
-| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<project-name>`       | Argument | Name for your new project directory (optional if using `--here`, or use `.` for current directory)                                                                                           |
-| `--ai`                 | Option   | AI assistant to use: `claude`, `gemini`, `copilot`, `cursor-agent`, `qwen`, `opencode`, `codex`, `windsurf`, `kilocode`, `auggie`, `roo`, `codebuddy`, `amp`, `shai`, `q`, `bob`, or `qoder` |
-| `--script`             | Option   | Script variant to use: `sh` (bash/zsh) or `ps` (PowerShell)                                                                                                                                  |
-| `--ignore-agent-tools` | Flag     | Skip checks for AI agent tools like Claude Code                                                                                                                                              |
-| `--no-git`             | Flag     | Skip git repository initialization                                                                                                                                                           |
-| `--here`               | Flag     | Initialize project in the current directory instead of creating a new one                                                                                                                    |
-| `--force`              | Flag     | Force merge/overwrite when initializing in current directory (skip confirmation)                                                                                                             |
-| `--skip-tls`           | Flag     | Skip SSL/TLS verification (not recommended)                                                                                                                                                  |
-| `--debug`              | Flag     | Enable detailed debug output for troubleshooting                                                                                                                                             |
-| `--github-token`       | Option   | GitHub token for API requests (or set GH_TOKEN/GITHUB_TOKEN env variable)                                                                                                                    |
-
-### Examples
-
-```bash
-# Basic project initialization
-specify init my-project
-
-# Initialize with specific AI assistant
-specify init my-project --ai claude
-
-# Initialize with Cursor support
-specify init my-project --ai cursor-agent
-
-# Initialize in current directory
-specify init . --ai copilot
-# or use the --here flag
-specify init --here --ai copilot
-
-# Force merge into current (non-empty) directory without confirmation
-specify init . --force --ai copilot
-
-# Skip git initialization
-specify init my-project --ai gemini --no-git
-
-# Enable debug output for troubleshooting
-specify init my-project --ai claude --debug
-```
-
-### Environment Variables
-
-| Variable          | Description                                                                                                                                                                                                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SPECIFY_FEATURE` | Override feature detection for non-Git repositories. Set to the feature directory name (e.g., `001-photo-albums`) to work on a specific feature when not using Git branches.<br/>**Must be set in the context of the agent you're working with prior to using `/atomicspec.plan` or follow-up commands.** |
-
-## Core Philosophy
-
-Spec-Driven Development is a structured process that emphasizes:
-
-- **Intent-driven development** where specifications define the "*what*" before the "*how*"
-- **Rich specification creation** using guardrails and organizational principles
-- **Multi-step refinement** rather than one-shot code generation from prompts
-- **Heavy reliance** on advanced AI model capabilities for specification interpretation
-
-## Development Phases
-
-| Phase                                    | Focus                    | Key Activities                                                                                                                                                     |
-| ---------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **0-to-1 Development** ("Greenfield")    | Generate from scratch    | <ul><li>Start with high-level requirements</li><li>Generate specifications</li><li>Plan implementation steps</li><li>Build production-ready applications</li></ul> |
-| **Creative Exploration**                 | Parallel implementations | <ul><li>Explore diverse solutions</li><li>Support multiple technology stacks & architectures</li><li>Experiment with UX patterns</li></ul>                         |
-| **Iterative Enhancement** ("Brownfield") | Brownfield modernization | <ul><li>Add features iteratively</li><li>Modernize legacy systems</li><li>Adapt processes</li></ul>                                                                |
-
-## Prerequisites
-
-- **Linux/macOS/Windows**
-- [Supported](#supported-ai-agents) AI coding agent.
-- [uv](https://docs.astral.sh/uv/) for package management
-- [Python 3.11+](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/downloads)
-
-If you encounter issues with an agent, please open an issue so we can refine the integration.
-
-</details>
+<!-- The upstream Spec Kit documentation (install paths, per-agent notes, CLI reference)
+     was previously mirrored in this README. It has been removed to keep the landing
+     page focused on Atomic Spec's delta. The canonical Spec Kit docs live upstream. -->
 
 ---
 

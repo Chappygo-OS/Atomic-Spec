@@ -1,6 +1,6 @@
 [project]
 name = "atomic-spec"
-version = "0.1.0"
+version = "0.1.1"
 description = "Atomic Traceability for AI-Driven Development — a governance framework that constrains AI coding agents via gated, atomic, context-pinned phases."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,12 +16,21 @@ keywords = [
     "spec-driven-development",
     "sdd",
     "ai-agents",
+    "ai-coding",
     "claude-code",
+    "cursor",
+    "github-copilot",
+    "gemini",
+    "windsurf",
+    "llm-tools",
+    "context-engineering",
     "traceability",
+    "atomic-traceability",
     "atomic-tasks",
     "governance",
     "scaffolding",
     "cli",
+    "spec-kit",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

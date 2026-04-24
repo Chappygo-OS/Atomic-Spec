@@ -17,7 +17,8 @@ jobs:
     name: Build template bundles and publish GitHub Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # softprops needs this to create the Release
+      actions: write   # gh workflow run needs this to dispatch publish.yml
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -144,3 +145,40 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+
+      # The release.published event fired by softprops above will NOT trigger
+      # publish.yml on its own — GitHub suppresses events authored by the default
+      # GITHUB_TOKEN to prevent workflow-chain loops. workflow_dispatch is one of
+      # the two events GITHUB_TOKEN IS permitted to trigger, so we dispatch
+      # publish.yml explicitly here.
+      #
+      # Pre-release tag convention: any tag containing 'rc', 'alpha', 'beta', or 'dev'
+      # (lowercase — tag convention is strictly lowercase per CONTRIBUTING) is treated
+      # as a pre-release and NOT auto-published to PyPI. Use manual workflow_dispatch
+      # for pre-release uploads if desired.
+      - name: Trigger PyPI publish workflow
+        if: >
+          !contains(github.ref_name, 'rc') &&
+          !contains(github.ref_name, 'alpha') &&
+          !contains(github.ref_name, 'beta') &&
+          !contains(github.ref_name, 'dev')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Retry loop to absorb the small propagation race between softprops
+          # creating the release/tag and GitHub's workflow_dispatch API seeing
+          # the new tag ref. Three attempts with 10s backoff is plenty.
+          for attempt in 1 2 3; do
+            if gh workflow run publish.yml \
+                 --repo "${{ github.repository }}" \
+                 --ref "${{ github.ref_name }}" \
+                 -f target=pypi; then
+              echo "::notice::Dispatched publish.yml on attempt ${attempt}"
+              exit 0
+            fi
+            echo "::warning::Dispatch attempt ${attempt} failed, retrying in 10s"
+            sleep 10
+          done
+          echo "::error::Failed to dispatch publish.yml after 3 attempts. Run manually: gh workflow run publish.yml --ref ${{ github.ref_name }} -f target=pypi"
+          exit 1

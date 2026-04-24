@@ -26,3 +26,19 @@ Atomic Spec ships template bundles for 17 AI coding agents, organized into two t
 - **Experimental tier** (all other agents): command templates are installed into the agent's conventional folder; the Eight Prime Directives remain enforced because they are template-enforced, but agent-specific wiring has not been validated. Issues are labeled `experimental` and triaged best-effort. PRs that promote an agent from experimental to supported — including validation scripts, an entry in `init-project.{sh,ps1}`, and at least one end-to-end smoke run documented in the PR — are welcome.
 
 Requesting a new agent? File an issue with the template tag `agent-request` describing the agent's command-discovery convention and a link to its CLI documentation.
+
+## Release / Publish Recovery
+
+If a tag push triggered `release.yml` successfully (GitHub Release was created with template zips) but the automatic `publish.yml` dispatch failed (PyPI was not updated), recover manually:
+
+```bash
+# Replace vX.Y.Z with the tag that was published on GitHub but is missing from PyPI
+gh workflow run publish.yml \
+  --repo Chappygo-OS/Atomic-Spec \
+  --ref vX.Y.Z \
+  -f target=pypi
+```
+
+The `publish.yml` workflow is idempotent at the PyPI level — if the version is already uploaded, PyPI will reject the duplicate and the run will fail harmlessly. Safe to re-run.
+
+Manual TestPyPI dry-runs use the same pattern with `target=testpypi` against the `main` branch.

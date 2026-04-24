@@ -1,8 +1,11 @@
 name: Publish to PyPI
 
+# Primary trigger is workflow_dispatch, invoked by release.yml's final step after
+# a GitHub Release is created (and also usable manually for TestPyPI dry-runs).
+# The `release: published` trigger is intentionally absent — events authored by
+# the default GITHUB_TOKEN cannot chain to other workflows, so listening for
+# `release.published` here would be silently ineffective.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       target:
@@ -29,7 +32,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || github.ref }}
+          # github.ref for workflow_dispatch is the ref we passed (tag or branch).
+          # release.yml always dispatches us with --ref <tag-name>.
+          ref: ${{ github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,14 +42,16 @@ jobs:
           python-version: '3.11'
 
       - name: Verify tag matches pyproject.toml version
-        if: github.event_name == 'release'
+        # Only when dispatched for a tag (release.yml always does this).
+        # Manual workflow_dispatch for TestPyPI from a branch is allowed without a tag.
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           set -euo pipefail
           PYPROJECT_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_NAME="${GITHUB_REF_NAME}"
           TAG_VERSION="${TAG_NAME#v}"
           if [[ "$PYPROJECT_VERSION" != "$TAG_VERSION" ]]; then
-            echo "::error::Release tag ${TAG_NAME} (stripped: ${TAG_VERSION}) does not match pyproject.toml version ${PYPROJECT_VERSION}"
+            echo "::error::Tag ${TAG_NAME} (stripped: ${TAG_VERSION}) does not match pyproject.toml version ${PYPROJECT_VERSION}"
             exit 1
           fi
           echo "Version verified: ${TAG_VERSION}"
@@ -72,9 +79,7 @@ jobs:
   publish-pypi:
     name: Publish to PyPI (Trusted Publishing)
     needs: build
-    if: >
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    if: inputs.target == 'pypi'
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -94,7 +99,7 @@ jobs:
   publish-testpypi:
     name: Publish to TestPyPI (Trusted Publishing)
     needs: build
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    if: inputs.target == 'testpypi'
     runs-on: ubuntu-latest
     environment:
       name: testpypi
