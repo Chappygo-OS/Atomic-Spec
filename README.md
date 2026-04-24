@@ -1,6 +1,6 @@
 <div align="center">
 
-# Atomic Spec
+<img src="assets/atomic-spec-banner.jpg" alt="Atomic Spec" width="720">
 
 ### Stop your AI from vibe-coding.
 
