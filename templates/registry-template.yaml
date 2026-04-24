@@ -79,11 +79,12 @@ mobile:
   # drift = Drift (Flutter, formerly Moor)
   local_database: null
 
-  # Deep linking approach: universal_links | branch | firebase | appsflyer | none
+  # Deep linking approach: universal_links | branch | firebase | appsflyer | custom | none
   # universal_links = iOS Universal Links + Android App Links
   # branch = Branch.io deep linking
   # firebase = Firebase Dynamic Links
   # appsflyer = AppsFlyer OneLink
+  # custom = In-house scheme handler
   deep_linking: null
 
   # In-app purchase framework: storekit2 | billing_client | revenuecat | adapty | none
@@ -96,9 +97,16 @@ mobile:
   # Crash reporting: crashlytics | sentry | bugsnag | none
   crash_reporting: null
 
+  # Mobile analytics: firebase_analytics | amplitude | mixpanel | none
+  analytics: null
+
   # Certificate pinning: enabled | disabled
   # enabled = SSL certificate pinning for API calls
   cert_pinning: null
+
+  # Biometric authentication: enabled | disabled
+  # enabled = Face ID / Touch ID / fingerprint unlock integrated
+  biometric_auth: null
 
   # App architecture pattern (iOS/Android native): mvvm | mvc | viper | clean | none
   # mvvm = Model-View-ViewModel
@@ -249,21 +257,6 @@ backend:
 
   # Caching layer: redis | memcached | in_memory | none
   cache: null
-
-# ============================================================================
-# TARGET PLATFORM (What are we building for?)
-# ============================================================================
-# This determines which Phase 0.8 questions are shown during /atomicspec.plan
-# ============================================================================
-target_platform:
-  # Primary platform: web | ios | android | react-native | flutter | desktop
-  primary: null
-
-  # For mobile/cross-platform: ios | android | both
-  mobile_platforms: null
-
-  # Mobile framework if cross-platform: react-native | flutter | native
-  mobile_framework: null
 
 # ============================================================================
 # FRONTEND CONFIGURATION (Web)
@@ -417,36 +410,6 @@ flutter:
 
   # Code generation: freezed | json_serializable | both | none
   code_generation: null
-
-# ============================================================================
-# MOBILE COMMON CONFIGURATION
-# ============================================================================
-# Shared mobile settings for ios, android, react-native, flutter
-# ============================================================================
-mobile:
-  # Push notification service: apns_fcm | onesignal | firebase | expo_push
-  push_service: null
-
-  # Offline strategy: offline_first | online_first | hybrid | none
-  offline_strategy: null
-
-  # Deep linking: universal_links | branch | firebase | custom | none
-  deep_linking: null
-
-  # In-app purchase framework: storekit2 | billing_client | revenuecat | none
-  iap_framework: null
-
-  # Crash reporting: crashlytics | sentry | bugsnag | none
-  crash_reporting: null
-
-  # Analytics: firebase_analytics | amplitude | mixpanel | none
-  analytics: null
-
-  # Certificate pinning: enabled | disabled
-  cert_pinning: null
-
-  # Biometric auth: enabled | disabled
-  biometric_auth: null
 
 # ============================================================================
 # DATABASE CONFIGURATION

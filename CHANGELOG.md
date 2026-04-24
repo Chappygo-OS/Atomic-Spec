@@ -9,6 +9,36 @@ All notable changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-04-24
+
+### Added
+
+- **PyPI release** — Atomic Spec is now installable via `uv tool install atomic-spec` and publishes through GitHub Actions Trusted Publishing (OIDC, no long-lived secrets).
+- **Automated release pipeline** — `v*` tag push triggers `release.yml` (builds 34 per-agent template zips: 17 agents × 2 script types) and auto-dispatches `publish.yml` to PyPI.
+- **`cursor-agent` accepted as agent key** — Both `cursor` (legacy shell convention) and `cursor-agent` (matches the Cursor CLI executable name) are honored by `init-project.{sh,ps1}` and the `atomicspec` CLI.
+- **Tech-stack gate now rejects unfilled `[placeholder]` values** — `check-prerequisites.{sh,ps1}` validate six Technical Context fields (Language/Version, Primary Dependencies, Storage, Testing, Target Platform, Project Type) against empty/leading-`[`/`NEEDS CLARIFICATION` markers.
+- **Directive 7 (Project Defaults Registry) restored** in the governance chain and wired into `check-prerequisites` gate validation.
+- **Dynamic Agent Discovery documented** — subagent matching is keyword-based against YAML frontmatter `description`, never hard-coded.
+
+### Changed
+
+- **CLI renamed** — all slash commands now use the `atomicspec.*` prefix (e.g., `/atomicspec.specify`, `/atomicspec.plan`). The PyPI executable is `atomicspec`; the package on PyPI is `atomic-spec`.
+- **CLI template source** — `src/specify_cli/__init__.py` now pulls template zips from `Chappygo-OS/Atomic-Spec` GitHub Releases (overridable via `ATOMIC_SPEC_REPO` and `ATOMIC_SPEC_ASSET_PREFIX`), not upstream `github/spec-kit`.
+- **Agent configuration extracted** — `AGENT_CONFIG` and `ATOMIC_SPEC_COMMANDS` moved from `__init__.py` to `src/specify_cli/_config.py` (stdlib-only) so the release workflow can enumerate agents without installing `typer`/`rich`/`httpx`.
+- **Registry template de-duplicated** — `templates/registry-template.yaml` had duplicate `target_platform:` and `mobile:` keys (silent data loss under strict YAML parsers). Merged into single canonical sections preserving every field from both versions.
+- **Station numbers in templates** — corrected stale references in `templates/spec-template.md` and `templates/traceability-template.md` to match authoritative numbering (01–18) in `.specify/knowledge/stations/`.
+
+### Fixed
+
+- **Windows cp1252 encoding crash** — CLI banner with box-drawing Unicode now reconfigures stdout/stderr to UTF-8 on Windows at module entry.
+- **Article IX naming conflict** — `atomic-traceability-model.md` now describes Atomic Spec's Article IX (Eight Prime Directives), matching `memory/constitution.md` and the command templates. Upstream's "Integration-First Testing" is retained as non-normative quality guidance.
+- **Upstream branding removed** from `CONTRIBUTING.md`, `docs/README.md`, `docs/installation.md`, `docs/upgrade.md`, and `AGENTS.md`.
+- **Contact email** — `CODE_OF_CONDUCT.md` enforcement contact now points to the project owner instead of GitHub's upstream address.
+- **README subagent claim** corrected — general-purpose domains listed accurately; mobile lifecycle agents properly scoped to the `mobile/` subtree.
+- **`date -d` portability** — `validate-tech-stack.sh` now falls back from GNU `date -d` → BSD `date -j` → Python on systems without GNU coreutils (fixes silent failure on macOS).
+
+---
+
 ## [0.1.0] - 2026-04-20
 
 ### Added

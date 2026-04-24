@@ -599,17 +599,115 @@ Manual verification required:
    - Integration verification status
    - Feature ready for review
 
+### 9. Registry Sync — On Exit (MANDATORY)
+
+> ⛔ **Do NOT begin Phase 9 until all tasks in Phases 1–8 are marked `DONE` in `index.md`.** Do NOT read `plan.md` or `registry.yaml` during any task in Phases 1–8 — the Context Pinning exception below is scoped to Phase 9 only and does not activate until every preceding task is complete.
+
+**Per Constitution Article IX, Directive 7 "Protocol — On Exit"** — feature-level registry sync is required after every successful implementation. This is what keeps the registry accurate as the codebase evolves; without it, the registry freezes at plan time and drifts over subsequent features.
+
+This step satisfies the "On Exit" obligation for the implement phase. It runs ONCE at feature completion, not per-task. Task-loop momentum is preserved.
+
+**Exception to Context Pinning**: this phase is the ONLY implement-phase operation permitted to read `plan.md` — specifically to extract the registry-relevant decisions recorded during planning. Scan only the Tech Stack / Decisions sections; do NOT re-read requirements or specs. This exception exists because registry sync is definitionally a cross-task operation and cannot be self-contained in a single task file.
+
+#### 9.1 Scan the implementation for new project-wide patterns
+
+Review the completed work for decisions that APPLY PROJECT-WIDE (not feature-specific). Signals to look for:
+
+| Signal in code/config | Registry candidate |
+|----------------------|--------------------|
+| Every query filters by `tenant_id` / `org_id` | `database.tenancy_model = shared_db_tenant_id` |
+| New ORM / data-access pattern used consistently | `backend.orm`, `code_patterns.data_access` |
+| New auth middleware or JWT pattern | `backend.auth_method`, `backend.auth_pattern` |
+| New logging format (structured JSON, correlation IDs) | `error_handling.logging_format`, `error_handling.correlation_header` |
+| New error-response envelope adopted | `api.error_format`, `api.response_envelope` |
+| New testing framework / helpers introduced | `testing.unit_framework`, `testing.integration_framework`, `testing.mocking` |
+| New rate-limit / caching middleware | `api.rate_limiting`, `backend.cache` |
+| New migration tool adopted | `database.migration_strategy` |
+| New secret-management pattern | `infrastructure.secrets` |
+| New CI workflow added | `infrastructure.ci_cd`, `infrastructure.deployment_strategy` |
+| Consistent directory/file naming across new code | `conventions.files`, `conventions.variables` |
+
+Compare each signal against the current registry (read `specs/_defaults/registry.yaml`). A signal is a CANDIDATE if:
+- Its registry field is `null` OR
+- Its registry field has a different value AND the code legitimately deviates from it (this is a deviation-documentation case, not a registry update)
+
+Filter out feature-specific details. If something was true only for this feature, it does NOT belong in the registry.
+
+#### 9.2 Present candidates for HITL confirmation
+
+If there are no candidates, skip to 9.4 and report "registry sync: no new candidates."
+
+Otherwise, present a single table:
+
+```
+Post-implementation registry sync — candidates:
+
+┌────────────────────────────────┬────────────────────────┬──────────────────────────────────────┐
+│ Registry Field                 │ Proposed Value         │ Evidence                             │
+├────────────────────────────────┼────────────────────────┼──────────────────────────────────────┤
+│ database.tenancy_model         │ shared_db_tenant_id    │ 7 queries in src/users/ filter tid   │
+│ error_handling.logging_format  │ structured             │ logger.ts switched to pino JSON      │
+│ api.error_format               │ rfc7807                │ All new endpoints return Problem+JSON│
+│ testing.integration_framework  │ supertest              │ Added in T-020, used by 4 tests      │
+└────────────────────────────────┴────────────────────────┴──────────────────────────────────────┘
+```
+
+Use `AskUserQuestion` with these choices:
+
+- **Add all to registry** — accept every candidate as shown
+- **Select which to add** — user lists specific row numbers
+- **Skip — keep feature-specific** — mark everything as feature-scoped, no registry update
+
+For each accepted candidate, verify the proposed value with the user if any ambiguity exists. Allow `custom: <value>` as an override per row.
+
+#### 9.3 Atomic write + audit trail
+
+For every accepted candidate, perform an atomic update:
+
+1. Read current `specs/_defaults/registry.yaml`
+2. Merge accepted values in memory (do NOT touch fields not in the candidate set)
+3. Update metadata: `last_updated: YYYY-MM-DD`, `last_updated_by: human`, append the current feature slug to `applied_to`
+4. Write to `registry.yaml.tmp`, verify it is well-formed (re-read and check for YAML syntax errors), then write `registry.yaml` from the same content and delete `registry.yaml.tmp` (AI agents may not have a rename tool; explicit write + delete achieves the same atomicity guarantee)
+5. Append to `specs/_defaults/changelog.md`:
+
+```markdown
+## [YYYY-MM-DD] — Registry sync after implementing <feature-slug>
+
+- **Changed**: `database.tenancy_model`: null → `shared_db_tenant_id`
+  - **Why**: 7 queries in src/users/ filter by tenant_id; pattern is project-wide
+  - **Source**: /atomicspec.implement Phase 9 sync (feature: 001-user-onboarding)
+  - **Approved by**: Human (Add all, Phase 9.2)
+```
+
+#### 9.4 Report
+
+Final summary to the user:
+
+```
+Registry sync complete.
+  Candidates detected: 4
+  Added to registry: 3
+  Skipped (feature-specific): 1
+  Registry file: specs/_defaults/registry.yaml (last_updated: 2026-04-24)
+  Audit entry: specs/_defaults/changelog.md
+```
+
+If the user had the registry gate overridden via `ATOMIC_SPEC_NO_REGISTRY=1` at task-gate time, remind them: "registry override was active; consider running /atomicspec.registry to create the registry before the next feature."
+
 ## Context Pinning Reminder
 
-**During implementation, you may ONLY read**:
+**During task execution (Phases 1–8), you may ONLY read**:
 - `index.md` - Navigation and status
 - Current `T-XXX-[name].md` - Active task details
 - `traceability.md` - To update completion status
 
-**FORBIDDEN**:
+**FORBIDDEN during task execution**:
 - Reading `plan.md` during implementation
 - Reading `spec.md` during implementation
 - Reading task files other than the current one
 - Making architectural decisions not in the task file
 
-If you need information not in the current task file, the task file is incomplete. Report this as a task quality issue rather than reading forbidden files.
+**Single carved exception — Phase 9 (Registry Sync on Exit)**:
+Phase 9 may read `plan.md` to extract the registry-relevant decisions recorded during planning, and may read `specs/_defaults/registry.yaml` to compute the diff. This exception is scoped to Phase 9 only; it exists because registry sync is inherently cross-task. Phase 9 must NOT read `spec.md` or any task file other than those already completed.
+
+If during Phases 1–8 you need information not in the current task file, the task file is incomplete. Report this as a task quality issue rather than reading forbidden files.

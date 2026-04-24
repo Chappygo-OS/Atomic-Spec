@@ -148,5 +148,6 @@ ATOMIC_SPEC_COMMANDS = [
     "clarify",
     "cleanup",
     "constitution",
+    "registry",
     "taskstoissues",
 ]

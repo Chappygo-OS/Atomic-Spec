@@ -3,24 +3,39 @@
 ## Prerequisites
 
 - **Linux / macOS / Windows** (PowerShell scripts work natively on Windows; no WSL required)
-- An AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor](https://cursor.sh/), or [Windsurf](https://codeium.com/windsurf)
+- An AI coding agent — `claude`, `gemini`, `copilot`, `cursor`, `windsurf` have dedicated shell-script support; the `atomicspec` CLI additionally supports `qwen`, `opencode`, `codex`, `kilocode`, `auggie`, `codebuddy`, `qoder`, `roo`, `q`, `amp`, `shai`, `bob` (experimental tier)
 - [Git](https://git-scm.com/downloads)
-- (Planned, post-`v0.1.0`) [uv](https://docs.astral.sh/uv/) + [Python 3.11+](https://www.python.org/downloads/) — required only for the future PyPI install path
+- [uv](https://docs.astral.sh/uv/) + [Python 3.11+](https://www.python.org/downloads/) (required for the PyPI install path)
 
-## Supported AI Agents
+## Quick Install (PyPI — recommended)
 
-The init scripts currently set up commands for these five agents: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`. The Python CLI (once published) will support more.
+The fastest way to get started:
 
-## Installation
+```bash
+# Install the CLI
+uv tool install atomic-spec
 
-### Step 1: Clone Atomic Spec
+# Initialize a new project
+atomicspec init <PROJECT_NAME>
+
+# Or initialize in the current directory
+atomicspec init --here
+
+# Pick an agent explicitly (defaults to prompting)
+atomicspec init <PROJECT_NAME> --ai claude
+atomicspec init <PROJECT_NAME> --ai cursor-agent
+```
+
+Upgrade the CLI later with `uv tool install atomic-spec --force`.
+
+## Alternative: Clone & Run Local Scripts
+
+If you prefer cloning the repo (useful for testing unreleased changes or avoiding `uv`):
 
 ```bash
 git clone https://github.com/Chappygo-OS/Atomic-Spec.git
-cd atomic-spec
+cd Atomic-Spec
 ```
-
-### Step 2: Initialize a new project
 
 **macOS / Linux / WSL:**
 
@@ -30,7 +45,7 @@ cd atomic-spec
 ./init-project.sh /path/to/<PROJECT_NAME> --ai claude
 ./init-project.sh /path/to/<PROJECT_NAME> --ai gemini
 ./init-project.sh /path/to/<PROJECT_NAME> --ai copilot
-./init-project.sh /path/to/<PROJECT_NAME> --ai cursor
+./init-project.sh /path/to/<PROJECT_NAME> --ai cursor          # or --ai cursor-agent
 ./init-project.sh /path/to/<PROJECT_NAME> --ai windsurf
 ```
 
@@ -41,7 +56,18 @@ cd atomic-spec
 .\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>" -AIAgent "claude"
 ```
 
-### Step 3: Verify
+### Cursor agent naming
+
+The actual Cursor CLI executable is `cursor-agent`. Both paths accept either name:
+
+| Tool | Flag |
+|------|------|
+| `init-project.sh` / `init-project.ps1` | `--ai cursor` or `--ai cursor-agent` (equivalent) |
+| `atomicspec` (PyPI CLI) | `--ai cursor-agent` (matches AGENT_CONFIG key) |
+
+Either will set up the `.cursor/commands/` directory correctly.
+
+## Verify
 
 After initialization, the project directory should contain:
 
@@ -56,20 +82,20 @@ In your AI agent, the following slash commands should now be available:
 - `/atomicspec.specify` — create feature specifications
 - `/atomicspec.plan` — generate implementation plans
 - `/atomicspec.tasks` — generate atomic task files
-- `/atomicspec.implement` — execute with Context Pinning
+- `/atomicspec.implement` — execute with Context Pinning; on exit, Phase 9 syncs new project-wide decisions back to the registry
+- `/atomicspec.registry` — discover and populate the Project Defaults Registry from your project manifests (run this once after init, or whenever the registry falls out of sync)
 - `/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.constitution`, `/atomicspec.analyze-competitors`, `/atomicspec.cleanup`, `/atomicspec.taskstoissues` — supporting commands
 
-## Future: PyPI install (`v0.1.0`+)
+### Bootstrap step: populate the Project Defaults Registry
 
-Once Atomic Spec publishes to PyPI, the install path will shorten to:
+Right after initializing a project, `specs/_defaults/registry.yaml` exists but every value is `null`. Run `/atomicspec.registry` in your AI agent to populate it:
 
-```bash
-uv tool install atomic-spec
-atomicspec init <PROJECT_NAME>
-atomicspec init --here
-```
+1. It scans your repo's manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Dockerfile`, `.github/workflows/*`, `prisma/schema.prisma`, etc.)
+2. It presents discovered values in a single table for batched HITL confirmation
+3. It interviews you for fields that manifests can't reveal (tenancy model, architecture pattern, API conventions)
+4. It writes `registry.yaml` + an audit trail in `changelog.md` atomically
 
-Track progress on [Chappygo-OS/Atomic-Spec releases](https://github.com/Chappygo-OS/Atomic-Spec/releases).
+You can also defer this — `/atomicspec.plan` Phase 0.9 will offer to populate the registry from plan-time decisions — but doing it upfront gives every subsequent command a richer default set.
 
 ## Troubleshooting
 
@@ -106,3 +132,13 @@ Allow the script to run for the current session:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\init-project.ps1 -TargetPath "D:\path\to\project" -AIAgent "claude"
 ```
+
+### `atomicspec: command not found` after `uv tool install`
+
+Ensure `uv`'s tool directory is on your `PATH`:
+
+```bash
+uv tool update-shell   # prints instructions per-shell
+```
+
+Then restart your terminal.

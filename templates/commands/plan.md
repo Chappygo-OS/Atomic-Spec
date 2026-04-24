@@ -187,24 +187,40 @@ Before any planning work, load the project defaults registry:
    ══════════════════════════════════════════════════════════════
    ```
 
-3. **If registry doesn't exist**, warn user:
+3. **If registry doesn't exist**, STOP and direct the user to create it:
    ```
    ══════════════════════════════════════════════════════════════
-   ⚠️ PROJECT DEFAULTS REGISTRY NOT FOUND
+   🛑 PROJECT DEFAULTS REGISTRY NOT FOUND
    ══════════════════════════════════════════════════════════════
 
    No registry found at specs/_defaults/registry.yaml
 
-   This may mean:
-   - Project was initialized before registry feature was added
-   - Registry was accidentally deleted
+   Per Constitution Article IX, Directive 7, all planning MUST read
+   project defaults from this file. Without it, every decision in this
+   plan becomes feature-specific — exactly the drift this framework
+   exists to prevent.
 
-   All decisions in this plan will be feature-specific unless
-   you choose to create a registry during this session.
+   Recommended: run /atomicspec.registry first. It will:
+     1. Scan your project manifests (package.json, pyproject.toml,
+        Cargo.toml, go.mod, Dockerfile, CI workflows, etc.)
+     2. Present discovered values for your confirmation (batched HITL)
+     3. Interview you for non-discoverable fields (tenancy, architecture)
+     4. Write specs/_defaults/registry.yaml + changelog.md atomically
+
+   Then re-run /atomicspec.plan.
    ══════════════════════════════════════════════════════════════
    ```
 
-4. **Store loaded defaults** for use in subsequent phases:
+   Use `AskUserQuestion` with three choices:
+   - **Pause and run `/atomicspec.registry` now** (recommended) — halt planning; user runs the discovery command, then restarts `/atomicspec.plan`
+   - **Proceed without registry (explicit override)** — continue with every decision marked `Source: Assumed (no registry)`; Phase 0.9 will offer to create the registry from accumulated decisions
+   - **Cancel** — abort `/atomicspec.plan`
+
+   Do NOT silently proceed. The Atomic Traceability Model requires the absence to be made visible.
+
+4. **If registry exists but is EMPTY** (all values `null`): warn but proceed. Phase 0.9 (Registry Sync) will populate it from the decisions made during this plan.
+
+5. **Store loaded defaults** for use in subsequent phases:
    - These will pre-populate tech stack decisions
    - Any decision matching registry = Source: "Registry"
    - Any decision NOT in registry = Source: "Assumed" (candidate for registry)

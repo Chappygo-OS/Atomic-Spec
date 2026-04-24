@@ -1,18 +1,26 @@
-# AGENTS.md
+# AGENTS.md — Adding a New AI Agent to Atomic Spec
 
-## About Spec Kit and Specify
+## About Atomic Spec and the `atomicspec` CLI
 
-**GitHub Spec Kit** is a comprehensive toolkit for implementing Spec-Driven Development (SDD) - a methodology that emphasizes creating clear specifications before implementation. The toolkit includes templates, scripts, and workflows that guide development teams through a structured approach to building software.
+**Atomic Spec** is a governance framework for AI-driven development — a customized fork of [GitHub Spec Kit](https://github.com/github/spec-kit) that enforces the Atomic Traceability Model (gated, atomic, context-pinned phases). See [`atomic-traceability-model.md`](./atomic-traceability-model.md) for the governance model.
 
-**Specify CLI** is the command-line interface that bootstraps projects with the Spec Kit framework. It sets up the necessary directory structures, templates, and AI agent integrations to support the Spec-Driven Development workflow.
+The **`atomicspec` CLI** (PyPI package: `atomic-spec`) bootstraps projects with the framework. It sets up the necessary directory structures, templates, and AI-agent integrations to support the four-phase Specify → Plan → Tasks → Implement workflow.
 
-The toolkit supports multiple AI coding assistants, allowing teams to use their preferred tools while maintaining consistent project structure and development practices.
+The framework supports 17+ AI coding assistants across two tiers:
+
+- **Supported tier** (wired end-to-end, exercised on every release): `claude`, `gemini`, `copilot`, `cursor-agent`, `windsurf`
+- **Experimental tier** (template-enforced governance, best-effort triage): `qwen`, `opencode`, `codex`, `kilocode`, `auggie`, `codebuddy`, `qoder`, `roo`, `q`, `amp`, `shai`, `bob`
+
+Agent matching for subagents is **dynamic**: keyword overlap between feature descriptions and YAML frontmatter `description` fields — no hard-coded agent lists in command templates.
+
+This guide explains how to add a new agent to the supported or experimental tier.
 
 ---
 
 ## General practices
 
-- Any changes to `__init__.py` for the Specify CLI require a version rev in `pyproject.toml` and addition of entries to `CHANGELOG.md`.
+- Any changes to `src/specify_cli/__init__.py` require a version rev in `pyproject.toml` and an entry in `CHANGELOG.md`.
+- Agent metadata (`AGENT_CONFIG` and `ATOMIC_SPEC_COMMANDS`) lives in `src/specify_cli/_config.py` — a stdlib-only module that the release workflow imports via `importlib.util` without installing CLI dependencies.
 
 ## Adding New Agent Support
 
@@ -57,7 +65,7 @@ Follow these steps to add a new agent (using a hypothetical new agent as an exam
 
 **IMPORTANT**: Use the actual CLI tool name as the key, not a shortened version.
 
-Add the new agent to the `AGENT_CONFIG` dictionary in `src/specify_cli/__init__.py`. This is the **single source of truth** for all agent metadata:
+Add the new agent to the `AGENT_CONFIG` dictionary in `src/specify_cli/_config.py`. This is the **single source of truth** for all agent metadata — both the `atomicspec` CLI (via re-export from `__init__.py`) and the release workflow (via `importlib.util`) read it from here:
 
 ```python
 AGENT_CONFIG = {
@@ -67,6 +75,7 @@ AGENT_CONFIG = {
         "folder": ".newagent/",  # Directory for agent files
         "install_url": "https://example.com/install",  # URL for installation docs (or None if IDE-based)
         "requires_cli": True,  # True if CLI tool required, False for IDE-based agents
+        "tier": "experimental",  # "supported" or "experimental" — see README tier policy
     },
 }
 ```
@@ -84,6 +93,7 @@ This eliminates the need for special-case mappings throughout the codebase.
 - `folder`: Directory where agent-specific files are stored (relative to project root)
 - `install_url`: Installation documentation URL (set to `None` for IDE-based agents)
 - `requires_cli`: Whether the agent requires a CLI tool check during initialization
+- `tier`: Support level — `"supported"` (wired end-to-end in `init-project.{sh,ps1}`, exercised on every release, bugs triaged as standard issues) or `"experimental"` (template-enforced governance applies, but agent-specific wiring is not validated; issues are labeled `experimental` and triaged best-effort). New agents start as `experimental` until a PR validates the end-to-end flow. See `SUPPORT.md` for the full tier policy.
 
 #### 2. Update CLI Help Text
 

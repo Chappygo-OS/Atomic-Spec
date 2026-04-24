@@ -298,137 +298,69 @@ The templates transform the LLM from a creative writer into a disciplined specif
 
 ## The Constitutional Foundation: Enforcing Architectural Discipline
 
-At the heart of SDD lies a constitution—a set of immutable principles that govern how specifications become code. The constitution (`memory/constitution.md`) acts as the architectural DNA of the system, ensuring that every generated implementation maintains consistency, simplicity, and quality.
+At the heart of Atomic Spec lies a constitution — a set of principles that govern how specifications become code. The constitution (`memory/constitution.md`) acts as the architectural DNA of the system, ensuring that every generated implementation maintains consistency, simplicity, and traceability.
 
-### The Nine Articles of Development
+### How the Constitution Is Structured
 
-The constitution defines nine articles that shape every aspect of the development process:
+Atomic Spec's constitution has **ten articles**:
 
-#### Article I: Library-First Principle
+- **Articles I–VIII** are **project-authored placeholders**. Every project instantiates them via `/atomicspec.constitution`, filling in principles appropriate to its domain (library-first design, CLI mandates, TDD, observability, versioning, simplicity, anti-abstraction, or anything else the team chooses to enshrine).
+- **Article IX** is **framework-hardcoded and invariant**: it defines the Eight Prime Directives that make the Atomic Traceability Model work. This is the load-bearing article — every command template, every script, and every knowledge station references Article IX.
+- **Article X** is the **Assembly Line Manual** — a pointer to `.specify/knowledge/stations/`, the 18 procedural guides that codify the pipeline.
 
-Every feature must begin as a standalone library—no exceptions. This forces modular design from the start:
+This split keeps the governance framework stable across projects while letting each project encode its own engineering philosophy in I–VIII.
 
-```text
-Every feature in Specify MUST begin its existence as a standalone library.
-No feature shall be implemented directly within application code without
-first being abstracted into a reusable library component.
-```
+### Articles I–VIII: Project-Authored Principles
 
-This principle ensures that specifications generate modular, reusable code rather than monolithic applications. When the LLM generates an implementation plan, it must structure features as libraries with clear boundaries and minimal dependencies.
+These articles are intentionally blank in the shipped constitution template. Projects fill them in during `/atomicspec.constitution` to capture their specific engineering culture. Common patterns include:
 
-#### Article II: CLI Interface Mandate
+- Library-first design (every feature begins as a reusable library)
+- CLI mandate (every capability is exposed as a text-in/text-out interface)
+- Test-first discipline (no implementation before failing tests)
+- Observability through structured logs and traces
+- Versioning and backwards-compatibility rules
+- Simplicity and anti-abstraction gates
 
-Every library must expose its functionality through a command-line interface:
+These are examples, not mandates. A project can have different Articles I–VIII and still be fully compliant with Atomic Spec — because the governance that makes the framework work lives in Article IX.
 
-```text
-All CLI interfaces MUST:
-- Accept text as input (via stdin, arguments, or files)
-- Produce text as output (via stdout)
-- Support JSON format for structured data exchange
-```
+### Article IX: The Eight Prime Directives (Hardcoded)
 
-This enforces observability and testability. The LLM cannot hide functionality inside opaque classes—everything must be accessible and verifiable through text-based interfaces.
+Article IX is the non-negotiable core. Every command in this framework reads and enforces these directives:
 
-#### Article III: Test-First Imperative
+1. **Directory Supremacy** — every feature has `index.md` + `traceability.md`
+2. **Atomic Injunction** — `/atomicspec.tasks` generates a `tasks/` directory with individual `T-XXX-[name].md` files; a single `tasks.md` is FORBIDDEN
+3. **Context Pinning** — during `/atomicspec.implement`, the AI may ONLY read `index.md` (for navigation), the specific `T-XXX-[name].md` task file, and `traceability.md` (to update status after completion); reading `plan.md` or `spec.md` during implementation is forbidden
+4. **Gate Compliance** — Knowledge Station gate criteria must pass before phase transitions
+5. **Knowledge Routing** — unknown decisions consult the Station Map first, then the specific station
+6. **Human-In-The-Loop** — `/atomicspec.plan` pauses at Phase 0.5 (Tech Stack Review) as the constitutionally required checkpoint; `plan-template.md` additionally enforces template-driven pauses at Phase 0.7 (Validation), Phase 0.8 (UI), and Phase 0.9 (Registry Sync)
+7. **Project Defaults Registry** — all commands read `specs/_defaults/registry.yaml` and enforce project-wide standards
+8. **Self-Contained Tasks** — task files embed all context (registry values, domain rules, gate criteria) needed for execution under Context Pinning
 
-The most transformative article—no code before tests:
+The full normative text of each directive lives in `memory/constitution.md` Article IX. Command templates quote it; scripts validate against it; knowledge stations hook into it.
 
-```text
-This is NON-NEGOTIABLE: All implementation MUST follow strict Test-Driven Development.
-No implementation code shall be written before:
-1. Unit tests are written
-2. Tests are validated and approved by the user
-3. Tests are confirmed to FAIL (Red phase)
-```
+### Article X: The Assembly Line Manual
 
-This completely inverts traditional AI code generation. Instead of generating code and hoping it works, the LLM must first generate comprehensive tests that define behavior, get them approved, and only then generate implementation.
-
-#### Articles VII & VIII: Simplicity and Anti-Abstraction
-
-These paired articles combat over-engineering:
-
-```text
-Section 7.3: Minimal Project Structure
-- Maximum 3 projects for initial implementation
-- Additional projects require documented justification
-
-Section 8.1: Framework Trust
-- Use framework features directly rather than wrapping them
-```
-
-When an LLM might naturally create elaborate abstractions, these articles force it to justify every layer of complexity. The implementation plan template's "Phase -1 Gates" directly enforce these principles.
-
-#### Article IX: Integration-First Testing
-
-Prioritizes real-world testing over isolated unit tests:
-
-```text
-Tests MUST use realistic environments:
-- Prefer real databases over mocks
-- Use actual service instances over stubs
-- Contract tests mandatory before implementation
-```
-
-This ensures generated code works in practice, not just in theory.
+Article X points projects to `.specify/knowledge/stations/`, the 18-station procedural backbone of the framework (Introduction → Roles → Discovery → PRD → User Flows → API Contracts → Data Architecture → Auth & RBAC → Billing → Metering → Observability → CI/CD → Security → Data Lifecycle → Performance → Analytics → Admin Tooling → Documentation). Each station defines gate criteria that Article IX's Directive 4 (Gate Compliance) enforces during phase transitions.
 
 ### Constitutional Enforcement Through Templates
 
-The implementation plan template operationalizes these articles through concrete checkpoints:
+Command templates operationalize Article IX through concrete checkpoints. For example, `/atomicspec.implement` refuses to read `plan.md` (enforcing Directive 3: Context Pinning); `/atomicspec.tasks` generates atomic task files instead of a monolithic `tasks.md` (enforcing Directive 2: Atomic Injunction); `check-prerequisites` refuses to advance if Technical Context fields still contain `[placeholders]` (supporting Directive 4: Gate Compliance). These aren't suggestions — they are structural guarantees.
 
-```markdown
-### Phase -1: Pre-Implementation Gates
+### Quality Principles (Non-Normative Guidance)
 
-#### Simplicity Gate (Article VII)
+Beyond the hardcoded directives, Atomic Spec inherits valuable quality principles from SDD tradition. These are **recommendations**, not enforced rules — projects that want them enforced should encode them into their Articles I–VIII:
 
-- [ ] Using ≤3 projects?
-- [ ] No future-proofing?
+- **Integration-first testing** — prefer real databases, real service instances, and contract tests over mocks
+- **Simplicity and anti-abstraction** — justify every layer of complexity before adding it
+- **Observability through text I/O** — stdin/stdout, JSON for structured data, logs as first-class interfaces
+- **Library-first design** — features begin as standalone libraries with clear boundaries
+- **Modularity over monoliths** — every feature has an explicit surface area
 
-#### Anti-Abstraction Gate (Article VIII)
+These principles combine well with Article IX's structural directives: Context Pinning (Directive 3) plus integration-first testing produces code that works in real environments because the AI is forced to reason about real contracts embedded in each task file, not inferred from a sprawling plan doc.
 
-- [ ] Using framework directly?
-- [ ] Single model representation?
+### The Power of Stable Governance
 
-#### Integration-First Gate (Article IX)
-
-- [ ] Contracts defined?
-- [ ] Contract tests written?
-```
-
-These gates act as compile-time checks for architectural principles. The LLM cannot proceed without either passing the gates or documenting justified exceptions in the "Complexity Tracking" section.
-
-### The Power of Immutable Principles
-
-The constitution's power lies in its immutability. While implementation details can evolve, the core principles remain constant. This provides:
-
-1. **Consistency Across Time**: Code generated today follows the same principles as code generated next year
-2. **Consistency Across LLMs**: Different AI models produce architecturally compatible code
-3. **Architectural Integrity**: Every feature reinforces rather than undermines the system design
-4. **Quality Guarantees**: Test-first, library-first, and simplicity principles ensure maintainable code
-
-### Constitutional Evolution
-
-While principles are immutable, their application can evolve:
-
-```text
-Section 4.2: Amendment Process
-Modifications to this constitution require:
-- Explicit documentation of the rationale for change
-- Review and approval by project maintainers
-- Backwards compatibility assessment
-```
-
-This allows the methodology to learn and improve while maintaining stability. The constitution shows its own evolution with dated amendments, demonstrating how principles can be refined based on real-world experience.
-
-### Beyond Rules: A Development Philosophy
-
-The constitution isn't just a rulebook—it's a philosophy that shapes how LLMs think about code generation:
-
-- **Observability Over Opacity**: Everything must be inspectable through CLI interfaces
-- **Simplicity Over Cleverness**: Start simple, add complexity only when proven necessary
-- **Integration Over Isolation**: Test in real environments, not artificial ones
-- **Modularity Over Monoliths**: Every feature is a library with clear boundaries
-
-By embedding these principles into the specification and planning process, SDD ensures that generated code isn't just functional—it's maintainable, testable, and architecturally sound. The constitution transforms AI from a code generator into an architectural partner that respects and reinforces system design principles.
+Article IX's invariance is the entire value proposition. Across time, across projects, across AI models, the eight directives stay constant — so a task file generated by one agent on Tuesday can be implemented by a different agent on Friday and still produce compatible, traceable work. Articles I–VIII can evolve per project; Article IX does not.
 
 ## The Transformation
 

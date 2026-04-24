@@ -26,9 +26,9 @@
   Before this specification can proceed to planning, the following Knowledge
   Station gates MUST be satisfied:
 
-  - Station 01 (Discovery): ICP defined, Wedge defined, JTBD captured
-  - Station 02 (PRD): SaaS Rules defined, Acceptance Criteria complete
-  - Station 03 (User Flows): Edge State Checklist covered
+  - Station 03 (Discovery): ICP defined, Wedge defined, JTBD captured
+  - Station 04 (PRD): SaaS Rules defined, Acceptance Criteria complete
+  - Station 05 (User Flows): Edge State Checklist covered
 
   This is NON-NEGOTIABLE per the Constitution.
   ============================================================================
@@ -37,10 +37,10 @@
 ## User Scenarios & Testing _(mandatory)_
 
 <!--
-  🛑 STOP: MANDATORY GATE - STATION 01
+  🛑 STOP: MANDATORY GATE - STATION 03
 
   BEFORE writing this section, you MUST:
-  1. READ: `.specify/knowledge/stations/01-discovery.md`
+  1. READ: `.specify/knowledge/stations/03-discovery.md`
   2. VERIFY these Gate Criteria are addressed:
      - [ ] ICP (Ideal Customer Profile) is defined or assumed
      - [ ] Anti-ICP (who NOT to target) is considered
@@ -51,10 +51,10 @@
 -->
 
 <!--
-  🛑 STOP: MANDATORY GATE - STATION 03
+  🛑 STOP: MANDATORY GATE - STATION 05
 
   BEFORE writing this section, you MUST:
-  1. READ: `.specify/knowledge/stations/03-user-flows.md`
+  1. READ: `.specify/knowledge/stations/05-user-flows.md`
   2. VERIFY these Gate Criteria are addressed:
      - [ ] User flows cover the Edge State Checklist:
            - RBAC (who can do what)
@@ -137,10 +137,10 @@
 ## Requirements _(mandatory)_
 
 <!--
-  🛑 STOP: MANDATORY GATE - STATION 02
+  🛑 STOP: MANDATORY GATE - STATION 04
 
   BEFORE writing this section, you MUST:
-  1. READ: `.specify/knowledge/stations/02-prd-spec.md`
+  1. READ: `.specify/knowledge/stations/04-prd-spec.md`
   2. VERIFY these Gate Criteria are addressed:
      - [ ] MVP scope is explicit (Goals + Non-goals defined)
      - [ ] Every "Must" story has testable Acceptance Criteria

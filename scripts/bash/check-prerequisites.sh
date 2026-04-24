@@ -159,10 +159,108 @@ check_gate_file() {
     fi
 }
 
+# Returns 0 if the named **Field**: line in $1 carries a real (non-placeholder) value.
+# Rejected placeholder forms:
+#   - empty or whitespace-only
+#   - starts with "[" (the template convention: "[e.g., ...]", "[REQUIRED — ...]")
+#   - contains the literal marker "NEEDS CLARIFICATION" anywhere
+# A trailing bracketed annotation (e.g., "Python 3.11 [checked 2026-04-20]") is
+# accepted — only a LEADING "[" signals an unfilled template slot.
+# Bash 3.x / BSD-grep safe. $field is sourced from a hardcoded list in this script,
+# not user input; regex-escaping is not applied because the known field names
+# contain only letters, spaces, and "/".
+check_plan_field() {
+    local file="$1"
+    local field="$2"  # e.g., "Language/Version"
+
+    local line
+    line=$(grep -E "^\*\*${field}\*\*:" "$file" 2>/dev/null | head -n 1)
+    [[ -z "$line" ]] && return 1
+
+    local value="${line#*:}"                       # strip "**Field**:"
+    value="${value#"${value%%[![:space:]]*}"}"     # ltrim
+    value="${value%"${value##*[![:space:]]}"}"     # rtrim
+
+    [[ -z "$value" ]] && return 1
+    [[ "${value:0:1}" == "[" ]] && return 1
+    case "$value" in *"NEEDS CLARIFICATION"*) return 1 ;; esac
+    return 0
+}
+
+# Classifies specs/_defaults/registry.yaml into one of three states:
+#   - missing   (file does not exist)
+#   - empty     (file exists but every value is `null` or `[]` — user hasn't filled anything)
+#   - populated (at least one non-null scalar value is set)
+#
+# Bash 3.x / BSD-grep safe. No YAML parser required — we use a structural heuristic
+# that matches how the template looks: lines of the form `  key: value` where value
+# is neither `null`, nor `[]`, nor an empty string. Comment lines and block headers
+# are skipped. The heuristic returns `populated` on the first non-null leaf, which
+# is correct for this file's shape (flat sections of key:value pairs).
+check_registry_state() {
+    local registry_file="$REPO_ROOT/specs/_defaults/registry.yaml"
+    if [[ ! -f "$registry_file" ]]; then
+        echo "missing"
+        return
+    fi
+    # Match "  key: value" where value is not null/[]/empty.
+    # Strip leading whitespace, skip comments, skip pure-section headers,
+    # reject `null`, `[]`, and empty RHS.
+    if awk '
+        /^[[:space:]]*#/ { next }                              # skip comments
+        /^[[:space:]]*$/ { next }                              # skip blank lines
+        /:[[:space:]]*$/ { next }                              # section header: "foo:"
+        /:[[:space:]]*null[[:space:]]*$/ { next }              # "foo: null"
+        /:[[:space:]]*\[\][[:space:]]*$/ { next }              # "foo: []"
+        /:[[:space:]]*~[[:space:]]*$/ { next }                 # "foo: ~" (YAML null alias)
+        /^[[:space:]]*(version|schema_version|last_updated|last_updated_by|created|applied_to):/ { next }  # skip metadata/schema fields
+        /:/ { print; exit }
+    ' "$registry_file" | grep -q .; then
+        echo "populated"
+    else
+        echo "empty"
+    fi
+}
+
 validate_gates() {
     local context="$1"
     local gate_failures=0
     local stations_dir="$REPO_ROOT/.specify/knowledge/stations"
+
+    # Registry gate — applies to both tasks and implement contexts.
+    # Directive 7 (Project Defaults Registry) requires the file to exist.
+    # Escape hatch: ATOMIC_SPEC_NO_REGISTRY=1 downgrades MISSING to a warning
+    # (for CI / legacy migrations that can't run interactive discovery).
+    case "$context" in
+        tasks|implement)
+            local registry_state
+            registry_state=$(check_registry_state)
+            case "$registry_state" in
+                missing)
+                    if [[ "${ATOMIC_SPEC_NO_REGISTRY:-0}" == "1" ]]; then
+                        echo "⚠ GATE WARN: specs/_defaults/registry.yaml missing (ATOMIC_SPEC_NO_REGISTRY=1 override active)" >&2
+                        # Append an audit trail entry so overrides are never silent
+                        local _cl_dir="$REPO_ROOT/specs/_defaults"
+                        mkdir -p "$_cl_dir" 2>/dev/null || true
+                        printf '\n## [%s] — ATOMIC_SPEC_NO_REGISTRY=1 override active (gate: %s)\n\n- Registry file absent. Override suppressed BLOCK → WARN for this run.\n' \
+                            "$(date +%Y-%m-%d 2>/dev/null || echo 'unknown-date')" "$context" >> "$_cl_dir/changelog.md" 2>/dev/null || true
+                    else
+                        echo "✗ GATE FAIL: specs/_defaults/registry.yaml not found" >&2
+                        echo "  → Run /atomicspec.registry to discover project defaults and create the file" >&2
+                        echo "  → Or set ATOMIC_SPEC_NO_REGISTRY=1 to proceed with graceful degradation" >&2
+                        ((gate_failures++))
+                    fi
+                    ;;
+                empty)
+                    echo "⚠ GATE WARN: registry.yaml exists but is empty (all values null)" >&2
+                    echo "  → Run /atomicspec.registry to populate, or let /atomicspec.plan Phase 0.9 populate from decisions" >&2
+                    ;;
+                populated)
+                    echo "✓ GATE PASS: registry.yaml populated" >&2
+                    ;;
+            esac
+            ;;
+    esac
 
     echo "" >&2
     echo "════════════════════════════════════════════════════════════" >&2
@@ -182,13 +280,24 @@ validate_gates() {
                 ((gate_failures++))
             fi
 
-            # Check if plan.md has tech stack defined
-            if [[ -f "$IMPL_PLAN" ]] && grep -qE "^\*\*Language/Version\*\*:" "$IMPL_PLAN" 2>/dev/null; then
-                echo "✓ GATE PASS: plan.md has tech stack defined" >&2
-            else
-                echo "✗ GATE FAIL: plan.md missing tech stack (Language/Version)" >&2
-                ((gate_failures++))
-            fi
+            # Check that plan.md Technical Context fields are actually filled (not [placeholder])
+            local required_fields=(
+                "Language/Version"
+                "Primary Dependencies"
+                "Storage"
+                "Testing"
+                "Target Platform"
+                "Project Type"
+            )
+            for field in "${required_fields[@]}"; do
+                if [[ -f "$IMPL_PLAN" ]] && check_plan_field "$IMPL_PLAN" "$field"; then
+                    echo "✓ GATE PASS: plan.md field '$field' filled" >&2
+                else
+                    echo "✗ GATE FAIL: plan.md field '$field' is missing, empty, or still a [placeholder]" >&2
+                    echo "  → Edit $IMPL_PLAN and replace the [...] placeholder with a real value" >&2
+                    ((gate_failures++))
+                fi
+            done
 
             # Check Tech Stack Approval (HITL checkpoint)
             if [[ -f "$IMPL_PLAN" ]] && grep -qE "^\*\*Approval Status\*\*: Approved" "$IMPL_PLAN" 2>/dev/null; then

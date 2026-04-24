@@ -10,7 +10,9 @@ param(
     [string]$TargetPath,
 
     [Parameter(Mandatory=$false)]
-    [ValidateSet("claude", "gemini", "copilot", "cursor", "windsurf")]
+    # "cursor" and "cursor-agent" are equivalent — the latter matches the Cursor CLI
+    # executable name used by the PyPI atomicspec CLI's AGENT_CONFIG key.
+    [ValidateSet("claude", "gemini", "copilot", "cursor", "cursor-agent", "windsurf")]
     [string]$AIAgent = "claude"
 )
 
@@ -74,7 +76,7 @@ if ($AIAgent -eq "claude") {
     }
 
     # Copy command files with atomicspec. prefix
-    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "analyze-competitors", "checklist", "clarify", "constitution", "taskstoissues", "cleanup")
+    $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "analyze-competitors", "checklist", "clarify", "constitution", "registry", "taskstoissues", "cleanup")
     foreach ($cmd in $commandFiles) {
         $sourceFile = Join-Path $sourceCommandsPath "$cmd.md"
         $targetFile = Join-Path $claudeCommandsPath "atomicspec.$cmd.md"
@@ -88,6 +90,7 @@ if ($AIAgent -eq "claude") {
         "gemini" = ".gemini"
         "copilot" = ".github"
         "cursor" = ".cursor"
+        "cursor-agent" = ".cursor"
         "windsurf" = ".windsurf"
     }
 
@@ -183,5 +186,6 @@ Write-Host "   /atomicspec.specify   - Create feature specification" -Foreground
 Write-Host "   /atomicspec.plan      - Create implementation plan" -ForegroundColor Gray
 Write-Host "   /atomicspec.tasks     - Generate atomic task files" -ForegroundColor Gray
 Write-Host "   /atomicspec.implement - Execute with Context Pinning" -ForegroundColor Gray
+Write-Host "   /atomicspec.registry  - Discover and populate Project Defaults Registry" -ForegroundColor Gray
 Write-Host "   /atomicspec.cleanup   - Detect and remove orphaned code" -ForegroundColor Gray
 Write-Host ""

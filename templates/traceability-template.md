@@ -14,12 +14,12 @@
 
 | Transition   | Gate                | Status     | Verified By |
 | ------------ | ------------------- | ---------- | ----------- |
-| Spec → Plan  | Stn 01 (Discovery)  | ✅ Pass    | AI Agent    |
-| Spec → Plan  | Stn 02 (PRD)        | ✅ Pass    | AI Agent    |
-| Spec → Plan  | Stn 03 (User Flows) | ✅ Pass    | AI Agent    |
-| Plan → Tasks | Stn 04 (API)        | 🔴 Pending | -           |
-| Plan → Tasks | Stn 05 (Data)       | 🔴 Pending | -           |
-| Plan → Tasks | Stn 11 (Security)   | 🔴 Pending | -           |
+| Spec → Plan  | Stn 03 (Discovery)  | ✅ Pass    | AI Agent    |
+| Spec → Plan  | Stn 04 (PRD)        | ✅ Pass    | AI Agent    |
+| Spec → Plan  | Stn 05 (User Flows) | ✅ Pass    | AI Agent    |
+| Plan → Tasks | Stn 06 (API)        | 🔴 Pending | -           |
+| Plan → Tasks | Stn 07 (Data)       | 🔴 Pending | -           |
+| Plan → Tasks | Stn 13 (Security)   | 🔴 Pending | -           |
 
 <!--
   INSTRUCTIONS:

@@ -154,13 +154,24 @@ git checkout -b 001-your-feature-name
 
 ```text
 /atomicspec.constitution              # establish project principles (once)
+/atomicspec.registry                  # discover and populate project defaults (once, or to refresh)
 /atomicspec.specify "your feature"    # generate a spec with gate criteria
 /atomicspec.plan                      # produces plan.md, pauses at 4 HITL checkpoints
 /atomicspec.tasks                     # writes tasks/T-XXX-*.md (never a single tasks.md)
-/atomicspec.implement                 # Context-Pinned implementation, one task at a time
+/atomicspec.implement                 # Context-Pinned implementation + Phase 9 registry sync on exit
 ```
 
 See [docs/quickstart.md](./docs/quickstart.md) for the full walkthrough, including optional commands (`/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.cleanup`, `/atomicspec.analyze-competitors`, `/atomicspec.taskstoissues`) and the `init-project.{sh,ps1}` script path for offline/local installs.
+
+### The registry workflow (Directive 7 end-to-end)
+
+`specs/_defaults/registry.yaml` is the Project Defaults Registry — the single source of truth for every project-wide decision (language, framework, database, tenancy model, API conventions, etc.). The framework keeps it honest at three points:
+
+- **On entry** — every command reads it before generating anything. Missing registry is a GATE FAIL (set `ATOMIC_SPEC_NO_REGISTRY=1` to override for CI/legacy).
+- **During planning** — `/atomicspec.plan` Phase 0.9 captures any new decisions made during tech-stack review for user-approved registry addition.
+- **On exit from implementation** — `/atomicspec.implement` Phase 9 scans completed work for patterns that became project-wide (tenant_id filtering everywhere, RFC7807 error envelopes, structured logging) and offers them as registry candidates. One batched HITL confirmation per feature — no per-task friction.
+
+`/atomicspec.registry` is the bootstrap / backfill command: run it once to discover defaults from your manifests (package.json, pyproject.toml, Cargo.toml, go.mod, Dockerfile, CI workflows, etc.), confirm the findings, and fill in what static scan can't reveal.
 
 ### AI coding agents supported
 
@@ -333,7 +344,7 @@ Spec mentions "payment", "subscription"
 
 ### Default subagents
 
-Atomic Spec ships with a curated set of recommended subagents in [`.specify/subagents/`](./.specify/subagents/) covering common domains (backend, frontend, data, devops, security, testing, review, design, AI, mobile, and more). They're defaults, not mandates — add your own, replace the ones you don't want, or delete the whole directory and start fresh. Each agent is a single markdown file with YAML frontmatter; the CLI discovers them by scanning the folder, so no registration step is needed.
+Atomic Spec ships with a curated set of recommended subagents in [`.specify/subagents/`](./.specify/subagents/). General-purpose agents cover backend, frontend, data, devops, AI, code review, business analysis, and language specialists (Python, TypeScript). Mobile projects additionally get a 157-agent lifecycle set under `.specify/subagents/mobile/` organized across 14 phases (Discovery through Documentation) — including mobile-specific security, testing, and UI/UX agents. The `security/`, `testing/`, and `design/` top-level folders exist as empty scaffolds for projects that want to add their own. They're defaults, not mandates — add your own, replace the ones you don't want, or delete the whole directory and start fresh. Each agent is a single markdown file with YAML frontmatter; the CLI discovers them by scanning the folder, so no registration step is needed.
 
 ### Adding Custom Agents
 
@@ -358,7 +369,7 @@ The agent will be automatically discovered and matched when features mention key
 ### Phase Flow
 
 ```
-/atomicspec.specify  -->  /atomicspec.AnalyzeCompetitors (optional)  -->  /atomicspec.plan  -->  /atomicspec.tasks  -->  /atomicspec.implement
+/atomicspec.registry (once)  -->  /atomicspec.specify  -->  /atomicspec.AnalyzeCompetitors (optional)  -->  /atomicspec.plan  -->  /atomicspec.tasks  -->  /atomicspec.implement (+Phase 9 registry sync)
      |                           |                                       |                    |                     |
      v                           v                                       v                    v                     v
   spec.md                  competitive-analysis/                   Phase 0.0: Registry    tasks/               Execute with

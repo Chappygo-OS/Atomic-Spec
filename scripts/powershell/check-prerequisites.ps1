@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 
 # Consolidated prerequisite checking script (PowerShell)
 #
@@ -112,6 +112,59 @@ if (-not (Test-Path $paths.IMPL_PLAN -PathType Leaf)) {
 # Gate Validation (Knowledge Station Prerequisites)
 #==============================================================================
 
+# Returns $true if the named **Field**: line in $File has a real (non-placeholder)
+# value. Rejected placeholder forms:
+#   - empty or whitespace-only
+#   - starts with "[" (template convention: "[e.g., ...]", "[REQUIRED — ...]")
+#   - contains "NEEDS CLARIFICATION"
+# A trailing bracketed annotation (e.g., "Python 3.11 [checked 2026-04-20]") is
+# accepted — only a leading "[" signals an unfilled template slot.
+# $Field is regex-escaped before interpolation so future field names with regex
+# metacharacters cannot break the pattern (current names contain only letters,
+# spaces, and "/", so escaping is a no-op today but defensive for future additions).
+function Test-PlanField {
+    param([string]$File, [string]$Field)
+    if (-not (Test-Path $File -PathType Leaf)) { return $false }
+    $escaped = [regex]::Escape($Field)
+    $match = Select-String -Path $File -Pattern "^\*\*${escaped}\*\*:" -ErrorAction SilentlyContinue |
+             Select-Object -First 1
+    if (-not $match) { return $false }
+    $value = ($match.Line -replace '^\*\*[^*]+\*\*:\s*', '').Trim()
+    if ([string]::IsNullOrWhiteSpace($value)) { return $false }
+    if ($value.StartsWith('[')) { return $false }
+    if ($value -match 'NEEDS CLARIFICATION') { return $false }
+    return $true
+}
+
+# Classifies specs/_defaults/registry.yaml into one of three states:
+#   - "missing"   (file does not exist)
+#   - "empty"     (file exists but every value is null / [] / empty)
+#   - "populated" (at least one non-null scalar value is set)
+#
+# Structural heuristic — no YAML parser. Matches the template's shape of
+# `  key: value` lines, skipping comments, section headers, and null placeholders.
+function Get-RegistryState {
+    param([string]$RepoRoot)
+    $file = Join-Path $RepoRoot 'specs/_defaults/registry.yaml'
+    if (-not (Test-Path $file -PathType Leaf)) { return 'missing' }
+    $lines = Get-Content -LiteralPath $file
+    foreach ($line in $lines) {
+        $trim = $line.Trim()
+        if ($trim -eq '' -or $trim.StartsWith('#')) { continue }
+        # Section header ("foo:") — skip
+        if ($trim -match ':\s*$') { continue }
+        # Null placeholders — skip
+        if ($trim -match ':\s*null\s*$') { continue }
+        if ($trim -match ':\s*\[\]\s*$') { continue }
+        if ($trim -match ':\s*~\s*$') { continue }
+        # Skip schema/metadata fields — they are always populated and not project decisions
+        if ($trim -match '^(version|schema_version|last_updated|last_updated_by|created|applied_to):') { continue }
+        # Leaf with a real value
+        if ($trim -match ':') { return 'populated' }
+    }
+    return 'empty'
+}
+
 function Test-Gates {
     param(
         [string]$Context,
@@ -119,6 +172,38 @@ function Test-Gates {
     )
 
     $gateFailures = 0
+
+    # Registry gate — applies to both tasks and implement contexts.
+    # Directive 7 (Project Defaults Registry) requires the file to exist.
+    # Escape hatch: $env:ATOMIC_SPEC_NO_REGISTRY='1' downgrades MISSING to a warning.
+    if ($Context -eq 'tasks' -or $Context -eq 'implement') {
+        $registryState = Get-RegistryState -RepoRoot $Paths.REPO_ROOT
+        switch ($registryState) {
+            'missing' {
+                if ($env:ATOMIC_SPEC_NO_REGISTRY -eq '1') {
+                    Write-Host "⚠ GATE WARN: specs/_defaults/registry.yaml missing (ATOMIC_SPEC_NO_REGISTRY=1 override active)"
+                    # Append an audit trail entry so overrides are never silent
+                    $clDir = Join-Path $Paths.REPO_ROOT 'specs/_defaults'
+                    $null = New-Item -Path $clDir -ItemType Directory -Force -ErrorAction SilentlyContinue
+                    $clPath = Join-Path $clDir 'changelog.md'
+                    $entry = "`n## [$(Get-Date -Format 'yyyy-MM-dd')] - ATOMIC_SPEC_NO_REGISTRY=1 override active (gate: $Context)`n`n- Registry file absent. Override suppressed BLOCK -> WARN for this run.`n"
+                    Add-Content -LiteralPath $clPath -Value $entry -ErrorAction SilentlyContinue
+                } else {
+                    Write-Host "✗ GATE FAIL: specs/_defaults/registry.yaml not found"
+                    Write-Host "  → Run /atomicspec.registry to discover project defaults and create the file"
+                    Write-Host "  → Or set `$env:ATOMIC_SPEC_NO_REGISTRY='1' to proceed with graceful degradation"
+                    $gateFailures++
+                }
+            }
+            'empty' {
+                Write-Host "⚠ GATE WARN: registry.yaml exists but is empty (all values null)"
+                Write-Host "  → Run /atomicspec.registry to populate, or let /atomicspec.plan Phase 0.9 populate from decisions"
+            }
+            'populated' {
+                Write-Host "✓ GATE PASS: registry.yaml populated"
+            }
+        }
+    }
 
     Write-Host ""
     Write-Host "════════════════════════════════════════════════════════════"
@@ -138,13 +223,23 @@ function Test-Gates {
                 $gateFailures++
             }
 
-            # Check if plan.md has tech stack defined
-            if ((Test-Path $Paths.IMPL_PLAN) -and
-                (Select-String -Path $Paths.IMPL_PLAN -Pattern "^\*\*Language/Version\*\*:" -Quiet)) {
-                Write-Host "✓ GATE PASS: plan.md has tech stack defined"
-            } else {
-                Write-Host "✗ GATE FAIL: plan.md missing tech stack (Language/Version)"
-                $gateFailures++
+            # Check that plan.md Technical Context fields are actually filled (not [placeholder])
+            $requiredFields = @(
+                'Language/Version',
+                'Primary Dependencies',
+                'Storage',
+                'Testing',
+                'Target Platform',
+                'Project Type'
+            )
+            foreach ($field in $requiredFields) {
+                if (Test-PlanField -File $Paths.IMPL_PLAN -Field $field) {
+                    Write-Host "✓ GATE PASS: plan.md field '$field' filled"
+                } else {
+                    Write-Host "✗ GATE FAIL: plan.md field '$field' is missing, empty, or still a [placeholder]"
+                    Write-Host "  → Edit $($Paths.IMPL_PLAN) and replace the [...] placeholder with a real value"
+                    $gateFailures++
+                }
             }
 
             # Check Tech Stack Approval (HITL checkpoint)

@@ -25,7 +25,9 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Arguments:"
             echo "  target-path    Path to initialize the new project"
-            echo "  --ai <agent>   AI agent to use (claude, gemini, copilot, cursor, windsurf)"
+            echo "  --ai <agent>   AI agent to use (claude, gemini, copilot, cursor, cursor-agent, windsurf)"
+            echo "                 Note: 'cursor' and 'cursor-agent' are equivalent — the latter"
+            echo "                 matches the Cursor CLI executable name used by the PyPI atomicspec CLI."
             echo ""
             echo "Example:"
             echo "  $0 ~/projects/my-app --ai claude"
@@ -79,17 +81,20 @@ if [[ "$AI_AGENT" == "claude" ]]; then
     mkdir -p "$TARGET_PATH/.claude/commands"
 
     # Copy command files with atomicspec. prefix
-    for cmd in specify plan tasks implement analyze analyze-competitors checklist clarify constitution taskstoissues cleanup; do
+    for cmd in specify plan tasks implement analyze analyze-competitors checklist clarify constitution registry taskstoissues cleanup; do
         if [[ -f "$SOURCE_DIR/templates/commands/$cmd.md" ]]; then
             cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/atomicspec.$cmd.md"
         fi
     done
 else
     # For other agents, copy from existing agent directories if they exist
+    # Accept both "cursor" (shell convention) and "cursor-agent" (Cursor CLI executable
+    # name, matches the PyPI atomicspec CLI's AGENT_CONFIG key). They map to the same folder.
     declare -A agent_dirs=(
         ["gemini"]=".gemini"
         ["copilot"]=".github"
         ["cursor"]=".cursor"
+        ["cursor-agent"]=".cursor"
         ["windsurf"]=".windsurf"
     )
 
@@ -171,5 +176,6 @@ echo "   /atomicspec.specify   - Create feature specification"
 echo "   /atomicspec.plan      - Create implementation plan"
 echo "   /atomicspec.tasks     - Generate atomic task files"
 echo "   /atomicspec.implement - Execute with Context Pinning"
+echo "   /atomicspec.registry  - Discover and populate Project Defaults Registry"
 echo "   /atomicspec.cleanup   - Detect and remove orphaned code"
 echo ""
