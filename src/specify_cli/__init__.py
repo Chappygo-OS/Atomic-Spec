@@ -35,6 +35,16 @@ import json
 from pathlib import Path
 from typing import Optional, Tuple
 
+# Force UTF-8 on Windows consoles so the banner (box-drawing chars) and Rich
+# output never hit cp1252 encoding errors. Safe on all platforms: if streams
+# are already UTF-8 or reconfigure is unavailable, this is a no-op.
+if sys.platform == "win32":
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except (AttributeError, OSError):
+            pass
+
 import typer
 import httpx
 from rich.console import Console
