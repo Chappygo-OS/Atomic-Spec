@@ -42,21 +42,26 @@ jobs:
         run: |
           set -euo pipefail
           python <<'PY'
+          import importlib.util
           import json
-          import sys
-          sys.path.insert(0, "src")
-          # Import from the dependency-free data module, not the CLI root
-          # (which requires typer/rich/httpx — not installed on this runner).
-          from specify_cli._config import AGENT_CONFIG, ATOMIC_SPEC_COMMANDS
+
+          # Load _config.py directly without going through the specify_cli package
+          # __init__.py (which imports typer/rich/httpx — not installed on this runner).
+          spec = importlib.util.spec_from_file_location(
+              "_as_config", "src/specify_cli/_config.py"
+          )
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+
           payload = {
               "agents": {
                   name: {
                       "folder": cfg["folder"],
                       "tier": cfg["tier"],
                   }
-                  for name, cfg in AGENT_CONFIG.items()
+                  for name, cfg in mod.AGENT_CONFIG.items()
               },
-              "commands": ATOMIC_SPEC_COMMANDS,
+              "commands": mod.ATOMIC_SPEC_COMMANDS,
           }
           with open("agents.json", "w", encoding="utf-8") as f:
               json.dump(payload, f, indent=2)
