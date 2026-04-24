@@ -45,7 +45,9 @@ jobs:
           import json
           import sys
           sys.path.insert(0, "src")
-          from specify_cli import AGENT_CONFIG, ATOMIC_SPEC_COMMANDS
+          # Import from the dependency-free data module, not the CLI root
+          # (which requires typer/rich/httpx — not installed on this runner).
+          from specify_cli._config import AGENT_CONFIG, ATOMIC_SPEC_COMMANDS
           payload = {
               "agents": {
                   name: {
