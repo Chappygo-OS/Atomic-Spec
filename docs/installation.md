@@ -16,7 +16,7 @@ The init scripts currently set up commands for these five agents: `claude`, `gem
 ### Step 1: Clone Atomic Spec
 
 ```bash
-git clone https://github.com/Airchitekt/atomic-spec.git
+git clone https://github.com/Chappygo-OS/Atomic-Spec.git
 cd atomic-spec
 ```
 
@@ -69,7 +69,7 @@ atomicspec init <PROJECT_NAME>
 atomicspec init --here
 ```
 
-Track progress on [Airchitekt/atomic-spec releases](https://github.com/Airchitekt/atomic-spec/releases).
+Track progress on [Chappygo-OS/Atomic-Spec releases](https://github.com/Chappygo-OS/Atomic-Spec/releases).
 
 ## Troubleshooting
 

@@ -56,6 +56,13 @@ from datetime import datetime, timezone
 ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 client = httpx.Client(verify=ssl_context)
 
+# Release source — where this CLI fetches template zips from.
+# Overridable via ATOMIC_SPEC_REPO="owner/name" and ATOMIC_SPEC_ASSET_PREFIX="foo-template"
+# so forks can redirect without code changes.
+RELEASE_REPO_OWNER = os.getenv("ATOMIC_SPEC_REPO", "Chappygo-OS/Atomic-Spec").split("/", 1)[0]
+RELEASE_REPO_NAME = os.getenv("ATOMIC_SPEC_REPO", "Chappygo-OS/Atomic-Spec").split("/", 1)[-1]
+RELEASE_ASSET_PREFIX = os.getenv("ATOMIC_SPEC_ASSET_PREFIX", "atomic-spec-template")
+
 def _github_token(cli_token: str | None = None) -> str | None:
     """Return sanitized GitHub token (cli arg takes precedence) or None."""
     return ((cli_token or os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN") or "").strip()) or None
@@ -122,111 +129,151 @@ def _format_rate_limit_error(status_code: int, headers: httpx.Headers, url: str)
     
     return "\n".join(lines)
 
-# Agent configuration with name, folder, install URL, and CLI tool requirement
+# Agent configuration with name, folder, install URL, CLI tool requirement, and support tier.
+#
+# Support tiers:
+#   - "supported"    — wired end-to-end in init-project.{sh,ps1} and exercised on every release.
+#   - "experimental" — command templates drop into {folder}/commands/ via the release workflow;
+#                      governance (Prime Directives) applies because it's template-enforced, but
+#                      agent-specific tailoring has not been validated. Issues triaged best-effort.
 AGENT_CONFIG = {
     "copilot": {
         "name": "GitHub Copilot",
         "folder": ".github/",
         "install_url": None,  # IDE-based, no CLI check needed
         "requires_cli": False,
+        "tier": "supported",
     },
     "claude": {
         "name": "Claude Code",
         "folder": ".claude/",
         "install_url": "https://docs.anthropic.com/en/docs/claude-code/setup",
         "requires_cli": True,
+        "tier": "supported",
     },
     "gemini": {
         "name": "Gemini CLI",
         "folder": ".gemini/",
         "install_url": "https://github.com/google-gemini/gemini-cli",
         "requires_cli": True,
+        "tier": "supported",
     },
     "cursor-agent": {
         "name": "Cursor",
         "folder": ".cursor/",
         "install_url": None,  # IDE-based
         "requires_cli": False,
+        "tier": "supported",
     },
     "qwen": {
         "name": "Qwen Code",
         "folder": ".qwen/",
         "install_url": "https://github.com/QwenLM/qwen-code",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "opencode": {
         "name": "opencode",
         "folder": ".opencode/",
         "install_url": "https://opencode.ai",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "codex": {
         "name": "Codex CLI",
         "folder": ".codex/",
         "install_url": "https://github.com/openai/codex",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "windsurf": {
         "name": "Windsurf",
         "folder": ".windsurf/",
         "install_url": None,  # IDE-based
         "requires_cli": False,
+        "tier": "supported",
     },
     "kilocode": {
         "name": "Kilo Code",
         "folder": ".kilocode/",
         "install_url": None,  # IDE-based
         "requires_cli": False,
+        "tier": "experimental",
     },
     "auggie": {
         "name": "Auggie CLI",
         "folder": ".augment/",
         "install_url": "https://docs.augmentcode.com/cli/setup-auggie/install-auggie-cli",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "codebuddy": {
         "name": "CodeBuddy",
         "folder": ".codebuddy/",
         "install_url": "https://www.codebuddy.ai/cli",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "qoder": {
         "name": "Qoder CLI",
         "folder": ".qoder/",
         "install_url": "https://qoder.com/cli",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "roo": {
         "name": "Roo Code",
         "folder": ".roo/",
         "install_url": None,  # IDE-based
         "requires_cli": False,
+        "tier": "experimental",
     },
     "q": {
         "name": "Amazon Q Developer CLI",
         "folder": ".amazonq/",
         "install_url": "https://aws.amazon.com/developer/learning/q-developer-cli/",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "amp": {
         "name": "Amp",
         "folder": ".agents/",
         "install_url": "https://ampcode.com/manual#install",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "shai": {
         "name": "SHAI",
         "folder": ".shai/",
         "install_url": "https://github.com/ovh/shai",
         "requires_cli": True,
+        "tier": "experimental",
     },
     "bob": {
         "name": "IBM Bob",
         "folder": ".bob/",
         "install_url": None,  # IDE-based
         "requires_cli": False,
+        "tier": "experimental",
     },
 }
+
+# Shared list of command file stems (without .md) used by the release workflow
+# to populate per-agent command folders. Keep this in sync with templates/commands/
+# (underscore-prefixed files like _subagent-discovery.md are includes, not commands).
+ATOMIC_SPEC_COMMANDS = [
+    "specify",
+    "plan",
+    "tasks",
+    "implement",
+    "analyze",
+    "analyze-competitors",
+    "checklist",
+    "clarify",
+    "cleanup",
+    "constitution",
+    "taskstoissues",
+]
 
 SCRIPT_TYPE_CHOICES = {"sh": "POSIX Shell (bash/zsh)", "ps": "PowerShell"}
 
@@ -635,8 +682,8 @@ def merge_json_files(existing_path: Path, new_content: dict, verbose: bool = Fal
     return merged
 
 def download_template_from_github(ai_assistant: str, download_dir: Path, *, script_type: str = "sh", verbose: bool = True, show_progress: bool = True, client: Optional[httpx.Client] = None, debug: bool = False, github_token: Optional[str] = None) -> Tuple[Path, dict]:
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    repo_owner = RELEASE_REPO_OWNER
+    repo_name = RELEASE_REPO_NAME
     if client is None:
         client = httpx.Client(verify=ssl_context)
 
@@ -668,7 +715,7 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, scri
         raise typer.Exit(1)
 
     assets = release_data.get("assets", [])
-    pattern = f"spec-kit-template-{ai_assistant}-{script_type}"
+    pattern = f"{RELEASE_ASSET_PREFIX}-{ai_assistant}-{script_type}"
     matching_assets = [
         asset for asset in assets
         if pattern in asset["name"] and asset["name"].endswith(".zip")
@@ -1092,9 +1139,26 @@ def init(
             "copilot"
         )
 
+    agent_config = AGENT_CONFIG.get(selected_ai) or {}
+    if agent_config.get("tier") == "experimental":
+        banner = Panel(
+            f"[bold]Agent support tier: experimental[/bold]\n\n"
+            f"[cyan]{selected_ai}[/cyan] is an experimental-tier agent in this release.\n"
+            f"Command templates will be installed into [cyan]{agent_config.get('folder', '?')}commands/[/cyan],\n"
+            f"and the Eight Prime Directives still apply (they are template-enforced).\n"
+            f"However, agent-specific tailoring has NOT been validated end-to-end.\n\n"
+            f"Please file issues at https://github.com/Chappygo-OS/Atomic-Spec/issues\n"
+            f"with the [yellow]experimental[/yellow] label. PRs to promote this agent to\n"
+            f"supported tier are welcome.",
+            title="[yellow]Experimental Agent Warning[/yellow]",
+            border_style="yellow",
+            padding=(1, 2),
+        )
+        console.print()
+        console.print(banner)
+
     if not ignore_agent_tools:
-        agent_config = AGENT_CONFIG.get(selected_ai)
-        if agent_config and agent_config["requires_cli"]:
+        if agent_config and agent_config.get("requires_cli"):
             install_url = agent_config["install_url"]
             if not check_tool(selected_ai):
                 error_panel = Panel(
@@ -1340,8 +1404,8 @@ def version():
             pass
     
     # Fetch latest template release version
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    repo_owner = RELEASE_REPO_OWNER
+    repo_name = RELEASE_REPO_NAME
     api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
     
     template_version = "unknown"

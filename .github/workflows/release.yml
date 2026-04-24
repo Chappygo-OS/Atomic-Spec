@@ -1,0 +1,139 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build template bundles and publish GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify tag matches pyproject.toml version
+        run: |
+          set -euo pipefail
+          PYPROJECT_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "$PYPROJECT_VERSION" != "$TAG_VERSION" ]]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} (stripped: ${TAG_VERSION}) does not match pyproject.toml version ${PYPROJECT_VERSION}"
+            exit 1
+          fi
+          echo "Version verified: ${TAG_VERSION}"
+
+      - name: Extract agent list from AGENT_CONFIG
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          import json
+          import sys
+          sys.path.insert(0, "src")
+          from specify_cli import AGENT_CONFIG, ATOMIC_SPEC_COMMANDS
+          payload = {
+              "agents": {
+                  name: {
+                      "folder": cfg["folder"],
+                      "tier": cfg["tier"],
+                  }
+                  for name, cfg in AGENT_CONFIG.items()
+              },
+              "commands": ATOMIC_SPEC_COMMANDS,
+          }
+          with open("agents.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, indent=2)
+          print(f"Agents: {len(payload['agents'])}  Commands: {len(payload['commands'])}")
+          for name, cfg in payload["agents"].items():
+              print(f"  {name:<14} tier={cfg['tier']:<12} folder={cfg['folder']}")
+          PY
+
+      - name: Build template zips
+        run: |
+          set -euo pipefail
+          OUT=$(mktemp -d)
+          mkdir -p dist/templates
+
+          AGENTS=$(python -c 'import json;d=json.load(open("agents.json"));print(" ".join(d["agents"].keys()))')
+          COMMANDS=$(python -c 'import json;d=json.load(open("agents.json"));print(" ".join(d["commands"]))')
+
+          for agent in $AGENTS; do
+            FOLDER=$(python -c "import json;print(json.load(open('agents.json'))['agents']['${agent}']['folder'])")
+            for st in sh ps; do
+              NAME="atomic-spec-template-${agent}-${st}"
+              STAGE="${OUT}/${NAME}"
+              mkdir -p "${STAGE}"
+
+              # Core framework dirs
+              cp -r .specify "${STAGE}/"
+              cp -r templates "${STAGE}/"
+              cp -r memory "${STAGE}/"
+
+              # Only the matching script flavor
+              mkdir -p "${STAGE}/scripts"
+              if [[ "${st}" == "sh" ]]; then
+                cp -r scripts/bash "${STAGE}/scripts/"
+              else
+                cp -r scripts/powershell "${STAGE}/scripts/"
+              fi
+
+              # Pre-populate the agent's command folder
+              AGENT_CMD_DIR="${STAGE}/${FOLDER}commands"
+              mkdir -p "${AGENT_CMD_DIR}"
+              for cmd in ${COMMANDS}; do
+                if [[ -f "templates/commands/${cmd}.md" ]]; then
+                  cp "templates/commands/${cmd}.md" "${AGENT_CMD_DIR}/atomicspec.${cmd}.md"
+                fi
+              done
+
+              # Strip cruft
+              find "${STAGE}" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+              find "${STAGE}" -name '.DS_Store' -delete 2>/dev/null || true
+              find "${STAGE}" -name 'Thumbs.db' -delete 2>/dev/null || true
+              find "${STAGE}" -name '*.pyc' -delete 2>/dev/null || true
+
+              # Build zip as a single nested directory so the CLI flatten logic applies
+              (cd "${OUT}" && zip -rq "${GITHUB_WORKSPACE}/dist/templates/${NAME}.zip" "${NAME}")
+              echo "::notice::Built ${NAME}.zip ($(du -h "dist/templates/${NAME}.zip" | cut -f1))"
+              rm -rf "${STAGE}"
+            done
+          done
+
+          echo ""
+          echo "Zip count: $(ls dist/templates/ | wc -l)"
+          ls -la dist/templates/
+
+      - name: Verify zip count matches agent manifest
+        run: |
+          set -euo pipefail
+          EXPECTED=$(python -c 'import json;d=json.load(open("agents.json"));print(len(d["agents"])*2)')
+          COUNT=$(ls dist/templates/*.zip | wc -l)
+          if [[ "$COUNT" != "$EXPECTED" ]]; then
+            echo "::error::Expected $EXPECTED zips (agents × 2 script types), got $COUNT"
+            exit 1
+          fi
+          echo "Zip count OK: $COUNT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/templates/*.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}

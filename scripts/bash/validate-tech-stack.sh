@@ -180,6 +180,8 @@ check_pypi_package() {
 #==============================================================================
 
 # Calculate days since last publish
+# Portable across GNU date (Linux) and BSD date (macOS): tries GNU `date -d`,
+# then BSD `date -j -f`, then Python as the universal fallback.
 days_since_publish() {
     local publish_date="$1"
 
@@ -188,16 +190,40 @@ days_since_publish() {
         return
     fi
 
-    # Try to parse the date
-    local publish_epoch
-    if publish_epoch=$(date -d "$publish_date" +%s 2>/dev/null); then
-        local now_epoch
-        now_epoch=$(date +%s)
-        local diff_days=$(( (now_epoch - publish_epoch) / 86400 ))
-        echo "$diff_days"
-    else
-        echo "-1"
+    local publish_epoch=""
+    local now_epoch
+    now_epoch=$(date +%s)
+
+    # 1) GNU date
+    if publish_epoch=$(date -d "$publish_date" +%s 2>/dev/null) && [[ -n "$publish_epoch" ]]; then
+        :
+    # 2) BSD date (macOS) — try common ISO 8601 formats the registries return
+    elif publish_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${publish_date%.*}" +%s 2>/dev/null) && [[ -n "$publish_epoch" ]]; then
+        :
+    elif publish_epoch=$(date -j -f "%Y-%m-%d" "${publish_date%%T*}" +%s 2>/dev/null) && [[ -n "$publish_epoch" ]]; then
+        :
+    # 3) Python fallback (always available on macOS/Linux CI images)
+    elif command -v python3 >/dev/null 2>&1; then
+        publish_epoch=$(python3 -c "
+import sys
+from datetime import datetime, timezone
+s = sys.argv[1].rstrip('Z')
+for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'):
+    try:
+        dt = datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
+        print(int(dt.timestamp())); sys.exit(0)
+    except ValueError:
+        pass
+sys.exit(1)
+" "$publish_date" 2>/dev/null) || publish_epoch=""
     fi
+
+    if [[ -z "$publish_epoch" ]]; then
+        echo "-1"
+        return
+    fi
+
+    echo $(( (now_epoch - publish_epoch) / 86400 ))
 }
 
 # Validate a single package

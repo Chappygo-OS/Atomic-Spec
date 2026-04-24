@@ -81,7 +81,33 @@ Use the initialization scripts to bootstrap a new project with Atomic Spec:
 ./init-project.sh /path/to/new/project --ai claude
 ```
 
-**Supported AI Agents:** `claude`, `gemini`, `copilot`, `cursor`, `windsurf`
+**Supported AI Agents (via local installer):** `claude`, `gemini`, `copilot`, `cursor`, `windsurf`
+
+### AI agent support tiers (PyPI distribution)
+
+When installed via PyPI (`uv tool install atomic-spec`), Atomic Spec ships template bundles for **17 AI coding agents** across two tiers:
+
+| Agent | `--ai` value | Tier | Notes |
+|-------|--------------|------|-------|
+| Claude Code | `claude` | **Supported** | Reference implementation; validated end-to-end |
+| GitHub Copilot | `copilot` | **Supported** | VS Code chat modes; may require pointing Copilot at the installed command folder |
+| Gemini CLI | `gemini` | **Supported** | |
+| Cursor | `cursor-agent` | **Supported** | |
+| Windsurf | `windsurf` | **Supported** | |
+| Qwen Code | `qwen` | Experimental | |
+| opencode | `opencode` | Experimental | |
+| Codex CLI | `codex` | Experimental | |
+| Kilo Code | `kilocode` | Experimental | |
+| Auggie CLI | `auggie` | Experimental | |
+| CodeBuddy | `codebuddy` | Experimental | |
+| Qoder CLI | `qoder` | Experimental | |
+| Roo Code | `roo` | Experimental | |
+| Amazon Q Developer CLI | `q` | Experimental | |
+| Amp | `amp` | Experimental | |
+| SHAI | `shai` | Experimental | |
+| IBM Bob | `bob` | Experimental | |
+
+**What "Experimental" means:** command templates are installed into the agent's conventional `{folder}commands/` path. The **Eight Prime Directives still apply** — they are enforced by the templates themselves. However, agent-specific wiring has not been validated end-to-end. If you hit issues, file them with the `experimental` label; PRs to promote an agent to Supported tier are welcome. See [SUPPORT.md](./SUPPORT.md) for triage policy.
 
 ### Option 2: Manual Setup
 
@@ -607,7 +633,7 @@ The primary and supported installation path is the `init-project` script in this
 
 ```bash
 # Clone this repo once
-git clone https://github.com/Airchitekt/atomic-spec.git
+git clone https://github.com/Chappygo-OS/Atomic-Spec.git
 cd atomic-spec
 
 # Initialize a new project with Atomic Spec
@@ -632,7 +658,7 @@ uv tool install atomic-spec
 atomicspec init <PROJECT_NAME>
 ```
 
-Track the release on the [Airchitekt/atomic-spec releases page](https://github.com/Airchitekt/atomic-spec/releases).
+Track the release on the [Chappygo-OS/Atomic-Spec releases page](https://github.com/Chappygo-OS/Atomic-Spec/releases).
 
 ## Supported AI Agents
 

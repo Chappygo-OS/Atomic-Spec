@@ -6,7 +6,7 @@ This project uses GitHub issues to track bugs and feature requests. Please searc
 
 For help or questions about using this project, please:
 
-- Open a [GitHub issue](https://github.com/Airchitekt/atomic-spec/issues/new) for bug reports, feature requests, or questions about the Atomic Traceability Model
+- Open a [GitHub issue](https://github.com/Chappygo-OS/Atomic-Spec/issues/new) for bug reports, feature requests, or questions about the Atomic Traceability Model
 - Check the [Atomic Traceability Model guide](./atomic-traceability-model.md) for the governance model and Spec-Driven Development foundations
 - Review the [README](./README.md) for getting started instructions and the Atomic Traceability Model overview
 
@@ -17,3 +17,12 @@ For help or questions about using this project, please:
 ## Support Policy
 
 Support for this project is limited to the resources listed above.
+
+## AI Agent Support Tiers
+
+Atomic Spec ships template bundles for 17 AI coding agents, organized into two tiers. Issue triage is tier-aware:
+
+- **Supported tier** (`claude`, `gemini`, `copilot`, `cursor-agent`, `windsurf`): bugs are triaged as standard issues. Regressions block releases. See README for the full list.
+- **Experimental tier** (all other agents): command templates are installed into the agent's conventional folder; the Eight Prime Directives remain enforced because they are template-enforced, but agent-specific wiring has not been validated. Issues are labeled `experimental` and triaged best-effort. PRs that promote an agent from experimental to supported — including validation scripts, an entry in `init-project.{sh,ps1}`, and at least one end-to-end smoke run documented in the PR — are welcome.
+
+Requesting a new agent? File an issue with the template tag `agent-request` describing the agent's command-discovery convention and a link to its CLI documentation.

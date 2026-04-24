@@ -47,11 +47,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage      = "https://github.com/Airchitekt/atomic-spec"
-Repository    = "https://github.com/Airchitekt/atomic-spec"
-Issues        = "https://github.com/Airchitekt/atomic-spec/issues"
-Documentation = "https://github.com/Airchitekt/atomic-spec#readme"
-Changelog     = "https://github.com/Airchitekt/atomic-spec/releases"
+Homepage      = "https://github.com/Chappygo-OS/Atomic-Spec"
+Repository    = "https://github.com/Chappygo-OS/Atomic-Spec"
+Issues        = "https://github.com/Chappygo-OS/Atomic-Spec/issues"
+Documentation = "https://github.com/Chappygo-OS/Atomic-Spec#readme"
+Changelog     = "https://github.com/Chappygo-OS/Atomic-Spec/releases"
 
 [project.scripts]
 atomicspec = "specify_cli:main"

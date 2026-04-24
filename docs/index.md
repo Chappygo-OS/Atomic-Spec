@@ -62,8 +62,8 @@ Our research and experimentation focus on:
 
 ## Contributing
 
-Please see our [Contributing Guide](https://github.com/Airchitekt/atomic-spec/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
+Please see our [Contributing Guide](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
 
 ## Support
 
-For support, please check our [Support Guide](https://github.com/Airchitekt/atomic-spec/blob/main/SUPPORT.md) or [open an issue](https://github.com/Airchitekt/atomic-spec/issues/new) on GitHub.
+For support, please check our [Support Guide](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/SUPPORT.md) or [open an issue](https://github.com/Chappygo-OS/Atomic-Spec/issues/new) on GitHub.

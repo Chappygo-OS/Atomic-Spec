@@ -15,7 +15,7 @@ This guide walks you through bootstrapping a project with **Atomic Spec** — th
 Clone this repo and run the initializer that matches your shell:
 
 ```bash
-git clone https://github.com/Airchitekt/atomic-spec.git
+git clone https://github.com/Chappygo-OS/Atomic-Spec.git
 cd atomic-spec
 
 # macOS / Linux / WSL
@@ -162,4 +162,4 @@ Finally, implement the solution:
 
 - Read the [Atomic Traceability Model](../atomic-traceability-model.md) for in-depth guidance
 - Check out [more examples](../templates) in the repository
-- Explore the [source code on GitHub](https://github.com/Airchitekt/atomic-spec)
+- Explore the [source code on GitHub](https://github.com/Chappygo-OS/Atomic-Spec)

@@ -10,7 +10,7 @@ If you believe you have found a security vulnerability in this repository, pleas
 
 Instead, please open a **private security advisory** via GitHub:
 
-1. Go to the [Security tab](https://github.com/Airchitekt/atomic-spec/security) of the Atomic Spec repository
+1. Go to the [Security tab](https://github.com/Chappygo-OS/Atomic-Spec/security) of the Atomic Spec repository
 2. Click **Report a vulnerability**
 3. Fill in the advisory with details
 

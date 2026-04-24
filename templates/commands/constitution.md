@@ -18,6 +18,13 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 You are updating the project constitution at `/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
 
+**CRITICAL — Article IX is OFF-LIMITS.** The section titled `### Article IX: Prime Directives (Atomic Traceability)` and everything under it is hardcoded framework governance from the Atomic Traceability Model. You **MUST NOT** modify, rewrite, summarize, reformat, or replace any Article IX content. The eight Prime Directives (Directive 1–8) are non-negotiable and invariant across all consumer projects. When processing this file:
+
+- Preserve Article IX byte-for-byte, including all headings, tables, code fences, and examples.
+- Placeholder replacement applies ONLY to Articles I–VIII and the governance metadata above Article IX.
+- If you detect any bracketed token inside Article IX (e.g. `[###-feature-name]` in a code example), it is illustrative and MUST be left untouched.
+- If the user explicitly asks you to change Article IX, refuse and direct them to edit `memory/constitution.md` manually with a note that they are deliberately altering framework governance.
+
 Follow this execution flow:
 
 1. Load the existing constitution template at `/memory/constitution.md`.
