@@ -1,0 +1,95 @@
+# Build and deploy the Atomic Spec marketing + docs site to GitHub Pages.
+#
+# Triggers on push to main when anything under site/ (or this workflow itself)
+# changes — keeps the site in lockstep with the framework code without
+# rebuilding on unrelated commits.
+#
+# Final URL: https://chappygo-os.github.io/atomic-spec/
+#
+# One-time setup (manual, no API equivalent):
+#   Repo Settings > Pages > Build and deployment > Source = "GitHub Actions"
+#
+# Permission scopes follow the GitHub Pages template exactly:
+#   - contents: read   (checkout)
+#   - pages:    write  (upload Pages artifact)
+#   - id-token: write  (OIDC auth for actions/deploy-pages@v4)
+
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+  # Build-only smoke test on PRs that touch the site, so regressions are caught
+  # before merge. The deploy job is gated below on github.event_name == 'push'
+  # so PRs never publish.
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Ensure only one Pages deploy is in flight at a time. We don't cancel the
+# in-progress run because Pages deployments are atomic — interrupting halfway
+# can leave the live site on a stale build.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check Astro + content collections
+        run: npx astro check
+
+      - name: Build
+        run: npm run build
+        env:
+          # Astro reads `site` and `base` from astro.config.mjs already, but
+          # this gives a no-op env hook if we ever need to override per-env.
+          NODE_ENV: production
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    # Skip on PRs — they should build (the smoke test in `build`) but never
+    # publish, so a forked PR can never overwrite the live site.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
