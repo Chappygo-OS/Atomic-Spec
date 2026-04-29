@@ -71,3 +71,21 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/specify_cli"]
+
+# Source distribution — defense-in-depth exclude. The wheel above already only
+# ships `src/specify_cli/`, but the sdist defaults to "everything tracked in git"
+# unless we exclude. None of the framework's install paths consume the sdist
+# (uv/pip install from the wheel, atomicspec init downloads release zips, and
+# init-project.sh copies specific dirs only) — but the sdist is what gets
+# uploaded to PyPI alongside the wheel for archival, so keep it small and
+# scrub anything frontend-toolchain-shaped.
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "site/",            # Astro marketing + docs site (built by GitHub Action)
+  "webpage/",         # boss's old React landing source — never tracked anyway
+  "assets/",          # branding assets (banner / icon) — only used by site/
+  "docs/internal/",   # contributor archaeology, not for end users
+  ".github/",         # CI workflows
+  ".devcontainer/",   # local dev container config
+  "node_modules/",    # never tracked but defensive
+]

@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "SpecKitDevContainer",
+	"name": "AtomicSpecDevContainer",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/python:3.13-trixie", // based on Debian "Trixie" (13)
 	"features": {
@@ -28,7 +28,7 @@
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
-	8080 // for Spec-Kit documentation site
+	8080 // reserved for local docs preview (Astro dev server uses 4321 by default)
   ],
   "containerUser": "devcontainer",
   "updateRemoteUserUID": true,

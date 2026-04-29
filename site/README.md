@@ -34,12 +34,13 @@ npm run dev          # http://localhost:4321/atomic-spec/
 
 Pushed builds of `main` are published to GitHub Pages at the URL above (workflow lands in Phase 4). The `base: '/atomic-spec/'` in `astro.config.mjs` is what makes Pages routing work — never hardcode site paths; use the `withBase()` helper in `src/lib/url.ts`.
 
-## Phase status
+## Source layout
 
-- **Phase 1 — scaffold + animated background + base layout** &nbsp;|&nbsp; current
-- Phase 2 — port marketing landing from `webpage/`
-- Phase 3 — wire technical docs into the site
-- Phase 4 — GitHub Pages deploy workflow
-- Phase 5 — cleanup + verification
+- `src/components/astro/` — static, no JS shipped
+- `src/components/react/` — interactive islands (Hero, HITL, ContextPinning, Manual)
+- `src/content/docs/` — MDX docs rendered by `[...slug].astro`
+- `src/layouts/` — `BaseLayout.astro` (shared shell) and `DocsLayout.astro`
+- `src/styles/` — Tailwind theme + prose typography
+- `src/lib/` — `withBase()`, `getDocsNav()`
 
-`webpage/` at the repo root is **read-only source** for the future Phase 2 port; nothing inside it is committed or built from `site/`.
+`COPY.md` is the locked English-copy spec used during the marketing-landing port (kept for reference; updates flow through the rendered components).

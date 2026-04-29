@@ -91,7 +91,7 @@ A few things that increase the odds of acceptance:
 
 - Follow the project's coding conventions
 - Add tests for new functionality
-- Update documentation ([`README.md`](./README.md), [`atomic-traceability-model.md`](./atomic-traceability-model.md), relevant `docs/*.md`) if the change is user-visible
+- Update documentation ([`README.md`](./README.md), [`atomic-traceability-model.md`](./atomic-traceability-model.md), or the relevant MDX page in [`site/src/content/docs/`](./site/src/content/docs/)) if the change is user-visible
 - Keep the change focused — unrelated fixes should be separate PRs
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
 - Respect the Eight Prime Directives (Article IX of `memory/constitution.md`) — do not weaken, bypass, or relax them without explicit governance discussion
