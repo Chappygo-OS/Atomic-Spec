@@ -1,0 +1,158 @@
+---
+title: Contributing
+description: How to propose changes to Atomic Spec — local development setup, testing template changes against a throwaway project, and the AI-disclosure rules for pull requests.
+category: Community
+order: 20
+lastUpdated: 2026-04-29
+---
+
+Hi there! We're thrilled you'd like to contribute to Atomic Spec. Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license) to the public under the [project's MIT License](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/LICENSE).
+
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/CODE_OF_CONDUCT.md). By participating in this project, you agree to abide by its terms.
+
+## What This Project Is
+
+Atomic Spec is a customized fork of [GitHub Spec Kit](https://github.com/github/spec-kit) that implements the **Atomic Traceability Model** — a governance framework constraining AI coding agents through gated, atomic, context-pinned phases. The deliverables are templates, prompts, knowledge stations, and a thin Python CLI (`atomicspec`). See [the Atomic Traceability Model](/atomic-spec/docs/atomic-traceability-model) for the governance model and the [README](https://github.com/Chappygo-OS/Atomic-Spec#readme) for the quick start.
+
+## Prerequisites
+
+These are one-time installations required to test your changes locally as part of the pull-request (PR) submission process.
+
+1. Install [Python 3.11+](https://www.python.org/downloads/)
+2. Install [uv](https://docs.astral.sh/uv/) for package management
+3. Install [Git](https://git-scm.com/downloads)
+4. Have an [AI coding agent available](https://github.com/Chappygo-OS/Atomic-Spec#-supported-ai-agents)
+
+<details>
+<summary><b>💡 Hint if you use <code>VSCode</code> or <code>GitHub Codespaces</code></b></summary>
+
+<br />
+
+With [Docker](https://docker.com) installed, you can use [Dev Containers](https://containers.dev) via the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to set up your environment automatically from `.devcontainer/devcontainer.json` at the root of the project.
+
+- Check out the repo
+- Open it in VSCode
+- Run the Command Palette action `Dev Containers: Open Folder in Container...`
+
+On [GitHub Codespaces](https://github.com/features/codespaces), the devcontainer loads automatically when you open the codespace.
+
+</details>
+
+## Development Workflow
+
+When working on Atomic Spec:
+
+1. Clone and sync: `uv sync`
+2. Verify the CLI works: `uv run atomicspec --help`
+3. Create a branch: `git checkout -b my-branch-name`
+4. Make changes, add/update tests, ensure everything still works
+5. Test the framework locally (see below) before opening a PR
+6. Push to your fork and open a pull request
+
+### Testing framework changes locally
+
+`atomicspec init` pulls **released** template zips from GitHub Releases, which won't include your local changes. To test templates, commands, and scripts as you develop:
+
+**Option A — Run the local `init-project` script against a throwaway directory:**
+
+```bash
+# From the Atomic Spec clone
+./init-project.sh /tmp/test-project --ai claude
+
+# Or on Windows
+.\init-project.ps1 -TargetPath "C:\Temp\test-project" -AIAgent "claude"
+```
+
+`init-project.{sh,ps1}` copies `.specify/`, `templates/`, `memory/`, and `scripts/` directly from your working tree, so your in-progress edits are exercised end to end. Then open the test project in your AI agent and run the `atomicspec.*` slash commands.
+
+**Option B — Direct file copy for quick iteration:**
+
+For small template or script changes, copy individual files into an existing test project:
+
+```bash
+cp templates/commands/plan.md /path/to/test-project/.claude/commands/atomicspec.plan.md
+```
+
+Restart your IDE/agent so it picks up the changed command file.
+
+**Option C — Dry-run the release workflow:**
+
+`.github/workflows/release.yml` builds 34 per-agent template zips (17 agents × 2 script types). To validate packaging logic locally, check out the workflow and run the build steps manually (they use only `python` + `zip`). Useful before tagging a release.
+
+## Submitting a Pull Request
+
+> [!NOTE]
+> If your PR introduces large changes that materially impact the CLI or the framework (new templates, new slash commands, new arguments, architectural shifts), **discuss and agree with maintainers first**. Large PRs without prior conversation are likely to be closed.
+
+1. Fork and clone the repository
+2. Install dependencies: `uv sync`
+3. Verify the CLI works: `uv run atomicspec --help`
+4. Create a branch: `git checkout -b my-branch-name`
+5. Make your change, add tests, confirm the suite passes
+6. Exercise the change via Option A or B above if it affects templates/scripts
+7. Push to your fork and open a pull request
+8. Wait for review and merge
+
+A few things that increase the odds of acceptance:
+
+- Follow the project's coding conventions
+- Add tests for new functionality
+- Update documentation ([README](https://github.com/Chappygo-OS/Atomic-Spec#readme), [Atomic Traceability Model](/atomic-spec/docs/atomic-traceability-model), relevant `docs/*.md`) if the change is user-visible
+- Keep the change focused — unrelated fixes should be separate PRs
+- Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
+- Respect the [Eight Prime Directives](/atomic-spec/docs/prime-directives) — do not weaken, bypass, or relax them without explicit governance discussion
+
+## AI Contributions in Atomic Spec
+
+> [!IMPORTANT]
+>
+> If you are using **any kind of AI assistance** to contribute to Atomic Spec, it must be disclosed in the pull request or issue.
+
+We welcome and encourage AI tools to help improve Atomic Spec — the project is itself a governance layer over AI coding agents, and using them for contributions is appropriate. Many valuable contributions have been enhanced with AI assistance for code generation, issue detection, and feature definition.
+
+That said, if you use any kind of AI assistance (agents, ChatGPT, Copilot) while contributing, **disclose it in the pull request or issue**, along with the extent (documentation polish vs. code generation vs. full authorship).
+
+If your PR responses or review comments are generated by an AI, disclose that too.
+
+Exception: trivial spacing or typo fixes don't need disclosure, so long as the changes are limited to small sections or short phrases.
+
+An example disclosure:
+
+> This PR was written primarily by Claude Code.
+
+Or more detailed:
+
+> I consulted ChatGPT to understand the codebase, but the solution was fully authored manually.
+
+Failure to disclose is first and foremost rude to the human reviewers on the other end, but it also makes it harder to know how much scrutiny to apply to the contribution.
+
+### What we're looking for
+
+When submitting AI-assisted contributions, please ensure they include:
+
+- **Clear disclosure of AI use** — you're transparent about the tool and degree
+- **Human understanding and testing** — you've personally tested the changes and understand what they do
+- **Clear rationale** — you can explain why the change is needed and how it fits Atomic Spec's governance model
+- **Concrete evidence** — test cases, scenarios, or examples demonstrating the improvement
+- **Your own analysis** — share your thoughts on the developer experience
+
+### What we'll close
+
+We reserve the right to close contributions that appear to be:
+
+- Untested changes submitted without verification
+- Generic suggestions that don't address specific Atomic Spec needs
+- Bulk submissions showing no human review or understanding
+
+The key is demonstrating that you understand and have validated your proposed changes. If a maintainer can easily tell a contribution was generated entirely by AI without human input, it likely needs more work before submission.
+
+Contributors who consistently submit low-effort AI-generated changes may be restricted from further contributions at the maintainers' discretion.
+
+## Resources
+
+- [Atomic Traceability Model (builds on SDD)](/atomic-spec/docs/atomic-traceability-model)
+- [README](https://github.com/Chappygo-OS/Atomic-Spec#readme) — architecture and quick start
+- [CHANGELOG](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/CHANGELOG.md) — release history
+- [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)
+- [Using Pull Requests](https://help.github.com/articles/about-pull-requests/)
+- [GitHub Help](https://help.github.com)

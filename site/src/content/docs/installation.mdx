@@ -1,0 +1,150 @@
+---
+title: Installation
+description: Install the Atomic Spec CLI from PyPI or run the local init scripts to drop the framework into a new or existing project.
+category: Getting Started
+order: 10
+lastUpdated: 2026-04-29
+---
+
+## Prerequisites
+
+- **Linux / macOS / Windows** (PowerShell scripts work natively on Windows; no WSL required)
+- An AI coding agent — `claude`, `gemini`, `copilot`, `cursor`, `windsurf` have dedicated shell-script support; the `atomicspec` CLI additionally supports `qwen`, `opencode`, `codex`, `kilocode`, `auggie`, `codebuddy`, `qoder`, `roo`, `q`, `amp`, `shai`, `bob` (experimental tier)
+- [Git](https://git-scm.com/downloads)
+- [uv](https://docs.astral.sh/uv/) + [Python 3.11+](https://www.python.org/downloads/) (required for the PyPI install path)
+
+## Quick Install (PyPI — recommended)
+
+The fastest way to get started:
+
+```bash
+# Install the CLI
+uv tool install atomic-spec
+
+# Initialize a new project
+atomicspec init <PROJECT_NAME>
+
+# Or initialize in the current directory
+atomicspec init --here
+
+# Pick an agent explicitly (defaults to prompting)
+atomicspec init <PROJECT_NAME> --ai claude
+atomicspec init <PROJECT_NAME> --ai cursor-agent
+```
+
+Upgrade the CLI later with `uv tool install atomic-spec --force`.
+
+## Alternative: Clone & Run Local Scripts
+
+If you prefer cloning the repo (useful for testing unreleased changes or avoiding `uv`):
+
+```bash
+git clone https://github.com/Chappygo-OS/Atomic-Spec.git
+cd Atomic-Spec
+```
+
+**macOS / Linux / WSL:**
+
+```bash
+./init-project.sh /path/to/<PROJECT_NAME>
+# Defaults to --ai claude if omitted
+./init-project.sh /path/to/<PROJECT_NAME> --ai claude
+./init-project.sh /path/to/<PROJECT_NAME> --ai gemini
+./init-project.sh /path/to/<PROJECT_NAME> --ai copilot
+./init-project.sh /path/to/<PROJECT_NAME> --ai cursor          # or --ai cursor-agent
+./init-project.sh /path/to/<PROJECT_NAME> --ai windsurf
+```
+
+**Windows PowerShell:**
+
+```powershell
+.\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>"
+.\init-project.ps1 -TargetPath "D:\path\to\<PROJECT_NAME>" -AIAgent "claude"
+```
+
+### Cursor agent naming
+
+The actual Cursor CLI executable is `cursor-agent`. Both paths accept either name:
+
+| Tool | Flag |
+|------|------|
+| `init-project.sh` / `init-project.ps1` | `--ai cursor` or `--ai cursor-agent` (equivalent) |
+| `atomicspec` (PyPI CLI) | `--ai cursor-agent` (matches AGENT_CONFIG key) |
+
+Either will set up the `.cursor/commands/` directory correctly.
+
+## Verify
+
+After initialization, the project directory should contain:
+
+- `.specify/` — knowledge stations, subagents, templates
+- `templates/` — spec, plan, task, registry templates
+- `.claude/commands/` (for `--ai claude`) — `atomicspec.*.md` slash commands
+- `specs/_defaults/registry.yaml` — Project Defaults Registry scaffold
+- `memory/constitution.md` — governance constitution with Article IX hardcoded
+
+In your AI agent, the following slash commands should now be available:
+
+- `/atomicspec.specify` — create feature specifications
+- `/atomicspec.plan` — generate implementation plans
+- `/atomicspec.tasks` — generate atomic task files
+- `/atomicspec.implement` — execute with Context Pinning; on exit, Phase 9 syncs new project-wide decisions back to the registry
+- `/atomicspec.registry` — discover and populate the Project Defaults Registry from your project manifests (run this once after init, or whenever the registry falls out of sync)
+- `/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.constitution`, `/atomicspec.analyze-competitors`, `/atomicspec.cleanup`, `/atomicspec.taskstoissues` — supporting commands
+
+### Bootstrap step: populate the Project Defaults Registry
+
+Right after initializing a project, `specs/_defaults/registry.yaml` exists but every value is `null`. Run `/atomicspec.registry` in your AI agent to populate it:
+
+1. It scans your repo's manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Dockerfile`, `.github/workflows/*`, `prisma/schema.prisma`, etc.)
+2. It presents discovered values in a single table for batched HITL confirmation
+3. It interviews you for fields that manifests can't reveal (tenancy model, architecture pattern, API conventions)
+4. It writes `registry.yaml` + an audit trail in `changelog.md` atomically
+
+You can also defer this — `/atomicspec.plan` Phase 0.9 will offer to populate the registry from plan-time decisions — but doing it upfront gives every subsequent command a richer default set.
+
+## Troubleshooting
+
+### Git Credential Manager on Linux
+
+If you're having issues with Git authentication on Linux, install Git Credential Manager:
+
+```bash
+#!/usr/bin/env bash
+set -e
+echo "Downloading Git Credential Manager v2.6.1..."
+wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
+echo "Installing Git Credential Manager..."
+sudo dpkg -i gcm-linux_amd64.2.6.1.deb
+echo "Configuring Git to use GCM..."
+git config --global credential.helper manager
+echo "Cleaning up..."
+rm gcm-linux_amd64.2.6.1.deb
+```
+
+### `init-project.sh` permission denied
+
+On macOS / Linux, make the script executable:
+
+```bash
+chmod +x init-project.sh
+```
+
+### Windows execution policy blocks `init-project.ps1`
+
+Allow the script to run for the current session:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\init-project.ps1 -TargetPath "D:\path\to\project" -AIAgent "claude"
+```
+
+### `atomicspec: command not found` after `uv tool install`
+
+Ensure `uv`'s tool directory is on your `PATH`:
+
+```bash
+uv tool update-shell   # prints instructions per-shell
+```
+
+Then restart your terminal.

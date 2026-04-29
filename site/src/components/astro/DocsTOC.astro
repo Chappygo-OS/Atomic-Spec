@@ -1,0 +1,67 @@
+---
+/**
+ * DocsTOC — sticky in-page table of contents (xl: only).
+ *
+ * Receives the headings array from `entry.render()` and renders only h2/h3.
+ * The page's title is already rendered as the visual h1 in DocsLayout's
+ * header, so listing it again would be noise.
+ *
+ * Visibility:
+ *   - Hidden below `xl` — small viewports rely on the article scroll
+ *     plus the mobile drawer for navigation
+ *   - Sticky from `xl` upward — stays in view on long docs
+ *
+ * No active-section tracking in Phase 3. The CSS `scroll-smooth` on
+ * <html> + the `scroll-margin-top` on prose headings makes anchor jumps
+ * land cleanly. IntersectionObserver-based highlighting is a Phase-4+
+ * polish item.
+ */
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// Drop h1 (page title is rendered separately) and depths >3 (TOC noise).
+const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+  tocHeadings.length > 0 && (
+    <aside class="hidden xl:block">
+      <nav
+        aria-labelledby="toc-label"
+        class="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto"
+      >
+        <p
+          id="toc-label"
+          class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500"
+        >
+          On this page
+        </p>
+        <ul class="space-y-1.5 border-l border-slate-800 text-sm">
+          {tocHeadings.map((h) => (
+            <li>
+              <a
+                href={`#${h.slug}`}
+                class:list={[
+                  'block py-0.5 text-slate-400 transition hover:text-emerald-300',
+                  h.depth === 3 ? 'pl-7 text-[0.8rem]' : 'pl-4',
+                ]}
+              >
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+  )
+}

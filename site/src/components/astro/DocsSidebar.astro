@@ -1,0 +1,65 @@
+---
+/**
+ * DocsSidebar — desktop-only docs nav.
+ *
+ * Renders the category-grouped tree returned by `getDocsNav()` and marks
+ * the active item with `aria-current="page"` and an emerald accent.
+ *
+ * Visibility:
+ *   - Hidden below `lg` (mobile uses DocsSidebarMobile React island)
+ *   - Sticky from `lg` upward — stays in view on long docs
+ *
+ * Active matching uses normalized pathname comparison so trailing
+ * slashes don't break highlighting (`trailingSlash: 'ignore'` in
+ * astro.config.mjs means both `/foo` and `/foo/` are valid).
+ */
+import type { NavGroup } from '../../lib/nav';
+import { normalizePathname } from '../../lib/url';
+
+interface Props {
+  nav: NavGroup[];
+}
+
+const { nav } = Astro.props;
+const currentPath = normalizePathname(Astro.url.pathname);
+---
+
+<aside class="hidden lg:block">
+  <nav
+    aria-label="Documentation"
+    class="sticky top-[calc(var(--header-h,4rem)+1rem)] max-h-[calc(100dvh-var(--header-h,4rem)-2rem)] overflow-y-auto pr-4"
+  >
+    {
+      nav.map((group) => (
+        <div class="mb-8">
+          <h2 class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+            {group.category}
+          </h2>
+          <ul class="space-y-1.5">
+            {group.items.map((item) => {
+              const isActive = normalizePathname(item.href) === currentPath;
+              // Inactive items get a transparent left border so the active
+              // state's emerald border doesn't reflow the row 2px to the left.
+              return (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    class:list={[
+                      'block rounded-r-md border-l-2 py-1.5 pl-3 text-sm transition',
+                      isActive
+                        ? 'border-emerald-500 font-semibold text-emerald-400'
+                        : 'border-transparent text-slate-400 hover:text-white',
+                    ]}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))
+    }
+  </nav>
+</aside>

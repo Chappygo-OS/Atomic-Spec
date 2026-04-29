@@ -12,11 +12,19 @@
  * ------------------------------------------------------------------------- */
 
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* -----------------------------------------------------------------
  * Theme tokens — surfaced as Tailwind utilities (e.g. text-primary,
  * font-sans). oklch values match emerald-500 / 600 from Tailwind v4.
  * ----------------------------------------------------------------- */
+/* Global root tokens. `--header-h` is the canonical site-header height —
+   any sticky element below the header should offset by this value so they
+   stay in sync if the header ever changes height. */
+:root {
+  --header-h: 3.5rem;
+}
+
 @theme {
   --color-primary: oklch(69.6% 0.17 162.48);     /* ~ emerald-500 */
   --color-primary-strong: oklch(59.6% 0.145 163.225); /* ~ emerald-600 */

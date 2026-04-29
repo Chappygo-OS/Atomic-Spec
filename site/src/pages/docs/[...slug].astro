@@ -1,0 +1,44 @@
+---
+/**
+ * /docs/[...slug] — dynamic doc page.
+ *
+ * `getStaticPaths` enumerates every entry in the `docs` collection
+ * (excluding drafts) at build time. Astro then statically generates one
+ * HTML file per entry — no SSR, no runtime collection lookup.
+ *
+ * The `editUrl` points at the MDX source in the repo so doc readers can
+ * fix typos with a single click. The path mirrors the layout in
+ * `src/content/docs/`.
+ */
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const entries = await getCollection('docs', (entry) => !entry.data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+};
+
+type Props = {
+  entry: Awaited<ReturnType<typeof getCollection<'docs'>>>[number];
+};
+
+const { entry } = Astro.props as Props;
+const { Content, headings } = await render(entry);
+
+const editUrl = `https://github.com/Chappygo-OS/Atomic-Spec/edit/main/site/src/content/docs/${entry.id}.mdx`;
+---
+
+<DocsLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  category={entry.data.category}
+  headings={headings}
+  lastUpdated={entry.data.lastUpdated}
+  editUrl={editUrl}
+>
+  <Content />
+</DocsLayout>

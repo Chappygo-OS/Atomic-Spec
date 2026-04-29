@@ -1,17 +1,207 @@
 /* ----------------------------------------------------------------------------
  * prose.css — typography for MDX docs pages.
  *
- * Phase 1: placeholder. Phase 3 wires this to DocsLayout and styles headings,
- * paragraphs, lists, code blocks, callouts, and tables.
+ * The DocsLayout wraps doc bodies in `class="prose prose-invert"`, so the
+ * @tailwindcss/typography plugin provides the base. This file overrides
+ * colors and spacing to match the site's slate-950 / emerald-500 palette
+ * and the Inter / JetBrains Mono pairing in global.css.
  *
- * Intentionally empty utilities below so DocsLayout can already reference
- * `class="prose"` without a build error.
+ * Targeting strategy: scope every override under `.prose.prose-invert`
+ * to keep specificity matched to the plugin's defaults. Direct child
+ * selectors are avoided because MDX wraps content in extra nodes.
  * ------------------------------------------------------------------------- */
 
-.prose {
-  /* Phase 3 fills this. */
+/* -----------------------------------------------------------------
+ * Base prose tweaks — color, line-length, link affordance.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert {
+  --tw-prose-body: rgb(203 213 225);            /* slate-300 */
+  --tw-prose-headings: rgb(248 250 252);        /* slate-50 */
+  --tw-prose-lead: rgb(203 213 225);            /* slate-300 */
+  --tw-prose-links: oklch(69.6% 0.17 162.48);   /* emerald-500 */
+  --tw-prose-bold: rgb(248 250 252);            /* slate-50 */
+  --tw-prose-counters: rgb(148 163 184);        /* slate-400 */
+  --tw-prose-bullets: rgb(100 116 139);         /* slate-500 */
+  --tw-prose-hr: rgb(30 41 59);                 /* slate-800 */
+  --tw-prose-quotes: rgb(226 232 240);          /* slate-200 */
+  --tw-prose-quote-borders: oklch(69.6% 0.17 162.48); /* emerald-500 */
+  --tw-prose-captions: rgb(148 163 184);        /* slate-400 */
+  --tw-prose-code: rgb(248 250 252);            /* slate-50 */
+  --tw-prose-pre-code: rgb(226 232 240);        /* slate-200 */
+  --tw-prose-pre-bg: rgb(15 23 42);             /* slate-900 */
+  --tw-prose-th-borders: rgb(51 65 85);         /* slate-700 */
+  --tw-prose-td-borders: rgb(30 41 59);         /* slate-800 */
+
+  font-family: var(--font-sans);
 }
 
-.prose-invert {
-  /* Phase 3 fills this. */
+/* -----------------------------------------------------------------
+ * Headings — tighter tracking, less top space than the plugin default.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(h2):not(:where([class~="not-prose"] *)) {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 2.5em;
+  /* Border replaces the previous border + padding combo — the padding made
+     long docs feel like trenched sections; the standalone border still
+     signals separation without the visual gap. */
+  padding-top: 0;
+  border-top: 1px solid rgb(30 41 59);          /* slate-800 */
+}
+
+.prose.prose-invert :where(h3):not(:where([class~="not-prose"] *)) {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 1.75em;
+}
+
+.prose.prose-invert :where(h4):not(:where([class~="not-prose"] *)) {
+  font-weight: 600;
+  color: rgb(226 232 240);                      /* slate-200 */
+}
+
+/* -----------------------------------------------------------------
+ * Links — emerald with underline-on-hover and no jumpy color shift.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(a):not(:where([class~="not-prose"] *)) {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.35);
+  font-weight: 500;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.prose.prose-invert :where(a):hover:not(:where([class~="not-prose"] *)) {
+  color: rgb(110 231 183);                      /* emerald-300 */
+  border-bottom-color: rgb(110 231 183);
+}
+
+/* -----------------------------------------------------------------
+ * Inline code — monospace, slate background, no quotation marks.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(code):not(:where([class~="not-prose"] *, pre *)) {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  font-weight: 500;
+  background-color: rgba(16, 185, 129, 0.10);
+  color: rgb(167 243 208);                      /* emerald-200 */
+  padding: 0.15em 0.4em;
+  border-radius: 0.3em;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.prose.prose-invert :where(code):not(:where([class~="not-prose"] *, pre *))::before,
+.prose.prose-invert :where(code):not(:where([class~="not-prose"] *, pre *))::after {
+  content: none;
+}
+
+/* -----------------------------------------------------------------
+ * Code fences — match shiki github-dark-dimmed background.
+ * shiki injects inline styles for tokens; we just style the wrapper.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(pre):not(:where([class~="not-prose"] *)) {
+  font-family: var(--font-mono);
+  background-color: rgb(15 23 42);              /* slate-900 */
+  border: 1px solid rgb(30 41 59);              /* slate-800 */
+  border-radius: 0.625rem;
+  padding: 1rem 1.25rem;
+  font-size: 0.85em;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.prose.prose-invert :where(pre code):not(:where([class~="not-prose"] *)) {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-weight: 400;
+}
+
+/* -----------------------------------------------------------------
+ * Tables — bordered, alternating row tint, header tinted.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(table):not(:where([class~="not-prose"] *)) {
+  font-size: 0.9em;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgb(30 41 59);              /* slate-800 */
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.prose.prose-invert :where(thead):not(:where([class~="not-prose"] *)) {
+  background-color: rgb(15 23 42);              /* slate-900 */
+}
+
+.prose.prose-invert :where(thead th):not(:where([class~="not-prose"] *)) {
+  color: rgb(248 250 252);                      /* slate-50 */
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+}
+
+.prose.prose-invert :where(tbody td):not(:where([class~="not-prose"] *)) {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid rgb(30 41 59);          /* slate-800 */
+}
+
+.prose.prose-invert :where(tbody tr:nth-child(even)):not(:where([class~="not-prose"] *)) {
+  background-color: rgba(15, 23, 42, 0.5);      /* slate-900 / 50 */
+}
+
+/* -----------------------------------------------------------------
+ * Blockquote — emerald rule and italic-free for callouts.
+ * GitHub-style alerts (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`,
+ * `> [!IMPORTANT]`) render as plain blockquotes since we don't have
+ * an MDX directive plugin yet — Phase 3 leaves them as styled quotes.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(blockquote):not(:where([class~="not-prose"] *)) {
+  border-left-width: 3px;
+  background-color: rgba(15, 23, 42, 0.4);      /* slate-900 / 40 */
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: normal;
+  font-weight: 400;
+  color: rgb(203 213 225);                      /* slate-300 */
+}
+
+.prose.prose-invert :where(blockquote p:first-of-type):not(:where([class~="not-prose"] *))::before,
+.prose.prose-invert :where(blockquote p:last-of-type):not(:where([class~="not-prose"] *))::after {
+  content: none;
+}
+
+/* -----------------------------------------------------------------
+ * Lists — slightly tighter than the plugin default.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(ul, ol):not(:where([class~="not-prose"] *)) {
+  padding-left: 1.4em;
+}
+
+.prose.prose-invert :where(li):not(:where([class~="not-prose"] *)) {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+
+.prose.prose-invert :where(li > p):not(:where([class~="not-prose"] *)) {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+/* -----------------------------------------------------------------
+ * Horizontal rule — thinner, less sweeping than the plugin default.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(hr):not(:where([class~="not-prose"] *)) {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+  border-top-width: 1px;
+}
+
+/* -----------------------------------------------------------------
+ * Heading anchor target — keep target headings clear of the sticky
+ * header. Without this, jumping to `#section` lands the heading
+ * under the header bar.
+ * ----------------------------------------------------------------- */
+.prose.prose-invert :where(h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  /* Use the global --header-h variable so this stays in sync with the
+     actual sticky header height (defined in global.css / Header.astro). */
+  scroll-margin-top: calc(var(--header-h, 4rem) + 1rem);
 }

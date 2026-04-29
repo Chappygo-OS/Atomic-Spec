@@ -1,0 +1,356 @@
+---
+title: Upgrade Guide
+description: Refresh the Atomic Spec CLI and pull the latest framework files into existing projects without losing customizations.
+category: Getting Started
+order: 30
+lastUpdated: 2026-04-29
+---
+
+> You have Atomic Spec installed in one or more projects and want to refresh them with the latest framework files (knowledge stations, subagents, templates, slash commands, scripts).
+
+---
+
+## Quick Reference
+
+| What to Upgrade | Command | When to Use |
+|----------------|---------|-------------|
+| **The PyPI CLI** | `uv tool install atomic-spec --force` | Get the latest `atomicspec` CLI binary |
+| **Framework files in a project (PyPI path)** | `atomicspec init --here --force --ai <agent>` | Refresh templates, commands, scripts |
+| **Framework files in a project (clone path)** | `./init-project.sh /path/to/project --ai <agent>` (re-run) | Alternative if you cloned the repo |
+| **The Atomic Spec source clone** | `git pull origin main` inside your `Atomic-Spec/` checkout | Keep the source tree current before re-running `init-project.sh` |
+
+---
+
+## What Changed in v0.1.1?
+
+- **PyPI release**: `atomicspec` is now installable via `uv tool install atomic-spec`
+- **Auto-publish pipeline**: pushing a `v*` tag builds 34 per-agent template zips and uploads to PyPI via Trusted Publishing
+- **`cursor-agent` accepted** alongside `cursor` as an agent key
+- **Tech-stack gate tightened**: `check-prerequisites` now rejects unfilled `[placeholder]` values instead of silently passing
+- **Registry template de-duplicated**: `target_platform:` and `mobile:` sections no longer appear twice
+- **Registry-absent gate added**: `check-prerequisites --check-gates` now fails if `specs/_defaults/registry.yaml` is missing (escape hatch: `ATOMIC_SPEC_NO_REGISTRY=1`). Direct users to the new `/atomicspec.registry` command to create it from project manifests.
+- **New `/atomicspec.registry` command**: discovers defaults from `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, Docker/CI configs, etc., batches HITL confirmation, and writes `registry.yaml` + `changelog.md` atomically.
+- **`/atomicspec.implement` Phase 9 (Registry Sync on Exit)**: every completed implementation now scans for new project-wide patterns (tenancy filtering, error envelope format, structured logging, etc.) and prompts the user to add them to the registry. Satisfies Directive 7 "Protocol — On Exit" at feature level. Only exception to Context Pinning — scoped to Phase 9 only.
+
+### Migration note for projects without a registry
+
+If you upgrade a project that was initialized before v0.1.1 and doesn't have `specs/_defaults/registry.yaml`, the first `/atomicspec.tasks` or `/atomicspec.implement` run will now fail the gate with a clear instruction. Two options:
+
+- **Recommended**: run `/atomicspec.registry` once to discover your existing defaults from manifests and confirm them.
+- **Quick escape**: `export ATOMIC_SPEC_NO_REGISTRY=1` (bash) or `$env:ATOMIC_SPEC_NO_REGISTRY='1'` (PowerShell) to proceed with graceful degradation for this session. Decisions will be feature-specific until you run `/atomicspec.registry` or `/atomicspec.plan` Phase 0.9 populates the registry.
+
+---
+
+## Part 1: Refresh the source
+
+If you installed via PyPI, upgrade the CLI:
+
+```bash
+uv tool install atomic-spec --force
+```
+
+If you cloned the repo instead, pull the latest version:
+
+```bash
+cd /path/to/Atomic-Spec
+git pull origin main
+```
+
+## Part 2: Re-initialize the project
+
+### Option A — PyPI CLI (recommended)
+
+Run inside your project directory:
+
+```bash
+atomicspec init --here --force --ai claude
+```
+
+Replace `claude` with your AI assistant. See [Supported AI Agents](https://github.com/Chappygo-OS/Atomic-Spec#-supported-ai-agents) for the full list.
+
+### Option B — Clone path
+
+Run the initializer from your local clone against the existing project:
+
+```bash
+# macOS / Linux / WSL
+./init-project.sh /path/to/existing/project --ai claude
+
+# Windows PowerShell
+.\init-project.ps1 -TargetPath "D:\path\to\existing\project" -AIAgent "claude"
+```
+
+> [!WARNING]
+> Re-initialization **replaces** `.specify/`, `templates/`, `memory/`, and `scripts/` inside the target project. If you customized any of those files, commit them to git first, then reconcile after the upgrade.
+
+---
+
+## What gets updated vs. what stays safe
+
+### Updated by re-init
+
+- ✅ **Slash command files** (`.claude/commands/`, `.github/prompts/`, etc.)
+- ✅ **Scripts** (`.specify/scripts/`)
+- ✅ **Templates** (`.specify/templates/`)
+- ✅ **Memory files** (`.specify/memory/`) — **⚠️ see warnings below**
+
+### Never touched by re-init
+
+- ✅ **Your specifications** (`specs/001-my-feature/spec.md`, etc.)
+- ✅ **Your implementation plans and tasks** (`specs/001-my-feature/plan.md`, `specs/001-my-feature/tasks/`, `specs/001-my-feature/index.md`, `specs/001-my-feature/traceability.md`, etc.)
+- ✅ **Your source code**
+- ✅ **Your git history**
+
+The `specs/` directory is excluded from template packages and is never overwritten.
+
+### Understanding the `--force` flag
+
+Without `--force`, the CLI warns you and asks for confirmation:
+
+```text
+Warning: Current directory is not empty (25 items)
+Template files will be merged with existing content and may overwrite existing files
+Proceed? [y/N]
+```
+
+With `--force`, it skips the confirmation and proceeds immediately. Your `specs/` directory is always safe — `--force` only affects template files (commands, scripts, templates, memory).
+
+---
+
+## ⚠️ Important Warnings
+
+### 1. Constitution file will be overwritten
+
+**Known issue:** `atomicspec init --here --force` currently overwrites `.specify/memory/constitution.md` with the default template, erasing any customizations you made.
+
+**Workaround:**
+
+```bash
+# 1. Back up your constitution before upgrading
+cp .specify/memory/constitution.md .specify/memory/constitution-backup.md
+
+# 2. Run the upgrade
+atomicspec init --here --force --ai claude
+
+# 3. Restore your customized constitution
+mv .specify/memory/constitution-backup.md .specify/memory/constitution.md
+```
+
+Or use git to restore it:
+
+```bash
+# After upgrade, restore from git history
+git restore .specify/memory/constitution.md
+```
+
+### 2. Custom template modifications
+
+If you customized any templates in `.specify/templates/`, the upgrade will overwrite them. Back them up first:
+
+```bash
+# Back up custom templates
+cp -r .specify/templates .specify/templates-backup
+
+# After upgrade, merge your changes back manually
+```
+
+### 3. Duplicate slash commands (IDE-based agents)
+
+Some IDE-based agents (like Kilo Code, Windsurf) may show **duplicate slash commands** after upgrading — both old and new versions appear.
+
+**Solution:** Manually delete the old command files from your agent's folder.
+
+**Example for Kilo Code:**
+
+```bash
+cd .kilocode/rules/
+ls -la
+rm atomicspec.specify-old.md
+rm atomicspec.plan-v1.md
+```
+
+Restart your IDE to refresh the command list.
+
+---
+
+## Common Scenarios
+
+### Scenario 1: "I just want new slash commands"
+
+```bash
+# Refresh the CLI
+uv tool install atomic-spec --force
+
+# Update project files
+atomicspec init --here --force --ai claude
+
+# Restore your constitution if customized
+git restore .specify/memory/constitution.md
+```
+
+### Scenario 2: "I customized templates and constitution"
+
+```bash
+# 1. Back up customizations
+cp .specify/memory/constitution.md /tmp/constitution-backup.md
+cp -r .specify/templates /tmp/templates-backup
+
+# 2. Refresh the CLI
+uv tool install atomic-spec --force
+
+# 3. Update the project
+atomicspec init --here --force --ai claude
+
+# 4. Restore customizations
+mv /tmp/constitution-backup.md .specify/memory/constitution.md
+# Manually merge template changes if needed
+```
+
+### Scenario 3: "I see duplicate slash commands in my IDE"
+
+This happens with IDE-based agents (Kilo Code, Windsurf, Roo Code, etc.).
+
+```bash
+cd .kilocode/rules/
+ls -la
+rm atomicspec.old-command-name.md
+```
+
+Then restart your IDE.
+
+### Scenario 4: "I'm working on a project without Git"
+
+If you initialized your project with `--no-git`, you can still upgrade:
+
+```bash
+cp .specify/memory/constitution.md /tmp/constitution-backup.md
+atomicspec init --here --force --ai claude --no-git
+mv /tmp/constitution-backup.md .specify/memory/constitution.md
+```
+
+The `--no-git` flag skips git initialization but doesn't affect file updates.
+
+---
+
+## Using `--no-git`
+
+The `--no-git` flag tells Atomic Spec to **skip git repository initialization**. Use when:
+
+- You manage version control differently (Mercurial, SVN, etc.)
+- Your project is part of a larger monorepo with existing git setup
+- You're experimenting and don't want version control yet
+
+**During initial setup:**
+
+```bash
+atomicspec init my-project --ai claude --no-git
+```
+
+**During upgrade:**
+
+```bash
+atomicspec init --here --force --ai claude --no-git
+```
+
+### What `--no-git` does NOT do
+
+- Does NOT prevent file updates
+- Does NOT skip slash command installation
+- Does NOT affect template merging
+
+It **only** skips running `git init` and creating the initial commit.
+
+### Working without Git
+
+If you use `--no-git`, you'll need to manage feature directories manually by setting `SPECIFY_FEATURE` before using planning commands:
+
+```bash
+# Bash/Zsh
+export SPECIFY_FEATURE="001-my-feature"
+
+# PowerShell
+$env:SPECIFY_FEATURE = "001-my-feature"
+```
+
+Without git, Atomic Spec can't detect your current branch name to determine the active feature. The environment variable provides that context manually.
+
+---
+
+## Troubleshooting
+
+### "Slash commands not showing up after upgrade"
+
+**Cause:** Agent didn't reload command files.
+
+**Fix:**
+
+1. **Restart your IDE/editor** completely (not just reload window)
+2. **For CLI-based agents**, verify files exist:
+
+   ```bash
+   ls -la .claude/commands/      # Claude Code
+   ls -la .gemini/commands/      # Gemini
+   ls -la .cursor/commands/      # Cursor
+   ```
+
+3. **Check agent-specific setup:**
+   - Codex requires `CODEX_HOME` environment variable
+   - Some agents need workspace restart or cache clearing
+
+### "I lost my constitution customizations"
+
+```bash
+# If you committed before upgrading
+git restore .specify/memory/constitution.md
+
+# If you backed up manually
+cp /tmp/constitution-backup.md .specify/memory/constitution.md
+```
+
+**Prevention:** Always commit or back up `constitution.md` before upgrading.
+
+### "CLI upgrade doesn't seem to work"
+
+```bash
+# List installed uv tools
+uv tool list
+
+# Reinstall if missing
+uv tool uninstall atomic-spec
+uv tool install atomic-spec
+
+# Verify executable path
+which atomicspec         # macOS/Linux
+where.exe atomicspec     # Windows
+```
+
+### "Do I need to run atomicspec every time I open my project?"
+
+**No.** You only run `atomicspec init` once per project (or when upgrading).
+
+Once you've run `atomicspec init`, slash commands (`/atomicspec.specify`, `/atomicspec.plan`, etc.) are **permanently installed** in your project's agent folder (`.claude/`, `.github/prompts/`, etc.). Your AI assistant reads these files directly — no need to run `atomicspec` again.
+
+**If your agent isn't recognizing slash commands:**
+
+1. Verify command files exist (see above)
+2. Restart your IDE/editor completely
+3. Check you're in the correct directory where you ran `atomicspec init`
+
+---
+
+## Version Compatibility
+
+Atomic Spec follows semantic versioning. The CLI and project files are designed to be compatible within the same major version.
+
+**Best practice:** Keep the CLI and project files in sync by upgrading both together during major version changes.
+
+---
+
+## Next Steps
+
+After upgrading:
+
+- **Test new slash commands:** Run `/atomicspec.constitution` or another command to verify everything works
+- **Review release notes:** Check [Atomic Spec Releases](https://github.com/Chappygo-OS/Atomic-Spec/releases) for new features and breaking changes
+- **Update workflows:** If new commands were added, update your team's development workflows
+- **Check documentation:** Visit the [Atomic Spec repository](https://github.com/Chappygo-OS/Atomic-Spec) for updated guides

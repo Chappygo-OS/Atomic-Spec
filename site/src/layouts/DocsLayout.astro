@@ -1,28 +1,123 @@
 ---
 /**
- * DocsLayout — placeholder for Phase 1.
+ * DocsLayout — the chrome around every MDX doc page.
  *
- * Phase 3 will:
- *   - Add a left sidebar with collection-driven navigation
- *   - Add an in-page table of contents on the right
- *   - Wire `prose.css` to render MDX bodies
+ * Composition:
+ *   - BaseLayout supplies the document shell (head, header, footer, animated bg)
+ *   - DocsSidebarMobile is the `<lg` drawer (React island, client:idle)
+ *   - DocsSidebar is the `lg+` sticky sidebar (Astro, no JS)
+ *   - DocsTOC is the `xl+` right-side table of contents (Astro, no JS)
  *
- * For now it's a thin wrapper around BaseLayout so that any future MDX page
- * pointing to this layout doesn't need to be rewritten later.
+ * Slot receives `<Content />` — the rendered MDX body. The wrapping
+ * `<article class="prose prose-invert">` activates prose.css.
+ *
+ * `category`, `lastUpdated`, and `editUrl` are optional surfacing details.
+ * `editUrl` points consumers at the source MDX on GitHub so doc fixes
+ * have a one-click path.
  */
 import BaseLayout from './BaseLayout.astro';
+import DocsSidebar from '../components/astro/DocsSidebar.astro';
+import DocsSidebarMobile from '../components/react/DocsSidebarMobile';
+import DocsTOC from '../components/astro/DocsTOC.astro';
+import { getDocsNav } from '../lib/nav';
+import { withBase } from '../lib/url';
 import '../styles/prose.css';
 
-interface Props {
-  title?: string;
-  description?: string;
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
 }
 
-const { title, description } = Astro.props;
+interface Props {
+  title: string;
+  description: string;
+  category?: string;
+  headings: Heading[];
+  lastUpdated?: Date;
+  editUrl?: string;
+}
+
+const {
+  title,
+  description,
+  category,
+  headings,
+  lastUpdated,
+  editUrl,
+} = Astro.props as Props;
+
+const nav = await getDocsNav();
+const currentPath = Astro.url.pathname;
+
+const formattedLastUpdated = lastUpdated
+  ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(lastUpdated)
+  : null;
 ---
 
-<BaseLayout title={title} description={description}>
-  <article class="prose prose-invert mx-auto max-w-3xl px-6 py-16">
-    <slot />
-  </article>
+<BaseLayout title={`${title} — Atomic Spec`} description={description}>
+  <DocsSidebarMobile nav={nav} currentPath={currentPath} client:idle />
+
+  <div
+    class="mx-auto grid max-w-7xl gap-x-10 gap-y-8 px-4 py-12 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_14rem] sm:px-6 lg:px-8"
+  >
+    <DocsSidebar nav={nav} />
+
+    <article class="prose prose-invert max-w-none xl:max-w-[72ch]">
+      <header class="not-prose mb-10 border-b border-slate-800 pb-8">
+        {/* Breadcrumb — restores "you are here" orientation when the sidebar
+            is hidden on mobile (lg-). Static, no JS. */}
+        <nav aria-label="Breadcrumb" class="mb-3 text-xs text-slate-500">
+          <ol class="flex flex-wrap items-center gap-1.5">
+            <li>
+              <a href={withBase('/docs')} class="transition hover:text-emerald-300">
+                Docs
+              </a>
+            </li>
+            {category && (
+              <>
+                <li aria-hidden="true" class="text-slate-700">/</li>
+                <li class="font-medium text-slate-400">{category}</li>
+              </>
+            )}
+          </ol>
+        </nav>
+
+        {category && (
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-400">
+            {category}
+          </p>
+        )}
+        <h1 class="mt-3 text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          {title}
+        </h1>
+        <p class="mt-4 text-pretty text-lg leading-relaxed text-slate-400">
+          {description}
+        </p>
+      </header>
+
+      <slot />
+
+      <footer class="not-prose mt-16 flex flex-col gap-3 border-t border-slate-800 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        {editUrl && (
+          <a
+            href={editUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="inline-flex items-center gap-1.5 text-slate-400 transition hover:text-emerald-300"
+          >
+            Edit this page on GitHub
+            <span aria-hidden="true">↗</span>
+          </a>
+        )}
+        {formattedLastUpdated && (
+          <p>
+            Last updated <time datetime={lastUpdated!.toISOString()}>{formattedLastUpdated}</time>
+          </p>
+        )}
+      </footer>
+    </article>
+
+    <DocsTOC headings={headings} />
+  </div>
 </BaseLayout>
