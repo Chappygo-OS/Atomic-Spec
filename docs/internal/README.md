@@ -1,6 +1,6 @@
 # Internal Documentation
 
-These are historical and internal planning documents kept in the repository for contributor archaeology and architectural context. **They are not published to the public site at [chappygo-os.github.io/atomic-spec](https://chappygo-os.github.io/atomic-spec/).**
+These are historical and internal planning documents kept in the repository for contributor archaeology and architectural context. **They are not published to the public site at [chappygo-os.github.io/Atomic-Spec](https://chappygo-os.github.io/Atomic-Spec/).**
 
 User-facing docs live in `site/src/content/docs/` and are rendered by Astro on every push to `main` via `.github/workflows/site.yml`.
 

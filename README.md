@@ -161,7 +161,7 @@ git checkout -b 001-your-feature-name
 /atomicspec.implement                 # Context-Pinned implementation + Phase 9 registry sync on exit
 ```
 
-See the [quickstart guide](https://chappygo-os.github.io/atomic-spec/docs/quickstart) for the full walkthrough, including optional commands (`/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.cleanup`, `/atomicspec.analyze-competitors`, `/atomicspec.taskstoissues`) and the `init-project.{sh,ps1}` script path for offline/local installs.
+See the [quickstart guide](https://chappygo-os.github.io/Atomic-Spec/docs/quickstart) for the full walkthrough, including optional commands (`/atomicspec.clarify`, `/atomicspec.analyze`, `/atomicspec.checklist`, `/atomicspec.cleanup`, `/atomicspec.analyze-competitors`, `/atomicspec.taskstoissues`) and the `init-project.{sh,ps1}` script path for offline/local installs.
 
 ### The registry workflow (Directive 7 end-to-end)
 

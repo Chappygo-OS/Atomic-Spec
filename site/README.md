@@ -4,7 +4,7 @@ This is the public website for [Atomic Spec](https://github.com/Chappygo-OS/Atom
 
 It is deployed at:
 
-> **https://chappygo-os.github.io/atomic-spec/**
+> **https://chappygo-os.github.io/Atomic-Spec/**
 
 The repository root is the framework itself; this `site/` folder contains only the marketing + docs frontend that consumes it.
 
@@ -18,7 +18,7 @@ Requires Node 20+ and npm 10+.
 # from the repo root
 cd site
 npm install
-npm run dev          # http://localhost:4321/atomic-spec/
+npm run dev          # http://localhost:4321/Atomic-Spec/
 ```
 
 ## Other scripts
@@ -32,7 +32,7 @@ npm run dev          # http://localhost:4321/atomic-spec/
 
 ## Deployment
 
-Pushed builds of `main` are published to GitHub Pages at the URL above (workflow lands in Phase 4). The `base: '/atomic-spec/'` in `astro.config.mjs` is what makes Pages routing work — never hardcode site paths; use the `withBase()` helper in `src/lib/url.ts`.
+Pushed builds of `main` are published to GitHub Pages at the URL above (workflow lands in Phase 4). The `base: '/Atomic-Spec/'` in `astro.config.mjs` is what makes Pages routing work — never hardcode site paths; use the `withBase()` helper in `src/lib/url.ts`.
 
 ## Source layout
 

@@ -8,7 +8,10 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   site: 'https://chappygo-os.github.io',
-  base: '/atomic-spec/',
+  // Repo name is `Atomic-Spec` (capital A, capital S, hyphen). GitHub Pages
+  // serves project sites at the EXACT repo name and is case-sensitive on
+  // subpaths, so the base must match. Don't lowercase this — assets 404.
+  base: '/Atomic-Spec/',
   trailingSlash: 'ignore',
   output: 'static',
   build: { format: 'directory', assets: '_assets' },

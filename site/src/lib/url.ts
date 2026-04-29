@@ -2,7 +2,7 @@
  * Prefix any internal path with the configured site base (`import.meta.env.BASE_URL`).
  *
  * Astro injects `BASE_URL` from the `base` option in `astro.config.mjs`. In production
- * this is `/atomic-spec/`; in dev it can be `/` depending on configuration. Always
+ * this is `/Atomic-Spec/`; in dev it can be `/` depending on configuration. Always
  * route internal links through this helper so a single config change reroutes the site.
  *
  * Edge cases handled:
@@ -11,10 +11,10 @@
  *   - already-absolute URLs (http/https/mailto/tel) returned as-is
  *
  * @example
- *   withBase('/docs')                  // -> "/atomic-spec/docs"
- *   withBase('docs')                   // -> "/atomic-spec/docs"
- *   withBase('/docs?ref=nav')          // -> "/atomic-spec/docs?ref=nav"
- *   withBase('#section')               // -> "/atomic-spec/#section"
+ *   withBase('/docs')                  // -> "/Atomic-Spec/docs"
+ *   withBase('docs')                   // -> "/Atomic-Spec/docs"
+ *   withBase('/docs?ref=nav')          // -> "/Atomic-Spec/docs?ref=nav"
+ *   withBase('#section')               // -> "/Atomic-Spec/#section"
  *   withBase('https://example.com')    // -> "https://example.com" (untouched)
  */
 export function withBase(path: string): string {

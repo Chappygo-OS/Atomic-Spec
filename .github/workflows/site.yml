@@ -4,7 +4,7 @@
 # changes — keeps the site in lockstep with the framework code without
 # rebuilding on unrelated commits.
 #
-# Final URL: https://chappygo-os.github.io/atomic-spec/
+# Final URL: https://chappygo-os.github.io/Atomic-Spec/
 #
 # One-time setup (manual, no API equivalent):
 #   Repo Settings > Pages > Build and deployment > Source = "GitHub Actions"
