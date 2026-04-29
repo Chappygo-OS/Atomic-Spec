@@ -10,7 +10,12 @@ dist/
 downloads/
 eggs/
 .eggs/
+# `lib/` is a Python virtualenv directory we don't want at root, but
+# /site/src/lib (Astro helpers) IS tracked. Order matters: ignore first,
+# then re-include the site path.
 lib/
+!site/src/lib/
+!site/src/lib/**
 lib64/
 parts/
 sdist/
