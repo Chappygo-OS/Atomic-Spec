@@ -1,0 +1,102 @@
+---
+/**
+ * BaseLayout — the only document shell on the site.
+ *
+ * Wraps every page with:
+ *   - <head> meta + favicon (uses BASE_URL via withBase)
+ *   - The animated gradient background (drifting blobs + noise overlay)
+ *   - Sticky Header
+ *   - <main> slot
+ *   - Footer
+ *
+ * Other layouts (e.g. DocsLayout) compose with this rather than redefine <html>.
+ */
+import '../styles/global.css';
+
+import AnimatedBackground from '../components/astro/AnimatedBackground.astro';
+import Header from '../components/astro/Header.astro';
+import Footer from '../components/astro/Footer.astro';
+import { withBase } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Pages can opt out of the animated background (rare; mainly for screenshots). */
+  hideBackground?: boolean;
+}
+
+const {
+  title = 'Atomic Spec — Governance for AI-Driven Development',
+  description = 'A governance framework that constrains AI coding agents through atomic, gated, context-pinned phases.',
+  hideBackground = false,
+} = Astro.props;
+
+const favicon = withBase('/favicon.svg');
+const banner = withBase('/atomic-spec-banner.jpg');
+// Astro.site is configured in astro.config.mjs (https://chappygo-os.github.io)
+// so this is safe in production; in dev `Astro.site` may be undefined, in which
+// case fall back to a relative URL so OG previews don't crash dev server.
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).toString()
+  : Astro.url.pathname;
+const ogImage = Astro.site
+  ? new URL(banner, Astro.site).toString()
+  : banner;
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#020617" />
+
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Fonts: preconnect first, then load. Inline <link> beats @import for
+         render performance; preconnect warms the connection during HTML parse. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content="Atomic Spec — interlocking orbital paths around a central nucleus, the Atomic Spec brand mark" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="400" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="Atomic Spec — interlocking orbital paths around a central nucleus, the Atomic Spec brand mark" />
+  </head>
+
+  <body class="text-slate-200">
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    {!hideBackground && <AnimatedBackground />}
+
+    <Header />
+
+    <main id="main" class="relative">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

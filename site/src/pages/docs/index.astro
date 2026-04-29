@@ -1,0 +1,54 @@
+---
+/**
+ * /docs — Phase 1 placeholder.
+ *
+ * Phase 3 replaces this with a real docs landing (collection-driven nav,
+ * intro overview, getting-started link). For now it states the obvious so
+ * the Header's "Docs" link doesn't 404 in dev.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/url';
+
+const home = withBase('/');
+---
+
+<BaseLayout
+  title="Docs — Atomic Spec"
+  description="Atomic Spec technical documentation. Migrating from /docs into the site in Phase 3."
+>
+  <section class="mx-auto max-w-3xl px-6 py-24">
+    <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-300">
+      Phase 3 / Pending
+    </p>
+
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+      Documentation is on the assembly line.
+    </h1>
+
+    <p class="mt-6 text-pretty text-slate-300">
+      The technical docs (constitution articles, knowledge stations, command
+      reference, atomic traceability model) currently live in the repository's
+      <code class="rounded bg-white/5 px-1.5 py-0.5 font-mono text-sm text-slate-100">/docs</code>
+      directory. They get wired into this site in Phase 3.
+    </p>
+
+    <p class="mt-4 text-pretty text-slate-300">
+      In the meantime, the canonical source is the
+      <a
+        href="https://github.com/Chappygo-OS/Atomic-Spec/tree/main/docs"
+        rel="noopener noreferrer"
+        class="text-emerald-300 underline-offset-4 transition hover:text-emerald-200 hover:underline"
+      >
+        repository's docs folder
+      </a>.
+    </p>
+
+    <a
+      href={home}
+      class="mt-10 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-white/30 hover:bg-white/10"
+    >
+      <span aria-hidden="true">&larr;</span>
+      Back to home
+    </a>
+  </section>
+</BaseLayout>

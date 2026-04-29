@@ -35,8 +35,10 @@ env/
 Thumbs.db
 *.tmp
 
-# Not a Node.js project — block stray npm files
+# Block stray npm files at repo root (the framework itself is Python).
+# The /site/ Node.js project IS allowed to commit its lockfile.
 package-lock.json
+!site/package-lock.json
 node_modules/
 
 # Project specific

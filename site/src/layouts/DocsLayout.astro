@@ -1,0 +1,28 @@
+---
+/**
+ * DocsLayout — placeholder for Phase 1.
+ *
+ * Phase 3 will:
+ *   - Add a left sidebar with collection-driven navigation
+ *   - Add an in-page table of contents on the right
+ *   - Wire `prose.css` to render MDX bodies
+ *
+ * For now it's a thin wrapper around BaseLayout so that any future MDX page
+ * pointing to this layout doesn't need to be rewritten later.
+ */
+import BaseLayout from './BaseLayout.astro';
+import '../styles/prose.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="prose prose-invert mx-auto max-w-3xl px-6 py-16">
+    <slot />
+  </article>
+</BaseLayout>

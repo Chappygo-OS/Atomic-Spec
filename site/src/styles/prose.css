@@ -1,0 +1,17 @@
+/* ----------------------------------------------------------------------------
+ * prose.css — typography for MDX docs pages.
+ *
+ * Phase 1: placeholder. Phase 3 wires this to DocsLayout and styles headings,
+ * paragraphs, lists, code blocks, callouts, and tables.
+ *
+ * Intentionally empty utilities below so DocsLayout can already reference
+ * `class="prose"` without a build error.
+ * ------------------------------------------------------------------------- */
+
+.prose {
+  /* Phase 3 fills this. */
+}
+
+.prose-invert {
+  /* Phase 3 fills this. */
+}

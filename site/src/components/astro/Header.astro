@@ -1,0 +1,50 @@
+---
+/**
+ * Header — site-wide top navigation.
+ *
+ * Phase 1: minimal logo + Home / Docs links, sticky with subtle backdrop blur.
+ * Phase 2 will add the rest of the marketing nav (Features, Why, GitHub).
+ */
+import { withBase } from '../../lib/url';
+
+const home = withBase('/');
+const docs = withBase('/docs');
+const icon = withBase('/atomic-spec-icon.jpg');
+---
+
+<header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur supports-[backdrop-filter]:bg-slate-950/50">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+    <a
+      href={home}
+      class="group inline-flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-100"
+    >
+      <img
+        src={icon}
+        alt=""
+        width="28"
+        height="28"
+        class="h-7 w-7 rounded-md ring-1 ring-white/10 transition group-hover:ring-emerald-400/40"
+      />
+      <span>Atomic Spec</span>
+    </a>
+
+    <ul class="flex items-center gap-1 text-sm">
+      <li>
+        <a
+          href={home}
+          class="rounded-md px-3 py-2 text-slate-300 transition hover:bg-white/5 hover:text-white"
+        >
+          Home
+        </a>
+      </li>
+      <li>
+        <a
+          href={docs}
+          class="rounded-md px-3 py-2 text-slate-300 transition hover:bg-white/5 hover:text-white"
+        >
+          Docs
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
