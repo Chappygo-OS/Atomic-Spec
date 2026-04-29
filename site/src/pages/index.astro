@@ -1,82 +1,45 @@
 ---
 /**
- * Home page — Phase 1 placeholder.
+ * Home page — Phase 2 marketing landing.
  *
- * Goal is to look intentional, not broken. Centered hero with the banner,
- * a wordmark, a one-liner explaining we're early, and CTAs to docs + repo.
+ * Composition order matches COPY.md (locked 2026-04-29):
+ *   Hero → Problem → Solution → Manual → Agents → HITL → ContextPinning → Workflow → Footer
  *
- * Phase 2 replaces this with the full marketing landing port from /webpage.
+ * Hydration strategy:
+ *   - Hero          client:load     (above-the-fold typewriter + tilt)
+ *   - Problem       static
+ *   - Solution      static
+ *   - Manual        client:idle     (far below fold; static HTML reads fine pre-hydration)
+ *   - Agents        static
+ *   - HITL          client:visible
+ *   - ContextPinning client:visible
+ *   - Workflow      static
+ *   - Footer        static (rendered by BaseLayout)
+ *
+ * BaseLayout already renders the AnimatedBackground, header, and Footer — we
+ * just slot the page-specific sections in between.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { withBase } from '../lib/url';
-
-const banner = withBase('/atomic-spec-banner.jpg');
-const docs = withBase('/docs');
-const repo = 'https://github.com/Chappygo-OS/Atomic-Spec';
+import Hero from '../components/react/Hero.tsx';
+import Problem from '../components/astro/Problem.astro';
+import Solution from '../components/astro/Solution.astro';
+import Manual from '../components/react/Manual.tsx';
+import Agents from '../components/astro/Agents.astro';
+import HITL from '../components/react/HITL.tsx';
+import ContextPinning from '../components/react/ContextPinning.tsx';
+import Workflow from '../components/astro/Workflow.astro';
 ---
 
 <BaseLayout
-  title="Atomic Spec — Governance for AI-Driven Development"
-  description="A governance framework that forces AI coding agents through atomic, gated, context-pinned phases. Marketing landing arrives in Phase 2."
+  title="Atomic Spec — Precision engineering for AI-written code"
+  description="A governance framework that turns unpredictable AI into a governed assembly line — eight Prime Directives, four HITL checkpoints, atomic task files, and 21 specialized subagents."
 >
-  <section class="relative isolate">
-    <!-- Faint structural grid behind the hero. -->
-    <div
-      aria-hidden="true"
-      class="bg-grid pointer-events-none absolute inset-0 opacity-30
-             [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
-    ></div>
-
-    <div class="relative mx-auto flex min-h-[80vh] max-w-5xl flex-col items-center justify-center px-6 py-24 text-center">
-      <!-- Banner art (constrained, rounded, subtle ring). -->
-      <img
-        src={banner}
-        alt="Atomic Spec banner — interlocking orbital paths around a central nucleus"
-        width="960"
-        height="320"
-        class="mb-10 w-full max-w-2xl rounded-2xl border border-white/10 shadow-[0_20px_80px_-20px_rgba(16,185,129,0.35)]"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
-
-      <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-300">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]"></span>
-        Phase 1 — Scaffold online
-      </p>
-
-      <h1 class="mt-2 text-balance bg-gradient-to-b from-white via-slate-100 to-slate-400 bg-clip-text text-5xl font-semibold leading-tight tracking-tight text-transparent sm:text-7xl">
-        Atomic Spec
-      </h1>
-
-      <p class="mt-6 max-w-2xl text-pretty text-lg text-slate-300 sm:text-xl">
-        Governance for AI-driven development. We're rebuilding the public site —
-        the marketing landing arrives in <span class="font-mono text-slate-100">Phase&nbsp;2</span>,
-        the docs go live in <span class="font-mono text-slate-100">Phase&nbsp;3</span>.
-      </p>
-
-      <div class="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-        <a
-          href={docs}
-          class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_10px_40px_-10px_rgba(16,185,129,0.7)] transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
-        >
-          Read the docs
-          <span aria-hidden="true">&rarr;</span>
-        </a>
-        <a
-          href={repo}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
-        >
-          View on GitHub
-        </a>
-      </div>
-
-      <p class="mt-12 max-w-md font-mono text-xs leading-relaxed text-slate-500">
-        Inspired by Leapable's <em class="not-italic text-slate-400">Stop Vibe Coding</em>.
-        Eight Prime Directives. Four phases. Zero drift.
-      </p>
-    </div>
-  </section>
+  <Hero client:load />
+  <Problem />
+  <Solution />
+  <Manual client:idle />
+  <Agents />
+  <HITL client:visible />
+  <ContextPinning client:visible />
+  <Workflow />
 </BaseLayout>

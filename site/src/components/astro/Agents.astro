@@ -1,0 +1,114 @@
+---
+/**
+ * Agents — eight cards highlighting the specialized subagent ecosystem.
+ *
+ * Subagents are matched dynamically by semantic similarity between feature
+ * keywords and YAML frontmatter `description` — never hard-coded. The eight
+ * shown here are a tasting menu; the bottom badge points at the rest in
+ * .specify/subagents/.
+ *
+ * Static Astro with Tailwind group-hover transitions. Icons via astro-icon.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Agent {
+  name: string;
+  category: string;
+  description: string;
+  icon: string;
+}
+
+const agents: Agent[] = [
+  {
+    name: 'backend-architect',
+    category: 'Backend',
+    description: 'REST conventions, tenant isolation, API schemas.',
+    icon: 'lucide:terminal',
+  },
+  {
+    name: 'database-optimizer',
+    category: 'Database',
+    description: 'Schema normalization, indexing strategies.',
+    icon: 'lucide:database',
+  },
+  {
+    name: 'frontend-developer',
+    category: 'Frontend',
+    description: 'Component composition, state management.',
+    icon: 'lucide:layout',
+  },
+  {
+    name: 'security-auditor',
+    category: 'Security',
+    description: 'OWASP controls, vulnerability analysis.',
+    icon: 'lucide:shield',
+  },
+  {
+    name: 'deployment-engineer',
+    category: 'DevOps',
+    description: 'CI/CD pipelines, containerization.',
+    icon: 'lucide:cloud',
+  },
+  {
+    name: 'ui-ux-designer',
+    category: 'Frontend',
+    description: 'User flows, accessibility (WCAG).',
+    icon: 'lucide:pen-tool',
+  },
+  {
+    name: 'payment-integration',
+    category: 'Billing',
+    description: 'Stripe and LemonSqueezy integration patterns.',
+    icon: 'lucide:credit-card',
+  },
+  {
+    name: 'ai-engineer',
+    category: 'AI/ML',
+    description: 'RAG systems, prompt engineering.',
+    icon: 'lucide:cpu',
+  },
+];
+---
+
+<section id="agents" class="border-t border-slate-800/50 bg-transparent py-24">
+  <div class="container mx-auto px-4">
+    <div class="mb-16 text-center">
+      <h2 class="mb-4 text-3xl font-bold text-white md:text-4xl">
+        21 specialized subagents. Matched dynamically.
+      </h2>
+      <p class="mx-auto max-w-2xl text-slate-400">
+        Generalist AI pretends to know every domain. Our specialists actually do. Subagents are
+        discovered by scanning YAML frontmatter and matched to your feature's keywords — not
+        hard-coded.
+      </p>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {
+        agents.map((agent) => (
+          <article class="group relative rounded-xl border border-slate-800 bg-slate-900/40 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10">
+            <div class="absolute right-4 top-4 text-slate-700 transition-all duration-300 group-hover:-rotate-12 group-hover:scale-110 group-hover:text-emerald-400">
+              <Icon name={agent.icon} class="h-5 w-5" />
+            </div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+              {agent.category}
+            </p>
+            <h3 class="mb-2 font-mono text-lg font-bold text-white">{agent.name}</h3>
+            <p class="text-sm text-slate-400 transition-colors group-hover:text-slate-300">
+              {agent.description}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="mt-12 text-center">
+      <p
+        class="inline-block rounded-full bg-slate-800/80 px-6 py-2 text-sm text-slate-300 backdrop-blur"
+      >
+        Plus 13 more waiting in <code class="font-mono text-emerald-300">.specify/subagents/</code> —
+        and you can drop in your own.
+      </p>
+    </div>
+  </div>
+</section>

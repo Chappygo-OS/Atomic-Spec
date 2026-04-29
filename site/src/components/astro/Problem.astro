@@ -1,0 +1,74 @@
+---
+/**
+ * Problem — names the failure modes engineers actually see in AI-written PRs.
+ *
+ * Static Astro component (no client JS). Uses CSS-only hover via Tailwind so we
+ * don't ship a React island for what is essentially a four-card grid.
+ *
+ * Icons via `astro-icon` (Lucide set), preserving the boss's visual vocabulary
+ * (alert-triangle, brain, unlink, plug-zap) without pulling lucide-react.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Problem {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const problems: Problem[] = [
+  {
+    title: 'The AI invents requirements',
+    description:
+      "You asked for a simple endpoint. The agent decided you also need PostgreSQL, Redis, Kubernetes, and microservices. Nobody asked.",
+    icon: 'lucide:alert-triangle',
+  },
+  {
+    title: 'Context pollution',
+    description:
+      "The agent reads your whole repo, drowns in it, and ships a 500-line function that does everything and nothing well.",
+    icon: 'lucide:brain',
+  },
+  {
+    title: 'No traceability',
+    description:
+      '"Where did this code come from? Which requirement does it satisfy?" Silence. Good luck debugging or extending it.',
+    icon: 'lucide:unlink',
+  },
+  {
+    title: 'The wiring problem',
+    description:
+      'Every component built. Nothing connected. Missing routes. Broken nav. "Feature complete" — and nothing works end-to-end.',
+    icon: 'lucide:plug-zap',
+  },
+];
+---
+
+<section id="problem" class="border-t border-slate-800/50 bg-transparent py-24">
+  <div class="container mx-auto px-4">
+    <div class="mx-auto mb-16 max-w-3xl text-center">
+      <h2 class="mb-6 text-3xl font-bold text-white md:text-4xl">
+        The promise was speed. <br />
+        The reality is <span class="text-amber-500">rework</span>.
+      </h2>
+      <p class="text-lg text-slate-400">
+        Atomic Spec exists because one AI-instructions file isn't enough. Soft guidance drifts.
+        Gates don't.
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {
+        problems.map((p) => (
+          <article class="group rounded-2xl border border-slate-800 bg-slate-900/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:bg-slate-800/60">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-800 transition-transform group-hover:scale-110">
+              <Icon name={p.icon} class="h-6 w-6 text-amber-500" />
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-white">{p.title}</h3>
+            <p class="leading-relaxed text-slate-400">{p.description}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

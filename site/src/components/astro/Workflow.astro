@@ -1,0 +1,135 @@
+---
+/**
+ * Workflow — the four-phase Assembly Line pipeline.
+ *
+ * Boss's component showed three steps; per Open Question 4 in COPY.md, we render
+ * the actual four phases (Specify → Plan → Tasks → Implement) because the Tasks
+ * phase is non-trivial (Atomic Injunction lives there) and folding it into Plan
+ * breaks the brand promise.
+ *
+ * Static Astro. Layout uses a 4-column grid on lg+ with HITL badges floating
+ * between phase cards. On mobile the grid stacks vertically and the badges
+ * become inline pill chips between cards.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Phase {
+  num: string;
+  title: string;
+  desc: string;
+  output: string;
+  icon: string;
+  /** Tailwind classes for icon background, ring, and accent colour. */
+  accent: {
+    icon: string;
+    output: string;
+  };
+}
+
+const phases: Phase[] = [
+  {
+    num: '1',
+    title: 'Specify',
+    desc: 'Discovery, requirements, gates 03–05',
+    output: 'Output: spec.md',
+    icon: 'lucide:file-text',
+    accent: {
+      icon: 'bg-indigo-900/50 text-indigo-400 border-indigo-500/30',
+      output: 'text-indigo-300 bg-indigo-950/30',
+    },
+  },
+  {
+    num: '2',
+    title: 'Plan',
+    desc: 'Architecture, research, registry sync',
+    output: 'Output: plan.md',
+    icon: 'lucide:layers',
+    accent: {
+      icon: 'bg-blue-900/50 text-blue-400 border-blue-500/30',
+      output: 'text-blue-300 bg-blue-950/30',
+    },
+  },
+  {
+    num: '3',
+    title: 'Tasks',
+    desc: 'Atomic decomposition, embedded context',
+    output: 'Output: tasks/T-XXX-*.md',
+    icon: 'lucide:check-square',
+    accent: {
+      icon: 'bg-amber-900/50 text-amber-400 border-amber-500/30',
+      output: 'text-amber-300 bg-amber-950/30',
+    },
+  },
+  {
+    num: '4',
+    title: 'Implement',
+    desc: 'Context-Pinned execution, verification commands',
+    output: 'Output: shipped code + traceability.md',
+    icon: 'lucide:cpu',
+    accent: {
+      icon: 'bg-emerald-900/50 text-emerald-400 border-emerald-500/30',
+      output: 'text-emerald-300 bg-emerald-950/30',
+    },
+  },
+];
+
+const hitlBadges = ['HITL #1', 'HITL #2', 'HITL #3'];
+---
+
+<section id="workflow" class="bg-transparent py-24">
+  <div class="container mx-auto px-4 text-center">
+    <h2 class="mb-12 text-3xl font-bold text-white md:text-4xl">The full Assembly Line</h2>
+
+    <div class="mx-auto max-w-7xl">
+      {/* Grid switches from stacked → 4-column at lg. HITL badges slot in between
+           phase cards on lg, but become standalone chips on mobile. */}
+      <div class="relative grid gap-6 lg:grid-cols-[repeat(3,minmax(0,1fr)_auto)_minmax(0,1fr)] lg:items-center lg:gap-2">
+        {/* Connecting line on desktop only — runs through the centre of the row. */}
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute left-0 top-1/2 hidden h-1 w-full -translate-y-1/2 bg-slate-800/60 lg:block"
+        >
+        </div>
+
+        {
+          phases.map((phase, idx) => (
+            <>
+              <article class="relative z-10 mx-auto w-full max-w-xs rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
+                <div
+                  class={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border ${phase.accent.icon}`}
+                >
+                  <Icon name={phase.icon} class="h-6 w-6" />
+                </div>
+                <h3 class="font-bold text-white">
+                  {phase.num}. {phase.title}
+                </h3>
+                <p class="mt-2 text-sm text-slate-500">{phase.desc}</p>
+                <div
+                  class={`mt-4 truncate rounded px-2 py-1 font-mono text-xs ${phase.accent.output}`}
+                >
+                  {phase.output}
+                </div>
+              </article>
+
+              {idx < phases.length - 1 && (
+                <span class="relative z-20 mx-auto inline-block rounded-full border-4 border-slate-950 bg-amber-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                  {hitlBadges[idx]}
+                </span>
+              )}
+            </>
+          ))
+        }
+      </div>
+
+      <div
+        class="mx-auto mt-12 inline-block max-w-2xl rounded-xl border border-slate-800 bg-slate-900/50 p-6 backdrop-blur-sm"
+      >
+        <p class="text-sm text-slate-400">
+          <span class="font-bold text-amber-500">Note:</span> Reject at any HITL checkpoint and
+          the workflow loops back to the previous phase automatically. No corrupted state. No
+          half-built features.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,20 +1,134 @@
 ---
 /**
- * Footer — placeholder for Phase 1.
+ * Footer — site-wide footer for Phase 2 marketing landing.
  *
- * Phase 2 ports the real marketing footer (links, social, license).
- * Kept minimal but presentable so the placeholder pages don't end abruptly.
+ * Replaces the Phase 1 placeholder with brand line, three column links
+ * (Product / Resources / Community), copyright, and license attribution per
+ * the README's MIT licensing and upstream-fork acknowledgement.
+ *
+ * GitHub URL repointed from boss's dead `custom-speckit` org to the canonical
+ * `Chappygo-OS/Atomic-Spec`. Educasium link dropped — site IA decision.
  */
+import { withBase } from '../../lib/url';
+
+interface FooterLink {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+interface FooterColumn {
+  title: string;
+  links: FooterLink[];
+}
+
+const docs = withBase('/docs');
+const manual = withBase('/docs/manual');
+const subagents = withBase('/docs/subagents');
+const constitution = withBase('/docs/constitution');
+const contributing = withBase('/docs/contributing');
+const support = withBase('/docs/support');
+const license = withBase('/docs/license');
+
+const columns: FooterColumn[] = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'Docs', href: docs },
+      {
+        label: 'GitHub',
+        href: 'https://github.com/Chappygo-OS/Atomic-Spec',
+        external: true,
+      },
+      {
+        label: 'PyPI',
+        href: 'https://pypi.org/project/atomic-spec/',
+        external: true,
+      },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Manual', href: manual },
+      { label: 'Subagents', href: subagents },
+      { label: 'Constitution', href: constitution },
+    ],
+  },
+  {
+    title: 'Community',
+    links: [
+      { label: 'Contributing', href: contributing },
+      { label: 'Support', href: support },
+      { label: 'License', href: license },
+      {
+        label: 'LinkedIn',
+        href: 'https://www.linkedin.com/in/pablo-nastar/',
+        external: true,
+      },
+    ],
+  },
+];
+
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-24 border-t border-white/5 bg-slate-950/40">
-  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 text-xs text-slate-500 sm:flex-row">
-    <p>
-      &copy; {year} Atomic Spec. Released under the MIT License.
-    </p>
-    <p class="font-mono uppercase tracking-widest text-xs text-slate-400">
-      Phase 1 scaffold
-    </p>
+<footer class="mt-24 border-t border-slate-900 bg-slate-950/80 backdrop-blur-md">
+  <div class="container mx-auto px-4 py-12">
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <p class="text-lg font-bold text-slate-100">Atomic Spec</p>
+        <p class="mt-2 text-sm text-slate-500">Precision engineering for AI-written code.</p>
+        <p
+          class="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-300"
+        >
+          <span
+            class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]"
+          ></span>
+          MIT-licensed
+        </p>
+      </div>
+
+      {
+        columns.map((col) => (
+          <nav aria-label={col.title}>
+            <p class="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+              {col.title}
+            </p>
+            <ul class="space-y-2 text-sm">
+              {col.links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    class="text-slate-400 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+
+    <div
+      class="mt-12 flex flex-col items-center justify-between gap-3 border-t border-slate-900 pt-6 text-xs text-slate-500 md:flex-row"
+    >
+      <p>
+        &copy; {year} Atomic Spec contributors. MIT-licensed. Forked from{' '}
+        <a
+          href="https://github.com/github/spec-kit"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-slate-400 transition-colors hover:text-white"
+        >
+          github/spec-kit
+        </a>.
+      </p>
+      <p class="font-mono uppercase tracking-widest">Eight directives. Four phases. Zero drift.</p>
+    </div>
   </div>
 </footer>
