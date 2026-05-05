@@ -62,7 +62,7 @@ export default function ContextPinning() {
   return (
     <section
       id="context-pinning"
-      className="border-t border-slate-800/50 bg-transparent py-24"
+      className="border-t border-slate-800/50 bg-transparent py-24 [content-visibility:auto] [contain-intrinsic-size:0_900px]"
     >
       <div className="container mx-auto px-4 text-center">
         <h2 className="mb-6 text-3xl font-bold text-white md:text-4xl">
@@ -95,14 +95,14 @@ export default function ContextPinning() {
               aria-checked={isPinned}
               aria-label={`Context pinning ${isPinned ? 'enabled' : 'disabled'} — click to toggle`}
               onClick={() => setIsPinned((prev) => !prev)}
-              className={`relative inline-flex h-9 w-20 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 ${
+              className={`relative inline-flex h-11 w-24 items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 ${
                 isPinned ? 'bg-emerald-600' : 'bg-red-600/80'
               }`}
             >
               <span
                 aria-hidden="true"
-                className={`inline-block h-7 w-7 transform rounded-full bg-white shadow-md transition-transform ${
-                  isPinned ? 'translate-x-[2.75rem]' : 'translate-x-1'
+                className={`inline-block h-9 w-9 transform rounded-full bg-white shadow-md transition-transform ${
+                  isPinned ? 'translate-x-[3.25rem]' : 'translate-x-1'
                 }`}
               />
             </button>

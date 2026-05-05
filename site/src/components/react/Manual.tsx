@@ -271,7 +271,10 @@ export default function Manual() {
   const activeStation = allStations.find((s) => s.id === activeId) ?? allStations[0];
 
   return (
-    <section id="manual" className="bg-transparent py-24">
+    <section
+      id="manual"
+      className="bg-transparent py-24 [content-visibility:auto] [contain-intrinsic-size:0_1100px]"
+    >
       <div className="container mx-auto px-4">
         <div className="mb-12">
           <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl">
@@ -293,7 +296,7 @@ export default function Manual() {
           {/* Sidebar — scrollable, sticky phase headers */}
           <nav
             aria-label="Knowledge Stations"
-            className="custom-scrollbar max-h-[420px] space-y-6 overflow-y-auto pr-2 lg:col-span-4 lg:max-h-none lg:h-full"
+            className="custom-scrollbar max-h-[60vh] space-y-6 overflow-y-auto pr-2 lg:col-span-4 lg:max-h-none lg:h-full"
           >
             {phases.map((phase) => (
               <div key={phase.title}>

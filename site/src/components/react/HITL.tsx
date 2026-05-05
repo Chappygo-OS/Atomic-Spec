@@ -124,7 +124,10 @@ export default function HITL() {
   const activeStep = steps[activeIndex];
 
   return (
-    <section id="hitl" className="bg-transparent py-24">
+    <section
+      id="hitl"
+      className="bg-transparent py-24 [content-visibility:auto] [contain-intrinsic-size:0_900px]"
+    >
       <div className="container mx-auto px-4">
         <div className="grid items-start gap-12 lg:grid-cols-2">
           <div>
@@ -196,7 +199,7 @@ export default function HITL() {
                 </span>
               </div>
 
-              <div className="h-[480px] overflow-auto whitespace-pre-wrap p-6 text-slate-300">
+              <div className="h-[320px] overflow-auto whitespace-pre-wrap p-6 text-slate-300 sm:h-[400px] lg:h-[480px]">
                 <span className="text-emerald-500">$ atomicspec plan --interactive</span>
                 {'\n\n'}
                 {activeStep.content}

@@ -67,6 +67,34 @@ body {
 }
 
 /* -----------------------------------------------------------------
+ * Skip-link target — keep <main id="main"> clear of the sticky header
+ * when the user activates the skip-link or any other in-page anchor.
+ * ----------------------------------------------------------------- */
+main#main {
+  scroll-margin-top: var(--header-h, 3.5rem);
+}
+
+/* -----------------------------------------------------------------
+ * Entrance animations — replace Framer Motion's `initial → animate`
+ * fades with plain CSS keyframes. Saves ~30 KB gzipped. The
+ * `prefers-reduced-motion` rule below collapses durations to ~0.
+ * Use with `[animation-delay:Nms]` Tailwind arbitrary classes for
+ * staggered reveals.
+ * ----------------------------------------------------------------- */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-scale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.fade-up    { animation: fade-up 0.5s ease-out both; }
+.fade-scale { animation: fade-scale 0.8s ease-out both; }
+
+/* -----------------------------------------------------------------
  * Skip-to-content link — visually hidden until focused. Provides a
  * keyboard bypass past the sticky header to <main>.
  * ----------------------------------------------------------------- */

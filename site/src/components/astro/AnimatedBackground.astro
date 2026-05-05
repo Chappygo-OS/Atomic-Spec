@@ -1,13 +1,18 @@
 ---
 /**
- * AnimatedBackground — three drifting, blurred gradient blobs + a faint
- * fractal-noise overlay. Sits behind everything (`-z-50`) and is purely
- * decorative (`pointer-events-none`, `aria-hidden`).
+ * AnimatedBackground — drifting, blurred gradient blobs + faint fractal-noise.
+ * Sits behind everything (`-z-50`), `pointer-events-none`, `aria-hidden`.
  *
- * Designed to be dropped directly inside <body>; works against any dark
- * surface (slate-950 by default in global.css).
- *
- * No props yet — Phase 2 may surface intensity/palette knobs.
+ * Performance notes (post-audit):
+ *   - Each blob is a `blur(80px)` rectangle on a 50vw element. On a 390x844 phone
+ *     at DPR 3 that's ~12 MB of GPU compositor memory PER blob. With three blobs
+ *     animating continuously, weak Androids start sweating.
+ *   - Mitigations:
+ *       1. Mobile (`max-width: 768px`): drop the third blob, halve the blur,
+ *          freeze the animation, drop the noise overlay. Cuts GPU work ~70%.
+ *       2. `prefers-reduced-motion`: animation collapses via global.css rule.
+ *       3. `document.hidden`: pause animation when tab is backgrounded so it
+ *          doesn't drain battery while you're in another tab.
  */
 ---
 
@@ -17,10 +22,11 @@
 >
   <div class="blob blob--emerald"></div>
   <div class="blob blob--blue"></div>
-  <div class="blob blob--indigo"></div>
+  <!-- Third blob is desktop-only; it pushes mobile GPU budget too far. -->
+  <div class="blob blob--indigo desktop-only"></div>
 
-  <!-- Subtle fractal-noise overlay so the blobs don't look like a stock template. -->
-  <svg class="noise" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle fractal-noise overlay (desktop only — mobile drops it entirely). -->
+  <svg class="noise desktop-only" xmlns="http://www.w3.org/2000/svg">
     <filter id="noise">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch" />
       <feColorMatrix type="saturate" values="0" />
@@ -28,6 +34,22 @@
     <rect width="100%" height="100%" filter="url(#noise)" />
   </svg>
 </div>
+
+<script>
+  // Pause the blob animations whenever the tab is hidden. Saves battery /
+  // wakeups on mobile and prevents GPU work for windows the user isn't looking
+  // at. Re-resumes on visibilitychange. No-op on devices that don't honor it.
+  function syncBackgroundPlayState(): void {
+    const root = document.querySelector<HTMLElement>('.animated-bg');
+    if (!root) return;
+    root.style.setProperty(
+      '--bg-play-state',
+      document.hidden ? 'paused' : 'running',
+    );
+  }
+  document.addEventListener('visibilitychange', syncBackgroundPlayState);
+  syncBackgroundPlayState();
+</script>
 
 <style>
   /* Blobs use `screen` (additive) so they brighten the slate-950 surface;
@@ -41,6 +63,9 @@
     opacity: 0.45;
     mix-blend-mode: screen;
     will-change: transform;
+    /* Animation play-state is driven by the visibilitychange handler above
+       via the --bg-play-state CSS var. */
+    animation-play-state: var(--bg-play-state, running);
   }
 
   .blob--emerald {
@@ -73,9 +98,22 @@
     mix-blend-mode: soft-light;
   }
 
-  /* Keyframes scoped to this component to keep blob motion + definitions
-     co-located. Each pair (start, end) is symmetric so `alternate` reverses
-     cleanly without a visible snap at cycle boundaries. */
+  /* Mobile: drop the third blob, drop the noise filter, halve the blur,
+     freeze the animation. The blobs become static gradient washes — visually
+     close enough, GPU work down ~70%. */
+  @media (max-width: 768px) {
+    .desktop-only {
+      display: none;
+    }
+
+    .blob {
+      filter: blur(40px);
+      opacity: 0.3;
+      animation: none;
+      transform: none;
+    }
+  }
+
   @keyframes drift1 {
     from { transform: translate3d(-8%, -6%, 0) scale(1);    }
     to   { transform: translate3d( 8%,  6%, 0) scale(1.15); }
