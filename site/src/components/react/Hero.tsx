@@ -12,9 +12,12 @@
  *     reinforces the "system that ships" framing.
  */
 import { useEffect, useState } from 'react';
-import { Activity, ArrowRight, GitCommit } from 'lucide-react';
+import { Activity, ArrowRight, Check, Copy, GitCommit } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Tilt from 'react-parallax-tilt';
+import { withBase } from '../../lib/url';
+
+const INSTALL_COMMAND = 'uv tool install atomic-spec';
 
 interface TypewriterProps {
   text: string;
@@ -73,6 +76,64 @@ function Typewriter({ text, speed = 50, delay = 0 }: TypewriterProps) {
 
 const HEADLINE = 'Stop your AI from vibe-coding.\nStart shipping atomic specs.';
 
+/**
+ * Copy-to-clipboard pill that shows the install command and copies it on click.
+ * Visual sibling to the big INSTALL button so devs see the literal snippet
+ * without leaving the hero — no waiting for the docs page to load.
+ */
+function InstallCommandCopy() {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(INSTALL_COMMAND);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked (older Safari, http://, permissions denied).
+      // Fall back to selecting the text so the user can copy manually.
+      const node = document.getElementById('hero-install-command');
+      if (node && 'getSelection' in window) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={copied ? 'Install command copied' : `Copy install command: ${INSTALL_COMMAND}`}
+      className="group inline-flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 font-mono text-sm text-slate-300 backdrop-blur-sm transition-colors hover:border-emerald-500/40 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 sm:px-5"
+    >
+      <span className="flex items-center gap-2">
+        <span className="text-emerald-400" aria-hidden="true">$</span>
+        <span id="hero-install-command">{INSTALL_COMMAND}</span>
+      </span>
+      <span
+        className={`flex items-center gap-1.5 text-xs uppercase tracking-wider transition-colors ${
+          copied ? 'text-emerald-400' : 'text-slate-500 group-hover:text-emerald-300'
+        }`}
+        aria-live="polite"
+      >
+        {copied ? (
+          <>
+            <Check size={14} aria-hidden="true" /> Copied
+          </>
+        ) : (
+          <>
+            <Copy size={14} aria-hidden="true" /> Copy
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
 export default function Hero() {
   return (
     <section
@@ -125,20 +186,38 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative z-20 flex flex-wrap gap-4"
+            className="relative z-20 space-y-4"
           >
-            <a
-              href="#workflow"
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-4 font-semibold text-white shadow-lg shadow-emerald-900/30 transition-all hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
-            >
-              See how it works <ArrowRight size={20} aria-hidden="true" />
-            </a>
-            <a
-              href="#manual"
-              className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-8 py-4 font-semibold text-slate-200 transition-all hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
-            >
-              Read the manual
-            </a>
+            {/* Primary: big INSTALL button paired with the actual command,
+                copy-to-clipboard. Boss requested a single prominent install
+                affordance; pairing it with the literal command earns trust
+                with developers (who skip marketing and look for the snippet). */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+              <a
+                href={withBase('/docs/installation')}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-10 py-5 text-lg font-bold uppercase tracking-wider text-slate-950 shadow-[0_10px_40px_-10px_rgba(16,185,129,0.7)] transition-all hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+              >
+                Install <ArrowRight size={22} aria-hidden="true" strokeWidth={2.5} />
+              </a>
+
+              <InstallCommandCopy />
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-sm">
+              <a
+                href="#workflow"
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 font-medium text-slate-300 transition-colors hover:text-white"
+              >
+                See how it works <ArrowRight size={14} aria-hidden="true" />
+              </a>
+              <span aria-hidden="true" className="text-slate-700">·</span>
+              <a
+                href="#manual"
+                className="inline-flex items-center rounded-md px-3 py-2 font-medium text-slate-300 transition-colors hover:text-white"
+              >
+                Read the manual
+              </a>
+            </div>
           </motion.div>
         </div>
 
