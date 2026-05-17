@@ -1,6 +1,6 @@
 ---
-description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
-handoffs: 
+description: Pre-plan interview — resolves spec ambiguity (v0.1 contract), pins the architectural lurkers from .specify/knowledge/architectural-lurkers.yaml, fires trigger-driven probes from .specify/knowledge/triggers.yaml, walks compliance scope, and writes decisions to specs/_defaults/registry.yaml with provenance tagging.
+handoffs:
   - label: Build Technical Plan
     agent: atomicspec.plan
     prompt: Create a plan for the spec. I am building with...
@@ -17,178 +17,354 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Outline
+## Goal
 
-Goal: Detect and reduce ambiguity or missing decision points in the active feature specification and record the clarifications directly in the spec file.
+Identify and resolve gaps that would cause the AI to make silent decisions during `/atomicspec.plan` or `/atomicspec.implement`. Two kinds of gaps:
 
-Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `/atomicspec.plan`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
+1. **Spec ambiguity** — things the user wrote but unclearly (v0.1 contract).
+2. **Architectural lurkers + structural decisions** — things the user *didn't write* but that the project needs answered before any code is generated. This is the v0.2 hardening (per Article IX Directive 7 scope).
+
+Output: an updated `spec.md` (Clarifications section) AND new entries in `specs/_defaults/registry.yaml` with `_provenance` tags AND `interview_completed: <today>` set if the session completes normally.
+
+This workflow runs BEFORE `/atomicspec.plan`. `/atomicspec.plan` Phase 0 will redirect users here when `interview_completed: null` (genesis behaviour). After it's set, `/atomicspec.specify` still advertises clarify (soft nudge) but does not block.
+
+## Six-phase flow
+
+```
+Phase 1: Mode question         (Lite vs Detailed, sets cap)
+Phase 2: Spec ambiguity scan   (v0.1 contract — 11-category taxonomy)
+Phase 3: Architectural lurkers (from .specify/knowledge/architectural-lurkers.yaml)
+Phase 4: Trigger-driven probes (from .specify/knowledge/triggers.yaml)
+Phase 5: Compliance probes     (compliance:true triggers, two-step gate)
+Phase 6: Write + provenance    (batched registry write, accept-rate audit)
+```
 
 ## Registry Protocol (Constitution Directive 7)
 
 Follow `_registry-protocol.md`:
 
-- **On entry**: Read `specs/_defaults/registry.yaml`. Focus on sections relevant to clarification — `terminology`, `conventions.files`, `governance.personas`, and any domain dictionary the project has already established.
-- **During**: When the user's answers introduce new project-wide terms, personas, or conventions, apply Scenario A/B/C from the protocol (re-use, add-to-registry via HITL, or document a deviation).
-- **On exit**: Scan the updated spec for new terminology or persona definitions. HITL-prompt the user to promote them into the registry so future features inherit them.
+- **On entry**: Read `specs/_defaults/registry.yaml`. Load existing values so we don't re-ask fields that are already non-null.
+- **During**: Track every accepted answer in working memory. Mark each as `human` (active choice) or `accepted_recommendation` (default taken) for provenance tagging.
+- **On exit**: Batch-write to `registry.yaml`. Set `interview_completed` if the session completed normally. Update `_provenance` block with one entry per write.
 
-If the registry file is absent, warn and proceed without defaults (graceful degradation).
+If the registry file is absent, warn the user that `/atomicspec.registry` should be run first to scaffold it from manifests, then proceed without registry writes (graceful degradation; spec clarifications still happen).
 
-Execution steps:
+---
 
-1. Run `{SCRIPT}` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
+## Execution
+
+### Setup (before Phase 1)
+
+1. Run `{SCRIPT}` from repo root **once** (combined `--json --paths-only` / `-Json -PathsOnly`). Parse minimal JSON payload fields:
    - `FEATURE_DIR`
    - `FEATURE_SPEC`
-   - (Optionally capture `IMPL_PLAN`, `TASKS_DIR` for future chained flows.)
-   - If JSON parsing fails, abort and instruct user to re-run `/atomicspec.specify` or verify feature branch environment.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+   - `REPO_ROOT`
+   - If JSON parsing fails, abort and instruct user to re-run `/atomicspec.specify` or verify the feature branch environment.
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g. `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`).
 
-2. Load the current spec file. Perform a structured ambiguity & coverage scan using this taxonomy. For each category, mark status: Clear / Partial / Missing. Produce an internal coverage map used for prioritization (do not output raw map unless no questions will be asked).
+2. Load `$REPO_ROOT/specs/_defaults/registry.yaml`. Capture `target_platform.primary` (web / mobile / desktop / both / library) — drives Phase 3 pack selection. Also load `interview_completed` to gauge whether this is a genesis run or a re-run.
 
-   Functional Scope & Behavior:
-   - Core user goals & success criteria
-   - Explicit out-of-scope declarations
-   - User roles / personas differentiation
+   **If `target_platform.primary` is null at this point** (genesis run, never set), ask exactly this question BEFORE entering Phase 1's mode prompt. This setup question does NOT count against the mode cap:
+   ```
+   target_platform.primary is not set in the registry. What are you building?
+     A) Web app (with or without backend API)     [most common]
+     B) Mobile app (native or cross-platform)
+     C) Desktop app
+     D) Library / package shipped to other devs
+   ```
+   Write the answer to `target_platform.primary` immediately with provenance `human`.
 
-   Domain & Data Model:
-   - Entities, attributes, relationships
-   - Identity & uniqueness rules
-   - Lifecycle/state transitions
-   - Data volume / scale assumptions
+3. Load `$REPO_ROOT/.specify/knowledge/architectural-lurkers.yaml` and `$REPO_ROOT/.specify/knowledge/triggers.yaml`. If either is missing, fall back to the v0.1 ambiguity-scan-only flow with a one-line warning.
 
-   Interaction & UX Flow:
-   - Critical user journeys / sequences
-   - Error/empty/loading states
-   - Accessibility or localization notes
+4. Initialise an in-memory **answer log** for the session:
+   ```
+   answers = [
+     { phase, field_or_topic, prompt, answer, provenance, fired_in_mode }
+   ]
+   ```
+   Provenance values: `human` | `accepted_recommendation` | `null` (skipped).
 
-   Non-Functional Quality Attributes:
-   - Performance (latency, throughput targets)
-   - Scalability (horizontal/vertical, limits)
-   - Reliability & availability (uptime, recovery expectations)
-   - Observability (logging, metrics, tracing signals)
-   - Security & privacy (authN/Z, data protection, threat assumptions)
-   - Compliance / regulatory constraints (if any)
+### Phase 1 — Mode question
 
-   Integration & External Dependencies:
-   - External services/APIs and failure modes
-   - Data import/export formats
-   - Protocol/versioning assumptions
+Show the user this exactly:
 
-   Edge Cases & Failure Handling:
-   - Negative scenarios
-   - Rate limiting / throttling
-   - Conflict resolution (e.g., concurrent edits)
+```
+This is the pre-plan interview. It pins decisions you'd otherwise
+get asked about mid-/plan or mid-/implement.
 
-   Constraints & Tradeoffs:
-   - Technical constraints (language, storage, hosting)
-   - Explicit tradeoffs or rejected alternatives
+  [L] Lite — ~5 min, ~7 questions. Sensible defaults for everything
+       else. Right for most projects, especially follow-on features
+       where the registry is already populated.
 
-   Terminology & Consistency:
-   - Canonical glossary terms
-   - Avoided synonyms / deprecated terms
+  [D] Detailed — ~15 min, up to ~22 questions. Walks the full
+       architectural-lurker pack for your app type. Right when you
+       have strong opinions, or this is a brand-new project.
 
-   Completion Signals:
-   - Acceptance criteria testability
-   - Measurable Definition of Done style indicators
+  [S] Skip — bypass the interview entirely. /atomicspec.plan will
+       still ask about structural decisions mid-flow, but less
+       efficiently. Fine for spikes.
+```
 
-   Misc / Placeholders:
-   - TODO markers / unresolved decisions
-   - Ambiguous adjectives ("robust", "intuitive") lacking quantification
+Use `AskUserQuestion` with three options. **Lite is the default** (Enter or no input picks Lite).
 
-   For each category with Partial or Missing status, add a candidate question opportunity unless:
-   - Clarification would not materially change implementation or validation strategy
-   - Information is better deferred to planning phase (note internally)
+**Override valves (introduce these on the FIRST question after Phase 1, not buried in docs):**
+Print this one line above Question 1:
+```
+Tip: type "?" any time to see why a question matters,
+     "lite" / "detailed" to change mode forward,
+     "skip" to bail with whatever's been answered so far,
+     "done" to finalize the current phase early.
+```
 
-3. Generate (internally) a prioritized queue of candidate clarification questions (maximum 5). Do NOT output them all at once. Apply these constraints:
-    - Maximum of 10 total questions across the whole session.
-    - Each question must be answerable with EITHER:
-       - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
-       - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").
-    - Only include questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
-    - Ensure category coverage balance: attempt to cover the highest impact unresolved categories first; avoid asking two low-impact questions when a single high-impact area (e.g., security posture) is unresolved.
-    - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
-    - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
-    - If more than 5 categories remain unresolved, select the top 5 by (Impact * Uncertainty) heuristic.
+**Mode caps:**
+- Lite: 7 total questions (across all phases combined)
+- Detailed: 22 total questions (raised from 18 — analysis showed the web pack alone needs ~12 must-decides, plus Phase 2 ~5, plus triggers/compliance ~5)
+- Hard ceiling either mode: 25
 
-4. Sequential questioning loop (interactive):
-    - Present EXACTLY ONE question at a time.
-    - For multiple‑choice questions:
-       - **Analyze all options** and determine the **most suitable option** based on:
-          - Best practices for the project type
-          - Common patterns in similar implementations
-          - Risk reduction (security, performance, maintainability)
-          - Alignment with any explicit project goals or constraints visible in the spec
-       - Present your **recommended option prominently** at the top with clear reasoning (1-2 sentences explaining why this is the best choice).
-       - Format as: `**Recommended:** Option [X] - <reasoning>`
-       - Then render all options as a Markdown table:
+**Priority order when the cap is hit** (apply in this strict order; lower priorities are dropped first):
+1. Phase 5 compliance gates that already fired (NEVER drop — regulatory)
+2. Phase 3 `tier: must` questions for the current app pack
+3. Phase 4 triggered sub-checklists that fired (high-evidence — spec mentions them)
+4. Phase 2 ambiguity-scan questions still queued
+5. Phase 3 `tier: should` questions (Detailed only)
+6. Phase 3 `tier: defer` (never asked here — falls through to /plan)
 
-       | Option | Description |
-       |--------|-------------|
-       | A | <Option A description> |
-       | B | <Option B description> |
-       | C | <Option C description> (add D/E as needed up to 5) |
-       | Short | Provide a different short answer (<=5 words) (Include only if free-form alternative is appropriate) |
+**Skip:** if the user picks Skip in Phase 1, jump to Phase 6 with an empty answer log. Phase 6 will report that nothing was set and NOT update `interview_completed`. `/atomicspec.plan` Phase 0 will redirect them back.
 
-       - After the table, add: `You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.`
-    - For short‑answer style (no meaningful discrete options):
-       - Provide your **suggested answer** based on best practices and context.
-       - Format as: `**Suggested:** <your proposed answer> - <brief reasoning>`
-       - Then output: `Format: Short answer (<=5 words). You can accept the suggestion by saying "yes" or "suggested", or provide your own answer.`
-    - After the user answers:
-       - If the user replies with "yes", "recommended", or "suggested", use your previously stated recommendation/suggestion as the answer.
-       - Otherwise, validate the answer maps to one option or fits the <=5 word constraint.
-       - If ambiguous, ask for a quick disambiguation (count still belongs to same question; do not advance).
-       - Once satisfactory, record it in working memory (do not yet write to disk) and move to the next queued question.
-    - Stop asking further questions when:
-       - All critical ambiguities resolved early (remaining queued items become unnecessary), OR
-       - User signals completion ("done", "good", "no more"), OR
-       - You reach 5 asked questions.
-    - Never reveal future queued questions in advance.
-    - If no valid questions exist at start, immediately report no critical ambiguities.
+**Mid-session mode override:** any time the user types `lite` at a prompt, downgrade and skip remaining `tier: should` and `can_defer` questions. Typing `detailed` upgrades. Override applies forward only.
 
-5. Integration after EACH accepted answer (incremental update approach):
-    - Maintain in-memory representation of the spec (loaded once at start) plus the raw file contents.
-    - For the first integrated answer in this session:
-       - Ensure a `## Clarifications` section exists (create it just after the highest-level contextual/overview section per the spec template if missing).
-       - Under it, create (if not present) a `### Session YYYY-MM-DD` subheading for today.
-    - Append a bullet line immediately after acceptance: `- Q: <question> → A: <final answer>`.
-    - Then immediately apply the clarification to the most appropriate section(s):
-       - Functional ambiguity → Update or add a bullet in Functional Requirements.
-       - User interaction / actor distinction → Update User Stories or Actors subsection (if present) with clarified role, constraint, or scenario.
-       - Data shape / entities → Update Data Model (add fields, types, relationships) preserving ordering; note added constraints succinctly.
-       - Non-functional constraint → Add/modify measurable criteria in Non-Functional / Quality Attributes section (convert vague adjective to metric or explicit target).
-       - Edge case / negative flow → Add a new bullet under Edge Cases / Error Handling (or create such subsection if template provides placeholder for it).
-       - Terminology conflict → Normalize term across spec; retain original only if necessary by adding `(formerly referred to as "X")` once.
-    - If the clarification invalidates an earlier ambiguous statement, replace that statement instead of duplicating; leave no obsolete contradictory text.
-    - Save the spec file AFTER each integration to minimize risk of context loss (atomic overwrite).
-    - Preserve formatting: do not reorder unrelated sections; keep heading hierarchy intact.
-    - Keep each inserted clarification minimal and testable (avoid narrative drift).
+### Phase 2 — Spec ambiguity scan (v0.1 contract, preserved)
 
-6. Validation (performed after EACH write plus final pass):
-   - Clarifications session contains exactly one bullet per accepted answer (no duplicates).
-   - Total asked (accepted) questions ≤ 5.
-   - Updated sections contain no lingering vague placeholders the new answer was meant to resolve.
-   - No contradictory earlier statement remains (scan for now-invalid alternative choices removed).
-   - Markdown structure valid; only allowed new headings: `## Clarifications`, `### Session YYYY-MM-DD`.
-   - Terminology consistency: same canonical term used across all updated sections.
+This phase is the v0.1 contract. Do NOT break or skip it; ONLY the ambiguity scan touches the spec file itself. Registry writes happen later (Phase 6).
 
-7. Write the updated spec back to `FEATURE_SPEC`.
+1. Load the current spec file. Perform a structured ambiguity & coverage scan using this taxonomy. For each category, mark status: Clear / Partial / Missing. Produce an internal coverage map.
 
-8. Report completion (after questioning loop ends or early termination):
-   - Number of questions asked & answered.
-   - Path to updated spec.
-   - Sections touched (list names).
-   - Coverage summary table listing each taxonomy category with Status: Resolved (was Partial/Missing and addressed), Deferred (exceeds question quota or better suited for planning), Clear (already sufficient), Outstanding (still Partial/Missing but low impact).
-   - If any Outstanding or Deferred remain, recommend whether to proceed to `/atomicspec.plan` or run `/atomicspec.clarify` again later post-plan.
-   - Suggested next command.
+   **Functional Scope & Behavior**: core user goals, success criteria; explicit out-of-scope; roles/personas differentiation.
+   **Domain & Data Model**: entities, attributes, relationships; identity/uniqueness rules; lifecycle/state transitions; data volume/scale assumptions.
+   **Interaction & UX Flow**: critical user journeys; error/empty/loading states; accessibility/localization notes.
+   **Non-Functional Quality Attributes**: performance, scalability, reliability/availability, observability, security/privacy, compliance/regulatory.
+   **Integration & External Dependencies**: external services/APIs and failure modes; data import/export formats; protocol/versioning assumptions.
+   **Edge Cases & Failure Handling**: negative scenarios; rate limiting/throttling; conflict resolution (concurrent edits).
+   **Constraints & Tradeoffs**: technical constraints (language, storage, hosting); explicit tradeoffs or rejected alternatives.
+   **Terminology & Consistency**: canonical glossary terms; avoided synonyms / deprecated terms.
+   **Completion Signals**: acceptance criteria testability; measurable Definition of Done indicators.
+   **Misc / Placeholders**: TODO markers / unresolved decisions; ambiguous adjectives ("robust", "intuitive") lacking quantification.
 
-Behavior rules:
+2. Generate (internally) a prioritized queue of candidate clarification questions. Apply these v0.1 constraints PLUS the new mode cap:
+   - Cap from Phase 1 minus questions already asked. (If Lite and Phase 1 used 0 questions, you have 7 to spend across Phases 2-5.)
+   - Suggested split: Phase 2 gets ~30% of the cap (~2 in Lite, ~5 in Detailed). Save the rest for Phases 3-5.
+   - Each question answerable by 2-5 mutually exclusive options OR a `<=5 word` short answer.
+   - Only ask questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
+   - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
+   - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
 
-- If no meaningful ambiguities found (or all potential questions would be low-impact), respond: "No critical ambiguities detected worth formal clarification." and suggest proceeding.
-- If spec file missing, instruct user to run `/atomicspec.specify` first (do not create a new spec here).
-- Never exceed 5 total asked questions (clarification retries for a single question do not count as new questions).
-- Avoid speculative tech stack questions unless the absence blocks functional clarity.
-- Respect user early termination signals ("stop", "done", "proceed").
-- If no questions asked due to full coverage, output a compact coverage summary (all categories Clear) then suggest advancing.
-- If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.
+3. Sequential questioning loop (interactive), one question at a time. Format:
+   - **Recommended:** Option X — 1-2 sentence rationale.
+   - Then render options as a Markdown table (A/B/C/...) plus a `Short` row when free-form is appropriate.
+   - User can reply with letter, `yes` / `recommended` to accept, or short answer.
+   - If `yes` / `recommended`: tag provenance `accepted_recommendation`. Otherwise: `human`.
+   - Validate the answer maps to one option or fits the `<=5 word` constraint.
+   - Stop early if all critical ambiguities resolved or user signals `done` / `good` / `no more`.
+   - Never reveal future queued questions in advance.
 
-Context for prioritization: {ARGS}
+4. Integration after EACH accepted answer (writes to **spec.md**, NOT registry):
+   - Ensure a `## Clarifications` section exists.
+   - Ensure `### Session YYYY-MM-DD` subheading for today exists.
+   - Append `- Q: <question> → A: <final answer>`.
+   - Apply the clarification to the most appropriate section(s):
+     - Functional ambiguity → Functional Requirements
+     - User interaction / actor distinction → User Stories or Actors
+     - Data shape / entities → Data Model (add fields, types, relationships)
+     - Non-functional constraint → Non-Functional / Quality Attributes (convert vague adjectives to metrics)
+     - Edge case / negative flow → Edge Cases / Error Handling
+     - Terminology conflict → normalize the term across spec; mark original with `(formerly "X")` if necessary.
+   - If clarification invalidates an earlier ambiguous statement, REPLACE it; do not duplicate.
+   - Save spec.md atomically after each integration to minimize context loss.
+   - Append to in-memory `answers` log with provenance.
+
+5. Phase 2 ends when: cap-portion is reached, user signals done, or coverage is complete.
+
+### Phase 3 — Architectural lurker pack
+
+1. Determine the pack name from `target_platform.primary`:
+   - `web` or `both` → `web_with_api`
+   - `mobile` → `mobile`
+   - `desktop` → `desktop`
+   - `library` → `library`
+   - If `target_platform.primary` is null → ask the user once which kind of app this is, then pick the pack. This is a meta-question; it counts against the cap.
+
+2. Load the pack from `.specify/knowledge/architectural-lurkers.yaml`. Walk `must_decide` first, then `can_defer` (Detailed mode only).
+
+3. For each question, check if the registry field is already **non-null**. If yes, skip the question and tally it under "Pre-existing decisions honored: N" in the Phase 6 report.
+
+   **Definition of "non-null" for this check** (apply identically in Phase 4):
+   - YAML `null`, missing key, empty string `""`, and the literal string `"null"` all count as **null** (NOT a decision — ask).
+   - Anything else — including the literal string `"none"` (a deliberate "no, we don't use this") — counts as **non-null** (a real decision — skip).
+
+4. Ask each remaining question one at a time. Format identical to Phase 2:
+   ```
+   [Q N/Cap] <prompt>
+
+     Recommended: <default>
+     Rationale: <rationale>
+
+     A) <option 1>      ← default (press Enter)
+     B) <option 2>
+     ...
+     S) Short answer (≤5 words)
+
+     > _   (Enter to accept, letter to choose, "?" for why-this-matters)
+   ```
+
+5. If user types `?`: show the `expander` text from the YAML (if present), then re-prompt. The `?` does NOT count against the cap.
+
+6. Apply mode override: in Lite, skip `can_defer` and `tier: should` questions entirely. The `tier: defer` items NEVER get asked in clarify — they fall through to plan.
+
+7. Each answer is appended to the in-memory `answers` log with provenance (Enter / `recommended` / `yes` → `accepted_recommendation`; anything else → `human`). Writes are deferred to Phase 6.
+
+8. Stop Phase 3 when: pack exhausted, cap reached, user types `skip`, OR user types a free-form `done`.
+
+### Phase 4 — Trigger-driven probes
+
+1. Load `.specify/knowledge/triggers.yaml`. Filter to triggers WITHOUT `compliance: true` (those are Phase 5).
+
+2. Scan `spec.md` + the original `/atomicspec.specify` `$ARGUMENTS` text for trigger keywords (case-insensitive substring; or regex if the entry uses `re:` prefix).
+
+3. For each trigger that fires:
+   - Output a one-line notice: `> Spec mentions <id> — running <id> sub-checklist (N questions).`
+   - Walk the `sub_checklist`. Skip questions whose `field` is already non-null in the registry.
+   - In Lite mode, skip `tier: should` sub-checklist items.
+   - Ask remaining questions one at a time (same format as Phases 2-3).
+   - Append each accepted answer to the in-memory log with provenance.
+
+4. Each trigger fires at most once per session, regardless of how many keywords hit. Triggers run in declaration order (deterministic).
+
+5. Stop Phase 4 when: all matching triggers handled, cap reached, or user types `done`.
+
+### Phase 5 — Compliance probes
+
+Compliance probes are flagged in `triggers.yaml` with `compliance: true`. They use a **two-step confirmation** with three answer states (Y / N / U) to dampen false positives without trapping users who genuinely don't know.
+
+1. For each compliance trigger whose keywords matched the spec text:
+   - First, ask the gate question:
+     ```
+     [Compliance check] The spec mentions <evidence keyword(s)>. This may put
+     the project in <regime> scope (<one-line description>).
+
+       Y) Yes, in scope — ask me the follow-up question(s)
+       N) No, not in scope — skip
+       U) Unsure — defer to /plan (recorded for follow-up)
+       ?) Tell me what <regime> scope means here
+
+       > _   (Enter = N, skip)
+     ```
+   - Default answer is **N**. If user picks N, log nothing for that trigger and move on. If user picks U (Unsure), set `_provenance.compliance.<regime>: deferred_to_plan` (do NOT set the boolean — leave it null) and add a one-line warning to the spec's `## Clarifications`: `- Compliance scope: <regime>=UNKNOWN — re-evaluate during /plan; see Station 14.` If user picks Y, proceed to the sub-checklist.
+
+2. If gate = Y, walk the `sub_checklist` like Phase 4. **Important — same-field deduplication:** if the gate already answered the same registry field that the FIRST sub-checklist item writes to (e.g., gate=Y for GDPR sets `compliance.gdpr=true`; the sub-checklist's first item is also `compliance.gdpr`), SKIP that first sub-item and continue with the rest. Don't double-ask the same field.
+
+3. After Phase 5 completes, if ANY compliance flag was set to `true`, append a note to the spec's `## Clarifications` section:
+   ```
+   - Compliance scope: <regime>=true — requires <specific gates per regime>. See Station 14 during /plan.
+   ```
+   (Per-regime gate notes are templated by id: gdpr → "data-deletion endpoint and consent storage", pci → "tokenization-only verification", etc.)
+
+### Phase 6 — Write + provenance + finalize
+
+1. **Accept-rate audit (interrogation-theater detection)**:
+   - Count total registry-bound answers in the session (Phases 3-5 — Phase 2 only touches the spec).
+   - Count those tagged `accepted_recommendation`.
+   - If accepted_recommendation count ≥ 80% of total AND total ≥ 10, show the user:
+     ```
+     Notice: you accepted defaults on N of M questions.
+     Quick review before /plan?
+
+       R) Review the accepted defaults (loops back to first 'recommended' answer)
+       C) Continue — write everything and proceed
+     ```
+   - If the user picks R, re-enter the questions tagged `accepted_recommendation` one at a time so they can revise; revised answers get re-tagged appropriately.
+
+2. **Batched registry write** (single atomic update of `specs/_defaults/registry.yaml`):
+   - **CRITICAL — Phase 2 entries DO NOT WRITE TO REGISTRY.** The answer log is unified across phases for accept-rate accounting, but only Phase 3, 4, 5 answers (and the setup-step `target_platform.primary` if it was asked) target registry fields. Phase 2 answers only update `spec.md` (already done incrementally during Phase 2). Filter the answer log to phase ∈ {3, 4, 5, setup} before writing `_provenance` entries.
+   - For each filtered `answers` entry, set `<field>: <value>` in the registry.
+   - Add a `_provenance.<field>: <provenance>` entry for each. Provenance values:
+     - `human` — user picked a non-default option or typed a short answer
+     - `accepted_recommendation` — user pressed Enter / typed `yes` / `recommended`
+     - `deferred_to_plan` — user picked "Unsure" on a compliance gate
+   - Update metadata:
+     - `last_updated: <today ISO>`
+     - `last_updated_by: clarify_session` (distinguishes from manual edits)
+     - `interview_completed: <today ISO YYYY-MM-DD>` (ONLY if Phase 1 mode was NOT Skip AND at least one registry-targeting question was actually answered)
+   - **Atomic write procedure** (the AI may not have a `mv` tool; this is the explicit 4-step):
+     1. Hold the candidate registry YAML as a string in memory.
+     2. Write that string to `specs/_defaults/registry.yaml.tmp`.
+     3. Read `.tmp` back and `yaml.safe_load` it; if parse fails, abort and leave `.tmp` in place for inspection.
+     4. If parse succeeds, write the SAME string to `specs/_defaults/registry.yaml`, then delete `.tmp`.
+
+3. **Append to `specs/_defaults/changelog.md`**:
+   ```markdown
+   ## [YYYY-MM-DD] — /atomicspec.clarify session
+
+   Mode: <Lite|Detailed>
+   Total questions: N
+   Spec clarifications: K
+   Registry writes: M
+   Provenance summary: H human / A accepted_recommendation / D deferred
+
+   Changed fields:
+   - <field>: <old> → <new>  (provenance: <p>)
+   - ...
+   ```
+   - Strip newlines from user-supplied free-form values before embedding them (prevent markdown injection).
+   - Truncate values longer than 200 characters with `…`.
+
+4. **Spec final-write**: confirm the spec.md changes from Phase 2 are saved (they were saved incrementally, but verify final state matches expected).
+
+5. **Validation pass**:
+   - Spec.md `## Clarifications` section contains one bullet per accepted Phase 2 answer (no duplicates).
+   - Registry YAML still parses (re-load with safe_load to confirm).
+   - `interview_completed` is set IFF mode != Skip AND total questions > 0.
+
+6. **Report** (always shown at end of session):
+   ```
+   /atomicspec.clarify — session report
+
+   Mode:                 <Lite|Detailed|Skip>
+   Total questions:      <N> (cap was <cap>)
+   Spec clarifications:  <K>
+   Registry writes:      <M>
+   Accept-ratio:         <pct>% (<accepted_recommendation>/<total registry writes>)
+   Compliance flags set: <list or "none">
+
+   Outstanding (deferred to /plan):
+   - <field> — reason: <cap reached | user said skip | tier=defer>
+
+   Coverage:
+   - Phase 2 taxonomy: <Resolved> / <Deferred> / <Clear> / <Outstanding>
+   - Phase 3 must_decide answered: <N>/<M>
+   - Phase 4 triggers fired: <list of ids>
+   - Phase 5 compliance flags set: <list>
+
+   Next: run /atomicspec.plan to translate the spec + registry into a buildable plan.
+   ```
+
+## Behavior rules
+
+- If no meaningful spec ambiguities are found AND the registry is already populated (no Phase 3 questions needed) AND no triggers fire AND no compliance probes fire, respond: "No critical ambiguities or unspecified lurkers detected. Registry is healthy. Run `/atomicspec.plan` next." (Do NOT update `interview_completed` in this case — the user didn't actually answer anything.)
+- If `spec.md` is missing, instruct the user to run `/atomicspec.specify` first; do not create one here.
+- Respect early termination signals (`stop`, `done`, `proceed`) at any phase.
+- Never exceed the mode cap (clarification retries for a single question do not count as new questions).
+- Avoid speculative tech stack questions in Phase 2 — those belong in Phase 3 (architectural lurkers) where they're driven by the platform pack.
+- Detected free-form answers that contradict the spec's stated platform or scope must surface a quick confirmation prompt (not a new question — a disambiguation).
+- Trigger-table matches are case-insensitive substring by default; entries prefixed `re:` are regex (rare).
+
+## Mid-session overrides (recap)
+
+- `lite` — downgrade mode forward; cap shrinks to remaining-Lite-budget.
+- `detailed` — upgrade mode forward; cap grows to remaining-Detailed-budget.
+- `skip` — bail with whatever's accumulated. Spec changes from Phase 2 stay; registry writes stay; `interview_completed` is NOT set.
+- `done` — finalize this phase, move on.
+- `?` (during a question) — reveal the why-this-matters expander.
+
+## Context for prioritization
+
+{ARGS}

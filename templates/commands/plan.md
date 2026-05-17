@@ -33,7 +33,36 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 2. **Load context**: Read FEATURE_SPEC and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
 
-3. **Load Project Defaults Registry**: Read `specs/_defaults/registry.yaml` per Constitution Directive 7. Extract existing defaults to pre-populate decisions.
+3. **Load Project Defaults Registry + Interview Gate (v0.2+)**: Read `specs/_defaults/registry.yaml` per Constitution Directive 7. Extract existing defaults to pre-populate decisions.
+
+   **Interview gate (v0.2+)** — before any planning work, check the registry's `interview_completed` field:
+
+   - **Validate `interview_completed` value type**: must be either `null`, missing, or a valid ISO date string (`YYYY-MM-DD`). If a truthy non-date value is found (e.g. `true`, `yes`, `1`), treat it as `null` and proceed to the null branch.
+
+   - **If `interview_completed: null` (or missing or malformed)** (genesis behaviour):
+     - Use `AskUserQuestion` (don't abort — let the user choose):
+       ```
+       The pre-plan interview hasn't been completed. The architectural-lurker
+       registry fields aren't pinned, so /atomicspec.plan will either need to
+       AskUserQuestion at every structural decision (per Directive 7) or make
+       assumptions you'll have to clean up later.
+
+       How do you want to handle it?
+         A) Run /atomicspec.clarify now (recommended) — ~5-15 min, then come back
+         B) Proceed with assumed defaults — plan will AskUserQuestion inline
+            as structural decisions arise (slower, less structured)
+         C) Cancel — exit /atomicspec.plan without doing anything
+       ```
+     - If user picks A: abort with exit code 0 (redirect) and print: `Run /atomicspec.clarify, then re-run /atomicspec.plan.`
+     - If user picks B: set the plan.md frontmatter field `interview_skipped: true` and proceed. Downstream phases will flag this in their reports.
+     - If user picks C: abort with exit code 0 and print a one-line confirmation.
+
+   - **If `interview_completed: <YYYY-MM-DD>` (valid date)**:
+     - Proceed normally. Phase 0.5/0.7 checkpoints will still surface assumptions, but the baseline is "interview ran on `<date>`".
+     - If `<date>` is more than 90 days old AND the spec mentions new infrastructure areas (e.g. payment / email / scheduling) NOT pinned in the registry, advise (do not block): "Interview is N days old; consider running `/atomicspec.clarify` again to top up registry decisions for new feature areas."
+
+   - **If the registry file is absent entirely**:
+     - Instruct the user to run `/atomicspec.registry` first (it scaffolds the registry from project manifests), then return to plan. Do NOT call the gate's AskUserQuestion in this case; the user has different work to do first.
 
 4. **Initial Configuration (HITL)**: Use AskUserQuestion to gather preferences before starting work.
 

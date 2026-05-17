@@ -266,6 +266,19 @@ Given that feature description, do this:
 
 8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/atomicspec.clarify` or `/atomicspec.plan`).
 
+9. **Soft nudge toward `/atomicspec.clarify` (v0.2+)**. After the completion report, print exactly this footer:
+
+   ```
+   ─────────────────────────────────────────────────────────────
+   Spec written. Before /atomicspec.plan, run /atomicspec.clarify
+   to lock in the architectural lurkers (Lite ~5 min, Detailed
+   ~15 min) — or skip and you'll be prompted again at /plan.
+   Skipping is fine for spikes.
+   ─────────────────────────────────────────────────────────────
+   ```
+
+   Do NOT block on this. The user is free to call `/atomicspec.plan` next; plan's Phase 0 will redirect them if `interview_completed` is still null in the registry.
+
 **NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
 
 ## General Guidelines

@@ -1,0 +1,209 @@
+# ============================================================================
+# CLARIFY TRIGGERS — Phase 4 of /atomicspec.clarify
+# ============================================================================
+# Declarative trigger table. /atomicspec.clarify reads this file, scans the
+# spec text + the original /atomicspec.specify arguments, and fires sub-
+# checklists matching keywords or regex patterns.
+#
+# CONVENTIONS
+# -----------
+# - keywords: plain case-insensitive substring matches (preferred).
+#     Wrap with surrounding spaces if the keyword would match unrelated stems
+#     (e.g. "find " with a trailing space avoids matching "findings").
+# - For regex matching, prefix the pattern with "re:" (e.g. "re:\\bsubscri").
+# - A trigger fires at most once per session, regardless of how many keywords hit.
+# - Triggers run in declaration order (deterministic).
+# - Each question in a sub-checklist counts against the global question cap.
+# - `tier: must` (default) — fired in both Lite and Detailed modes.
+# - `tier: should` — fired in Detailed only.
+# - `compliance: true` — fired in Phase 5 (Compliance) with a two-step
+#   confirmation; default answer is "skip" (favours false negatives, see
+#   design rationale).
+#
+# EXTENDING
+# ---------
+# To add a new trigger:
+#   1. Append a new entry to `triggers:` below.
+#   2. Pick a unique `id` (snake_case).
+#   3. List `keywords` that would appear in a spec mentioning the domain.
+#   4. List `sub_checklist` items, each writing to a registry field defined
+#      in templates/registry-template.yaml.
+#   5. Submit a PR with a one-line note in CHANGELOG.md under "Added".
+#
+# Each sub_checklist item writes to exactly one registry field. Defaults
+# should be opinionated but defensible (cite a rationale in `rationale`).
+# ============================================================================
+
+version: 1
+triggers:
+  - id: payment
+    keywords: ["subscription", "billing", "plan ", "tier", "checkout", "pricing", "paywall"]
+    sub_checklist:
+      - field: payment.provider
+        prompt: "Payment provider?"
+        options: [stripe, lemonsqueezy, paddle, adyen, braintree, razorpay]
+        default: stripe
+        rationale: "Universal tooling, strong docs, low onboarding friction."
+      - field: payment.abstraction_pattern
+        prompt: "How tightly are you coupling to the provider?"
+        options: [thin_wrapper, port_adapter, direct_sdk, none]
+        default: thin_wrapper
+        rationale: "Cheapest provider swap later; near-zero overhead now."
+      - field: payment.billing_model
+        prompt: "Billing model?"
+        options: [subscription, one_time, hybrid, usage_based]
+        default: subscription
+        rationale: "Inferred from spec keywords; confirm or correct."
+      - field: payment.event_persistence
+        prompt: "Webhook event persistence?"
+        options: [ledger, direct_writes]
+        default: ledger
+        rationale: "Immutable event log; replayable; recommended."
+        tier: should
+
+  - id: email
+    keywords: ["email", "notification", "digest", "newsletter", "reminder", "verification link"]
+    sub_checklist:
+      - field: email.transactional_provider
+        prompt: "Transactional email provider?"
+        options: [resend, sendgrid, postmark, mailgun, ses, smtp]
+        default: resend
+        rationale: "Lowest setup cost; modern DX."
+      - field: email.template_strategy
+        prompt: "Where do email templates live?"
+        options: [in_provider, in_repo_mjml, in_repo_react_email, plain_string]
+        default: in_repo_react_email
+        rationale: "Versioned with code; designers can preview locally."
+      - field: email.marketing_provider
+        prompt: "Marketing/broadcast provider?"
+        options: [mailchimp, sendgrid_marketing, customer_io, loops, none]
+        default: none
+        rationale: "Most projects don't send marketing email; defer unless explicit."
+        tier: should
+
+  - id: file_storage
+    keywords: ["upload", "avatar", "document", "attachment", "image upload", "file upload"]
+    sub_checklist:
+      - field: infrastructure.file_storage
+        prompt: "File / blob storage?"
+        options: [s3, gcs, azure_blob, cloudinary, local_filesystem]
+        default: s3
+        rationale: "Universal; works on any cloud provider with adapter."
+
+  - id: search
+    keywords: ["search", "filter results", "find ", "query"]
+    sub_checklist:
+      - field: infrastructure.search
+        prompt: "Search infrastructure?"
+        options: [postgres_fts, typesense, meilisearch, elasticsearch, algolia]
+        default: postgres_fts
+        rationale: "No extra service; upgrade later if traffic justifies."
+
+  - id: webhook_inbound
+    keywords: ["webhook", "event from", "callback url", "ingress"]
+    sub_checklist:
+      - field: integrations.webhook_ingress_contract.signature_verification
+        prompt: "Verify HMAC signature on inbound webhooks?"
+        options: [required, optional, none]
+        default: required
+        rationale: "Webhook endpoints are public; signature verification is table stakes."
+      - field: integrations.webhook_ingress_contract.replay_window
+        prompt: "Replay protection window (seconds)?"
+        options: ["60", "300", "900", "none"]
+        default: "300"
+        rationale: "5 minutes catches most replay attacks; rarely false-rejects."
+      - field: integrations.webhook_ingress_contract.idempotency
+        prompt: "Event-ID dedup on inbound webhooks?"
+        options: [event_id_dedupe, none]
+        default: event_id_dedupe
+        rationale: "REQUIRED when backend.job_durability_semantics = at_least_once."
+
+  - id: scheduling
+    keywords: ["schedule", "cron", "weekly", "daily", "hourly", "every "]
+    sub_checklist:
+      - field: infrastructure.scheduling
+        prompt: "Scheduled / cron strategy?"
+        options: [system_cron, app_scheduler, managed_service]
+        default: app_scheduler
+        rationale: "In-process scheduler; portable across deployment targets."
+
+  - id: background_jobs
+    keywords: ["job queue", "worker", "async task", "background job"]
+    sub_checklist:
+      - field: backend.job_queue
+        prompt: "Job queue library?"
+        options: [bull, celery, sidekiq, rq, none]
+        default: bull
+        rationale: "Redis-backed; well-supported in TypeScript stacks."
+      - field: backend.job_durability_semantics
+        prompt: "Job durability semantics?"
+        options: [at_least_once, exactly_once, fire_and_forget]
+        default: at_least_once
+        rationale: "Retries on failure; jobs must be idempotent (see webhook_inbound for ingress-side dedup)."
+
+  - id: i18n
+    keywords: ["localiz", "localis", "translation", "multilingual", "internationalization", "internationalisation"]
+    sub_checklist:
+      - field: frontend.i18n_posture
+        prompt: "Internationalization posture?"
+        options: [i18n_from_day_one, english_only, lazy_extract]
+        default: i18n_from_day_one
+        rationale: "You mentioned localization in the spec — bake the tooling in from day 1."
+
+  # =====================================================================
+  # COMPLIANCE TRIGGERS (Phase 5)
+  # =====================================================================
+  # Fire with a two-step Y/N gate before asking the registry questions.
+  # Default answer for the gate question is N (skip) — favours false
+  # negatives over false positives, by deliberate design.
+  # =====================================================================
+
+  - id: gdpr
+    keywords: ["EU users", "european users", "GDPR", "eu resident", "european resident"]
+    compliance: true
+    sub_checklist:
+      - field: compliance.gdpr
+        prompt: "Is this project in GDPR scope (handling EU resident personal data)?"
+        options: ["true", "false"]
+        default: "true"
+        rationale: "Spec mentions EU / European users — confirm GDPR scope."
+
+  - id: pci
+    keywords: ["credit card", "card number", "PAN ", "PCI", "card details"]
+    compliance: true
+    sub_checklist:
+      - field: compliance.pci
+        prompt: "Are you storing or processing cardholder data directly (not via Stripe Elements / similar)?"
+        options: ["true", "false"]
+        default: "false"
+        rationale: "Most projects tokenize through a provider and are out of PCI scope."
+
+  - id: hipaa
+    keywords: ["patient", "medical record", "PHI", "HIPAA", "health record", "diagnosis"]
+    compliance: true
+    sub_checklist:
+      - field: compliance.hipaa
+        prompt: "Are you handling Protected Health Information (US HIPAA scope)?"
+        options: ["true", "false"]
+        default: "true"
+        rationale: "Health-data keywords detected."
+
+  - id: coppa
+    keywords: ["children", "under 13", "kids", "minors", "COPPA"]
+    compliance: true
+    sub_checklist:
+      - field: compliance.coppa
+        prompt: "Are you collecting data from users under 13 (US COPPA scope)?"
+        options: ["true", "false"]
+        default: "false"
+        rationale: "Mentions of children/minors may be incidental; confirm scope."
+
+  - id: pii_general
+    keywords: ["user data", "PII", "personal data", "personal information"]
+    compliance: true
+    sub_checklist:
+      - field: compliance.gdpr
+        prompt: "Will any users be EU residents (triggers GDPR even without an explicit EU mention)?"
+        options: ["true", "false"]
+        default: "false"
+        rationale: "PII keywords detected, but jurisdiction not specified. If 'unsure', pick U at the compliance gate to defer rather than guessing true/false here."

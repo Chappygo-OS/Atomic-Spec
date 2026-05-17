@@ -26,11 +26,12 @@ interview_completed: null
 # in generated tasks. See templates/verification-commands.yaml for details.
 # ============================================================================
 target_platform:
-  # Primary deployment target: web | mobile | desktop | both
+  # Primary deployment target: web | mobile | desktop | both | library
   # web = Browser-based application (SPA, SSR, etc.)
   # mobile = Native or cross-platform mobile app
   # desktop = Desktop application (Electron, Tauri, native)
   # both = Hybrid (e.g., web app + mobile app sharing backend)
+  # library = npm/PyPI/etc. package shipped to other devs (no end-user app)
   #        When primary = both:
   #        - mobile_framework MUST be set (ios, android, react-native, flutter)
   #        - mobile_platforms MUST be set (ios, android, or both)
@@ -75,13 +76,14 @@ mobile:
   # hybrid = Some features offline, others require connection
   offline_strategy: null
 
-  # Local database: sqlite | realm | core_data | room | hive | drift | none
+  # Local database: sqlite | realm | core_data | room | hive | drift | asyncstorage_mmkv | none
   # sqlite = Direct SQLite (both platforms)
   # realm = Realm database
   # core_data = iOS Core Data (iOS only)
   # room = Android Room (Android only)
   # hive = Hive (Flutter)
   # drift = Drift (Flutter, formerly Moor)
+  # asyncstorage_mmkv = AsyncStorage / MMKV (React Native)
   local_database: null
 
   # Deep linking approach: universal_links | branch | firebase | appsflyer | custom | none

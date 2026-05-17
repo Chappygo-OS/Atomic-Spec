@@ -1,0 +1,296 @@
+# ============================================================================
+# ARCHITECTURAL LURKERS — Phase 3 of /atomicspec.clarify
+# ============================================================================
+# Per-app-type packs of structural questions that decide how the codebase is
+# shaped. These questions ALWAYS fire in clarify Phase 3 (subject to mode
+# caps), regardless of whether the spec mentions them — because they're
+# decisions the project needs to make whether the user thought to specify
+# them or not.
+#
+# This file is the registry field's question-form. The actual fields it
+# writes to are defined in `templates/registry-template.yaml`.
+#
+# TIER SEMANTICS
+# --------------
+#   must:    asked in both Lite and Detailed modes (subject to global cap)
+#   should:  asked only in Detailed mode
+#   defer:   never asked here; field gets `_provenance.<key>: deferred_to_plan`
+#            and plan.md Phase 0.5/0.7 will surface it as an Assumed value
+#
+# PROVENANCE
+# ----------
+# Each question's outcome is tagged in `_provenance`:
+#   - User pressed Enter / chose the highlighted default → accepted_recommendation
+#   - User picked a non-default option or typed free-form     → human
+#   - User typed `skip` mid-question                          → no write
+#
+# ADDING NEW QUESTIONS
+# --------------------
+# 1. Pick the app-type pack(s) the question applies to.
+# 2. Append to `must_decide:` (universal must-haves) or `can_defer:`.
+# 3. Each question MUST reference a registry field that exists in
+#    templates/registry-template.yaml; if the field doesn't exist, add it
+#    there first (and bump the schema version).
+# 4. Provide an opinionated `default` and a one-line `rationale`.
+# 5. Optionally add `expander_text` for the `?` why-this-matters reveal.
+# ============================================================================
+
+version: 1
+
+# Common shape of each question:
+#   field:       <registry path>
+#   prompt:      "<one-line question>"
+#   options:     [list of allowed values]
+#   default:     <one of the options>
+#   rationale:   "<one-line why-this-default>"
+#   expander:    "<optional paragraph shown on ?>"
+#   tier:        must | should | defer    (default: must)
+
+packs:
+
+  # ====================================================================
+  # web_with_api — the most common case
+  # Fires when target_platform.primary in [web, both]
+  # ====================================================================
+  web_with_api:
+    must_decide:
+      - field: infrastructure.deployment_target
+        prompt: "How will this deploy?"
+        options: [containerized, serverless, vps, paas, static]
+        default: paas
+        rationale: "Cheapest to start; Docker can come later if scale demands."
+        expander: |
+          PaaS = Heroku, Render, Railway, Fly.io. You hand them a Dockerfile or
+          just a runtime version; they handle the rest. If you have a strong
+          opinion about Kubernetes / serverless / VPS now is the time to say.
+          Changing later is possible but touches CI, secrets, and ops surface.
+
+      - field: architecture.pattern
+        prompt: "Overall system pattern?"
+        options: [monolith, modular_monolith, microservices, serverless]
+        default: modular_monolith
+        rationale: "Single deploy, internal module boundaries — defers the microservices split."
+
+      - field: architecture.api_style
+        prompt: "API paradigm?"
+        options: [rest, graphql, grpc, hybrid]
+        default: rest
+        rationale: "Universally tooled; GraphQL earns its place feature-by-feature."
+
+      - field: backend.language
+        prompt: "Backend language?"
+        options: [typescript, python, go, java, csharp, rust, php]
+        default: typescript
+        rationale: "Shared types with the frontend; deep ecosystem."
+
+      - field: backend.framework
+        prompt: "Backend framework?"
+        options: [fastify, express, nestjs, hono, fastapi, django, gin, spring-boot]
+        default: fastify
+        rationale: "Performance + low ceremony for TypeScript. (Adjust if language differs.)"
+
+      - field: backend.auth_method
+        prompt: "How do users authenticate?"
+        options: [session, jwt, oauth2, api_key, saml]
+        default: session
+        rationale: "Browser-native; revocable; smaller attack surface than JWT for web."
+
+      - field: database.type
+        prompt: "Primary database?"
+        options: [postgresql, mysql, mongodb, sqlite, sqlserver]
+        default: postgresql
+        rationale: "Relational + JSONB covers ~90% of cases."
+
+      - field: database.tenancy_model
+        prompt: "Tenancy model?"
+        options: [shared_db_tenant_id, shared_db_schema, separate_db, single_tenant]
+        default: single_tenant
+        rationale: "Cheapest; pin now to avoid a retrofit if multi-tenant comes later."
+
+      - field: frontend.framework
+        prompt: "Frontend framework?"
+        options: [react, vue, svelte, nextjs, nuxt, remix, none]
+        default: nextjs
+        rationale: "SSR + routing + image optimisation built in."
+
+      - field: frontend.i18n_posture
+        prompt: "Internationalization posture?"
+        options: [i18n_from_day_one, english_only, lazy_extract]
+        default: lazy_extract
+        rationale: "English-only ship now, tooling ready to extract strings later. Cheap insurance."
+
+      - field: domain.money_representation
+        prompt: "How is money represented? (Skip with 'none' if no monetary values.)"
+        options: [integer_minor_units, decimal, none]
+        default: integer_minor_units
+        rationale: "Cents/satoshi as integers — no floating-point rounding bugs ever."
+
+      - field: domain.identifier_exposure
+        prompt: "User-facing identifier shape (in URLs and API responses)?"
+        options: [opaque_uuid, sequential_int, slug, hashed]
+        default: opaque_uuid
+        rationale: "No enumeration leak. Pair with database.primary_key_type for consistency."
+
+    can_defer:
+      - field: api.versioning
+        prompt: "API versioning strategy?"
+        options: [url, header, query_param, none]
+        default: url
+        rationale: "/v1/ prefix is universally tooled."
+        tier: should
+
+      - field: api.pagination
+        prompt: "Pagination strategy?"
+        options: [cursor, offset, keyset, none]
+        default: cursor
+        rationale: "Stable under inserts; recommended for any growing list."
+        tier: should
+
+      - field: api.error_format
+        prompt: "API error response format?"
+        options: [rfc7807, custom, simple]
+        default: rfc7807
+        rationale: "Problem Details (RFC 7807) — standard, widely consumed."
+        tier: should
+
+      - field: code_patterns.error_handling
+        prompt: "Error handling style?"
+        options: [exceptions, result_type, error_codes]
+        default: exceptions
+        rationale: "Idiomatic for most languages; result_type works well in Rust/Go/functional TS."
+        tier: should
+
+      - field: backend.orm
+        prompt: "ORM / data layer?"
+        options: [prisma, drizzle, sqlalchemy, gorm, typeorm, none]
+        default: drizzle
+        rationale: "Type-safe, fast, SQL-shaped — good defaults for new TS projects."
+        tier: should
+
+      - field: frontend.state_management
+        prompt: "Frontend state management?"
+        options: [zustand, redux, context, tanstack-query, pinia, none]
+        default: tanstack-query
+        rationale: "Server state covers most needs; minimal client state on top."
+        tier: should
+
+  # ====================================================================
+  # mobile — native, react_native, or flutter
+  # Fires when target_platform.primary == mobile
+  # ====================================================================
+  mobile:
+    must_decide:
+      - field: target_platform.mobile_framework
+        prompt: "Mobile framework?"
+        options: [native, react-native, flutter, capacitor]
+        default: react-native
+        rationale: "Shared codebase across iOS/Android = lower team cost. Pick native only if you have platform-specialist headcount."
+
+      - field: target_platform.mobile_platforms
+        prompt: "Which platforms?"
+        options: [ios, android, both]
+        default: both
+        rationale: "iOS-only is rare for new consumer apps; both is the default unless there's a specific business reason."
+
+      - field: mobile.offline_strategy
+        prompt: "Offline strategy?"
+        options: [offline_first, online_first, hybrid]
+        default: online_first
+        rationale: "Cheapest; upgrade once you have real usage telemetry."
+
+      - field: mobile.local_database
+        prompt: "Local database?"
+        options: [sqlite, realm, core_data, room, hive, drift, asyncstorage_mmkv]
+        default: asyncstorage_mmkv
+        rationale: "Adjust to match framework. RN+MMKV is fast, simple, and good for 80% of cases."
+
+      - field: mobile.push_service
+        prompt: "Push notifications?"
+        options: [apns_fcm, onesignal, firebase, expo, none]
+        default: firebase
+        rationale: "Cross-platform with a free tier; transition to OneSignal/native APNs/FCM if you outgrow it."
+
+      - field: mobile.crash_reporting
+        prompt: "Crash reporting?"
+        options: [crashlytics, sentry, bugsnag, none]
+        default: sentry
+        rationale: "Cross-platform; integrates with the same Sentry account as your web/backend."
+
+      - field: mobile.deep_linking
+        prompt: "Deep linking?"
+        options: [universal_links, branch, firebase, appsflyer, custom, none]
+        default: universal_links
+        rationale: "First-party iOS Universal Links + Android App Links; no third-party SDK weight."
+
+      - field: backend.auth_method
+        prompt: "How do users authenticate (if there's a backend)?"
+        options: [session, jwt, oauth2, api_key, saml]
+        default: oauth2
+        rationale: "Token-based is the mobile norm; sessions don't survive app suspend/resume cleanly."
+
+    can_defer:
+      - field: mobile.iap_framework
+        prompt: "In-app purchases?"
+        options: [storekit2, billing_client, revenuecat, adapty, none]
+        default: revenuecat
+        rationale: "Cross-platform; saves writing receipt-validation code twice."
+        tier: should
+
+      - field: mobile.biometric_auth
+        prompt: "Biometric authentication (Face ID / Touch ID / fingerprint)?"
+        options: ["enabled", "disabled"]
+        default: "enabled"
+        rationale: "Modern UX expectation; trivial to wire up."
+        tier: should
+
+  # ====================================================================
+  # desktop — Electron, Tauri, or native
+  # Fires when target_platform.primary == desktop
+  # ====================================================================
+  desktop:
+    must_decide:
+      - field: target_platform.desktop_framework
+        prompt: "Desktop framework?"
+        options: [tauri, electron, native, capacitor]
+        default: tauri
+        rationale: "Tauri = smaller binaries (~10MB vs Electron's ~100MB), Rust backend, web frontend."
+
+      - field: backend.auth_method
+        prompt: "How do users authenticate (if there's a backend)?"
+        options: [session, jwt, oauth2, api_key, none]
+        default: oauth2
+        rationale: "Token-based pairs well with desktop apps. 'none' is valid for local-only apps."
+
+      - field: database.type
+        prompt: "Primary data store?"
+        options: [sqlite, postgresql, mysql, file, none]
+        default: sqlite
+        rationale: "Local-first; embed it; zero ops. Use postgres if you have a server tier."
+
+      - field: infrastructure.deployment_target
+        prompt: "Distribution channel?"
+        options: [static, paas, vps, containerized]
+        default: static
+        rationale: "For desktop, 'static' = signed app binaries on a CDN. Upgrade to PaaS if you have a backend."
+
+  # ====================================================================
+  # library — a package shipped to other devs, not an app
+  # Fires when target_platform.primary == library
+  # ====================================================================
+  library:
+    must_decide:
+      - field: backend.language
+        prompt: "Library language?"
+        options: [typescript, python, go, java, csharp, rust, php]
+        default: typescript
+        rationale: "Most common ecosystem for new libraries; npm reach."
+
+      - field: testing.unit_framework
+        prompt: "Unit test framework?"
+        options: [vitest, jest, pytest, go-test, junit, nunit]
+        default: vitest
+        rationale: "Fast, ESM-native, drop-in Jest compat for TS libraries."
+
+    can_defer:
+      # Libraries typically don't need most of the registry — leave it null
+      # and let consumer projects pin their own choices.
