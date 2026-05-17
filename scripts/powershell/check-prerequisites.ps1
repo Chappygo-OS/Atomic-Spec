@@ -156,9 +156,11 @@ function Get-RegistryState {
         # Null placeholders — skip
         if ($trim -match ':\s*null\s*$') { continue }
         if ($trim -match ':\s*\[\]\s*$') { continue }
+        # "{}" empty-mapping placeholder. Populated dicts like {k: v} don't match this.
+        if ($trim -match ':\s*\{\}\s*$') { continue }
         if ($trim -match ':\s*~\s*$') { continue }
-        # Skip schema/metadata fields — they are always populated and not project decisions
-        if ($trim -match '^(version|schema_version|last_updated|last_updated_by|created|applied_to):') { continue }
+        # Skip structural / lifecycle markers — not project decisions.
+        if ($trim -match '^(version|schema_version|last_updated|last_updated_by|created|applied_to|interview_completed):') { continue }
         # Leaf with a real value
         if ($trim -match ':') { return 'populated' }
     }

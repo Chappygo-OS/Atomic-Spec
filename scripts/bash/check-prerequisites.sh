@@ -212,8 +212,9 @@ check_registry_state() {
         /:[[:space:]]*$/ { next }                              # section header: "foo:"
         /:[[:space:]]*null[[:space:]]*$/ { next }              # "foo: null"
         /:[[:space:]]*\[\][[:space:]]*$/ { next }              # "foo: []"
+        /:[[:space:]]*\{\}[[:space:]]*$/ { next }              # "foo: {}" empty-mapping placeholder; populated dicts like "{k: v}" do not match this rule
         /:[[:space:]]*~[[:space:]]*$/ { next }                 # "foo: ~" (YAML null alias)
-        /^[[:space:]]*(version|schema_version|last_updated|last_updated_by|created|applied_to):/ { next }  # skip metadata/schema fields
+        /^[[:space:]]*(version|schema_version|last_updated|last_updated_by|created|applied_to|interview_completed):/ { next }  # structural / lifecycle markers, not project decisions
         /:/ { print; exit }
     ' "$registry_file" | grep -q .; then
         echo "populated"

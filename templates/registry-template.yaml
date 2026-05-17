@@ -9,10 +9,15 @@
 # Updates require HITL (Human-In-The-Loop) approval via AskUserQuestion
 # ============================================================================
 
-version: 3
+version: 4
 created: null  # Set when first decision is added
 last_updated: null
 last_updated_by: null
+# /atomicspec.clarify completion marker (v0.2+). ISO date when clarify last
+# completed a full architectural-lurker pass. null = mandatory at the next
+# planning gate (genesis behaviour). When set, /atomicspec.specify still
+# advertises clarify but does not block.
+interview_completed: null
 
 # ============================================================================
 # TARGET PLATFORM (What type of application is being built)
@@ -258,6 +263,13 @@ backend:
   # Caching layer: redis | memcached | in_memory | none
   cache: null
 
+  # Background-job durability semantics (v0.2+): at_least_once | exactly_once | fire_and_forget | none
+  # at_least_once = retries on failure; jobs must be idempotent
+  # exactly_once = transactional outbox or two-phase commit (rare)
+  # fire_and_forget = best-effort, no retries (e.g., metrics, non-critical hooks)
+  # none = no background jobs in this project
+  job_durability_semantics: null
+
 # ============================================================================
 # FRONTEND CONFIGURATION (Web)
 # ============================================================================
@@ -294,6 +306,13 @@ frontend:
 
   # Routing: react-router | tanstack-router | next-router | vue-router
   routing: null
+
+  # i18n posture (v0.2+): i18n_from_day_one | english_only | lazy_extract
+  # i18n_from_day_one = every user-facing string goes through t(); locale files set up
+  # english_only = hard-coded English; retrofitting later is expensive but accepted
+  # lazy_extract = English-only ship; tooling ready to extract strings when first market demands it
+  # One of the cheapest decisions to ask about and most expensive to retrofit silently.
+  i18n_posture: null
 
 # ============================================================================
 # iOS CONFIGURATION (Native iOS)
@@ -521,6 +540,31 @@ infrastructure:
   # Secret management: vault | aws-secrets | env-files | doppler
   secrets: null
 
+  # Search infrastructure (v0.2+): elasticsearch | typesense | meilisearch | postgres_fts | algolia | none
+  # postgres_fts = built-in Postgres full-text search (no extra service)
+  # none = no full-text search needed; SQL LIKE / ILIKE suffices
+  search: null
+
+  # Scheduled / cron strategy (v0.2+): system_cron | app_scheduler | managed_service | none
+  # system_cron = OS-level crontab or systemd timers
+  # app_scheduler = in-process (node-cron, APScheduler) or queue-driven (BullMQ repeat, Celery beat)
+  # managed_service = Inngest, Trigger.dev, Temporal Cloud, AWS EventBridge, etc.
+  # none = no scheduled work in this project
+  scheduling: null
+
+  # File / blob storage (v0.2+): s3 | gcs | azure_blob | cloudinary | local_filesystem | none
+  # local_filesystem = dev-only or single-instance deploys; flag if production uses this
+  file_storage: null
+
+  # Deployment target (v0.2+): containerized | serverless | vps | paas | static
+  # containerized = Docker + orchestrator (Kubernetes, ECS, Compose)
+  # serverless = Lambda, Cloud Functions, Cloudflare Workers
+  # vps = directly on virtual machines (systemd, PM2, etc.)
+  # paas = Heroku, Render, Railway, Fly.io (managed runtime, no Docker required)
+  # static = static-site host (Pages, Netlify, Vercel static)
+  # The "Docker without asking" lurker — must be answered before any container scaffolding.
+  deployment_target: null
+
 # ============================================================================
 # CONVENTIONS
 # ============================================================================
@@ -623,6 +667,154 @@ security:
   password_policy: null
 
 # ============================================================================
+# PAYMENT (v0.2+)
+# ============================================================================
+# Pin the payment provider AND the abstraction pattern. The provider alone
+# is half the answer — the second half (how thin the wrapper is) decides
+# how expensive a future provider swap will be.
+# ============================================================================
+payment:
+  # Provider: stripe | lemonsqueezy | paddle | adyen | braintree | razorpay | none
+  # none = this project does not handle payments
+  provider: null
+
+  # Abstraction pattern: thin_wrapper | port_adapter | direct_sdk | none
+  # thin_wrapper = single internal module wraps the SDK; business code calls the module
+  # port_adapter = ports-and-adapters; business code depends on a Payment interface
+  # direct_sdk = business code imports Stripe/etc. directly (rare; acceptable for single-provider lock-in)
+  # Station 09 documents when each is appropriate. Default recommendation: thin_wrapper.
+  abstraction_pattern: null
+
+  # Billing model: subscription | one_time | hybrid | usage_based | none
+  billing_model: null
+
+  # Event persistence pattern (renamed from webhook_pattern):
+  #   ledger | direct_writes | none
+  # ledger = events written to immutable log; state derived (recommended)
+  # direct_writes = handler mutates business state directly (fragile)
+  # Webhook ingress mechanics (signature, replay, idempotency) live under
+  # integrations.webhook_ingress_contract — this field is downstream-of-ingress.
+  event_persistence: null
+
+# ============================================================================
+# EMAIL (v0.2+)
+# ============================================================================
+# Transactional and marketing email are different products with different
+# requirements; pinning the split prevents accidental coupling.
+# ============================================================================
+email:
+  # Transactional provider: resend | sendgrid | postmark | mailgun | ses | smtp | none
+  # smtp = generic SMTP (Gmail, Office 365); only for very low volume
+  # none = this project does not send email
+  transactional_provider: null
+
+  # Marketing / broadcast provider: mailchimp | sendgrid_marketing | customer_io | loops | none
+  # none = no marketing email is sent (or it's handled outside the app)
+  marketing_provider: null
+
+  # Template strategy: in_provider | in_repo_mjml | in_repo_react_email | plain_string
+  # in_provider = templates stored and edited in provider UI
+  # in_repo_mjml / in_repo_react_email = templates versioned with code
+  # plain_string = templates as TypeScript / Python strings (only fine for very simple email)
+  template_strategy: null
+  # NOTE: whether transactional and marketing are split or unified is derivable
+  # from the two provider fields above (different providers = split). No
+  # separate `transactional_marketing_split` field — would invite drift.
+
+# ============================================================================
+# DOMAIN PRIMITIVES (v0.2+)
+# ============================================================================
+# Project-wide rules about how core domain primitives are represented.
+# Getting these wrong is corrupting and expensive to retrofit.
+# ============================================================================
+domain:
+  # Money representation: integer_minor_units | decimal | none
+  # integer_minor_units = cents/satoshi as integers (recommended; no rounding bugs)
+  # decimal = arbitrary-precision Decimal/BigDecimal types
+  # none = no monetary values in this project
+  # NOTE: `float` is intentionally NOT listed — floating-point money causes
+  # rounding bugs. Subagents must refuse to generate float-based money code.
+  money_representation: null
+
+  # Time representation: utc_only | utc_with_tz_offset | local_time
+  # utc_only = store UTC, render with user TZ at view time (recommended)
+  # utc_with_tz_offset = store UTC plus the original offset (for events that "belong" to a TZ)
+  # local_time = store naive local time (only correct for date-only fields like birthday)
+  time_representation: null
+
+  # Identifier exposure: opaque_uuid | sequential_int | slug | hashed
+  # opaque_uuid = UUID/ULID in URLs and APIs (recommended for v0.2+; no enumeration leak)
+  # sequential_int = autoincrementing integers in URLs (enumeration risk; only OK for non-sensitive lists)
+  # slug = human-readable slug in URLs (good for SEO; need uniqueness handling)
+  # hashed = encoded ids (hashids); reversible if salt leaks, prefer opaque_uuid
+  # External representation only — primary_key_type is a separate concern.
+  # Pair with database.primary_key_type: mismatched values (e.g., auto_increment PK
+  # but opaque_uuid exposure) imply an internal→external mapping layer; document
+  # that layer in Station 09 / payment-architect subagent if you go this route.
+  identifier_exposure: null
+
+# ============================================================================
+# INTEGRATIONS (v0.2+)
+# ============================================================================
+# Cross-cutting contracts for how this app talks to other systems.
+# ============================================================================
+integrations:
+  # Webhook ingress contract — applies to ALL inbound webhooks (Stripe, GitHub, etc.).
+  # Pinning this once prevents per-integration drift. Three concerns:
+  #
+  # signature_verification: required | optional | none
+  #   required = every webhook handler verifies HMAC / JWT before processing (recommended)
+  # replay_window: <seconds> | none
+  #   none = no replay protection (vulnerable to replayed signed payloads)
+  #   number = reject webhooks older than N seconds (typical: 300)
+  # idempotency: event_id_dedupe | none
+  #   event_id_dedupe = persist seen event IDs; skip duplicates
+  #   REQUIRED when backend.job_durability_semantics = at_least_once (the job
+  #   retry behavior is unsafe without ingress-side dedup). Subagents must
+  #   flag a registry inconsistency when these two fields disagree.
+  webhook_ingress_contract:
+    signature_verification: null
+    replay_window: null
+    idempotency: null
+
+  # Outbound HTTP policy — applies to all outbound calls to third-party APIs.
+  # Defaults the AI should follow when adding a new integration.
+  outbound_http_policy:
+    # Default timeout in seconds (recommended: 10-30)
+    timeout_seconds: null
+    # Retry strategy: exponential_backoff | none
+    retry: null
+    # Max retries before giving up (recommended: 3)
+    max_retries: null
+    # Circuit breaker: enabled | disabled
+    # enabled = stop calling a failing dependency after N consecutive errors
+    circuit_breaker: null
+
+# ============================================================================
+# COMPLIANCE (v0.2+)
+# ============================================================================
+# Scope flags and levels. Set ONLY if the project has scope under each regime.
+# Most fields are booleans (in-scope or not); a few carry levels (e.g., soc2).
+# Stations and subagents read this section to add the right gates and patterns.
+# Per-regime sub-configuration (data deletion endpoints, consent storage,
+# etc.) belongs in station outputs, NOT here — keep this section flat.
+# ============================================================================
+compliance:
+  # GDPR scope: handling EU resident personal data
+  gdpr: null
+  # PCI scope: handling cardholder data directly (not just tokenizing through a processor)
+  pci: null
+  # HIPAA scope: handling protected health information in the US
+  hipaa: null
+  # COPPA scope: collecting data from users under 13 in the US
+  coppa: null
+  # SOC 2 reporting target: type1 | type2 | none
+  soc2: null
+  # Data residency requirement: <region> | none
+  # e.g., 'eu-only', 'us-only', 'in-only' (India), 'multi-region'
+  data_residency: null
+
+# ============================================================================
 # FEATURE TRACKING
 # ============================================================================
 # Lists which specs have used these defaults (auto-populated)
@@ -631,3 +823,33 @@ applied_to: []
 # - feature: user-management
 #   spec_path: specs/user-management/spec.md
 #   applied_at: 2026-02-05
+
+# ============================================================================
+# DECISION PROVENANCE (v0.2+)
+# ============================================================================
+# Tracks HOW each non-null decision was made. Read by /atomicspec.plan to
+# surface "you accepted N defaults — review before implement?" warnings.
+# Leading underscore signals: framework-internal bookkeeping, not a user
+# decision field.
+#
+# Allowed values for each entry:
+#   human                   = user actively chose this from a question
+#   accepted_recommendation = user picked the AI-suggested default without overriding
+#   manifest_scan           = /atomicspec.registry inferred this from package.json,
+#                             pyproject.toml, Dockerfile, etc.
+#   plan_phase_0_9          = registry sync at end of /atomicspec.plan
+#   implement_phase_9       = registry sync at end of /atomicspec.implement
+#   unknown_legacy          = auto-backfilled for v0.1 registries: any non-null
+#                             decision field that lacks a _provenance entry at
+#                             the next /atomicspec.plan run gets tagged with this.
+#
+# Keys use dot-notation matching the field path. Absent keys for non-null
+# fields are backfilled as `unknown_legacy` (see above) so the parallel
+# structure can't drift silently.
+# ============================================================================
+_provenance: {}
+# Example:
+# _provenance:
+#   payment.provider: human
+#   database.tenancy_model: manifest_scan
+#   api.versioning: accepted_recommendation
