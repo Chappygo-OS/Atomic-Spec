@@ -177,7 +177,30 @@ After Phase 0 (Research) completes and before Phase 1 (Design) begins:
 
 #### Directive 7: Project Defaults Registry (Consistency Enforcement)
 
-The **Project Defaults Registry** at `specs/_defaults/registry.yaml` is the single source of truth for project-wide technical decisions. ALL commands, agents, and phases MUST obey this protocol.
+The **Project Defaults Registry** at `specs/_defaults/registry.yaml` is the single source of truth for project-wide technical decisions.
+
+**Scope of "registry-eligible decisions" (v0.2 clarification)**:
+
+Registry-eligible decisions include not only the fields explicitly enumerated in `registry.yaml`, but **any structural choice that pervades the codebase**:
+
+- Containerization (Docker / Compose / Kubernetes / none)
+- Deployment target (containerized / serverless / VPS / PaaS / static)
+- Monorepo vs. polyrepo layout
+- File-structure pattern (feature-folder / layer-folder / domain-driven)
+- Framework choice in any layer (backend, frontend, ORM, queue, cache, search, etc.)
+- Cross-cutting infrastructure (payment provider, email provider, scheduling, file storage)
+- Domain primitives (money representation, identifier exposure, time representation)
+- Authentication / authorization model (session / JWT / OAuth2 / RBAC / ABAC / etc.)
+- Logging and observability stack (structured logs, metrics, traces, error tracking)
+- CI/CD platform and deployment workflow
+- Package manager and runtime version pins
+- Testing framework (unit / integration / E2E)
+
+**Definition of "commit"**: writing config or code that encodes the choice (e.g., creating `docker-compose.yml`, adding a dependency to `package.json`, importing a framework module), OR recording the choice in `plan.md` or a task file as a fixed value. Drafting a comment that *discusses* options is not committing.
+
+When the AI is about to commit to a structural decision **absent from the registry**, it MUST raise an `AskUserQuestion` before applying the decision, then offer to register the answer with provenance `human` or `accepted_recommendation`. This obligation is independent of the on-entry read step in the Protocol below — it fires whenever a qualifying decision arises, in any phase (`/atomicspec.plan`, `/atomicspec.tasks`, `/atomicspec.implement`). The "Docker-without-asking" failure mode (silently choosing a structural default) is a Directive 7 violation, not an unspecified blind spot.
+
+ALL commands, agents, and phases MUST obey this protocol.
 
 **Registry Location**:
 ```
@@ -255,6 +278,7 @@ Every task file MUST include an "Embedded Context" section containing:
 | **API Context** | `FEATURE_DIR/contracts/*.yaml` | When task involves API endpoints |
 | **Feature Summary** | `plan.md` (extracted during task generation) | Always |
 | **Gate Criteria** | Subagent/Station gate checklists | When domain knowledge exists |
+| **Structural Decision Triggers** (v0.2+) | Directive 7 scope list | When the task may commit to containerization, deployment, framework, infrastructure provider, or domain primitive — so the implementer recognizes the AskUserQuestion trigger under Context Pinning |
 
 **Graceful Degradation**:
 
