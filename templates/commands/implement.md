@@ -694,6 +694,54 @@ Registry sync complete.
 
 If the user had the registry gate overridden via `ATOMIC_SPEC_NO_REGISTRY=1` at task-gate time, remind them: "registry override was active; consider running /atomicspec.registry to create the registry before the next feature."
 
+### 10. Reverse-Traceability Verification (v0.2+, MANDATORY)
+
+> ⛔ **This phase runs AFTER Phase 9 has completed.** Like Phase 9, it operates on the closed feature state — every task in Phases 1–8 must be marked `DONE` in `index.md`, AND Phase 9's registry writes (to `specs/_defaults/registry.yaml` + `specs/_defaults/changelog.md`) have already landed. Those writes are exempt from the orphan check via the `specs/*` rule and will not surface as findings. Phase 10 is a **feature-exit gate, not a per-task operation**, so Directive 8 (Self-Contained Tasks) does not apply.
+
+**Per Constitution Article IX, Directive 7 v0.2 amendment** — the "Docker without asking" failure mode (silently creating structural files like `docker-compose.yml`, `Dockerfile`, or CI workflow files that no task required) is a Directive 7 violation. This phase catches it after the fact, *even when the in-phase AskUserQuestion gate was missed*.
+
+#### 10.1 Run the check
+
+Execute `scripts/bash/check-traceability.sh` (or `scripts/powershell/check-traceability.ps1` on Windows). The script:
+
+1. Computes the merge-base of the current feature branch with `main` (or `master`, with `HEAD~1` fallback for spike branches).
+2. Lists every file changed since the merge-base (`git diff --name-only`) plus any uncommitted changes (`git status --porcelain`).
+3. For each changed file, skips exempt patterns (`specs/`, `.specify/`, `.claude/`, `.github/`, `memory/`, `CHANGELOG.md`, `README.md`, lockfiles).
+4. For each remaining file, searches `<FEATURE_DIR>/traceability.md` for the file path or basename.
+5. Files not found are reported as **orphans**.
+
+The script defaults to **warn-only** on v0.2.0 (consumer projects get one release cycle to clean up legacy orphans). Pass `--enforce` (bash) or `-Enforce` (PowerShell) to make orphans a hard failure. This will become the default in v0.2.1.
+
+#### 10.2 Handle orphans
+
+If the script reports orphan files, follow this flowchart for each:
+
+| Orphan looks like | Action |
+|---|---|
+| Structural config (`docker-compose.yml`, `Dockerfile`, `.github/workflows/*`, `vercel.json`) | **The AI MUST NOT auto-decide.** This is a Directive 7 v0.2 amendment violation in retrospect. **Always escalate via `AskUserQuestion`** with the three options: (a) delete it and re-do the relevant task with the missing AskUserQuestion, (b) amend `traceability.md` to map it to an existing task IF the user retroactively approves the structural choice, (c) report as a bug in the task file (Phase 8 quality gate failure). Let the user pick. |
+| Application code that maps to a task but was named differently | Amend `traceability.md` to reference the new path. This is bookkeeping, not a real orphan. Confirm the rename via AskUserQuestion if uncertain. |
+| Generated / scaffolded files (db migrations, build artifacts) | Add the pattern to the exempt list in `scripts/bash/check-traceability.sh` (`is_exempt()` function) AND `scripts/powershell/check-traceability.ps1` (`Test-IsExempt`). Document the addition in the next CHANGELOG. Always confirm via AskUserQuestion before extending the exempt list. |
+| Files the user manually created mid-implement | Outside the scope of the gate — annotate in the report and move on. The gate covers AI-created files. |
+| File was DELETED during the feature (showed up via `git diff` because it's no longer present) | Verify the deletion was intentional and corresponds to a cleanup task. If so, annotate in `traceability.md` with `[deleted]` next to the previous mapping row. |
+
+#### 10.3 Report
+
+Final summary section to append to the implement-phase output:
+
+```
+Reverse-traceability check (v0.2):
+  Total files changed:        N
+  Mapped to traceability.md:  M
+  Exempt (framework/spec):    K
+  Orphans:                    P
+  Mode:                       warn-only | enforced
+  Status:                     PASS | WARN | BLOCK
+```
+
+If status is BLOCK (orphans found AND --enforce): the implement command should NOT mark itself complete. Surface the orphan list and the per-orphan flowchart from §10.2 to the user, then halt.
+
+If status is WARN (orphans found, warn-only): print the list and continue to the final "feature ready for review" report. The orphans become a v0.2.1 backlog item.
+
 ## Context Pinning Reminder
 
 **During task execution (Phases 1–8), you may ONLY read**:
@@ -707,7 +755,11 @@ If the user had the registry gate overridden via `ATOMIC_SPEC_NO_REGISTRY=1` at 
 - Reading task files other than the current one
 - Making architectural decisions not in the task file
 
-**Single carved exception — Phase 9 (Registry Sync on Exit)**:
-Phase 9 may read `plan.md` to extract the registry-relevant decisions recorded during planning, and may read `specs/_defaults/registry.yaml` to compute the diff. This exception is scoped to Phase 9 only; it exists because registry sync is inherently cross-task. Phase 9 must NOT read `spec.md` or any task file other than those already completed.
+**Carved exceptions — Phase 9 (Registry Sync on Exit) and Phase 10 (Reverse-Traceability Verification)**:
+
+- **Phase 9** may read `plan.md` to extract the registry-relevant decisions recorded during planning, and may read `specs/_defaults/registry.yaml` to compute the diff. Phase 9 must NOT read `spec.md` or any task file other than those already completed.
+- **Phase 10** may run git introspection commands (`git diff --name-only`, `git status --porcelain`, `git merge-base`) AND may write to `traceability.md` to record orphan-resolution annotations per §10.2. Phase 10 does NOT read `plan.md` or `spec.md`.
+
+Both exceptions are scoped to their respective phase only — they exist because exit-time verification is inherently cross-task and cannot be self-contained inside one task file.
 
 If during Phases 1–8 you need information not in the current task file, the task file is incomplete. Report this as a task quality issue rather than reading forbidden files.
