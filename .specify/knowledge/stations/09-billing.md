@@ -2,6 +2,8 @@
 
 > Architecture, Flows, and Failure Handling
 
+> **v0.2+ governance/pattern split**: code-level patterns (Stripe primitives, BillingEvent ledger schema, webhook idempotency algorithm, Checkout/Portal/Trial/Dunning flows, status mapping) live in [payment-integration](../../subagents/backend/payment-integration.md). This station owns governance gates, ADRs, canonical state names, and reconciliation/access-gating decision frameworks.
+
 ---
 
 ## 9.1 Objective

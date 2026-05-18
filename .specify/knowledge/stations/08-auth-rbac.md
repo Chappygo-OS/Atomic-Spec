@@ -2,6 +2,8 @@
 
 > Patterns, Pitfalls, and Checklists
 
+> **v0.2+ governance/pattern split**: code-level patterns (credential storage, magic-link implementation, OAuth flows, policy-engine code, audit log DDL, permission-matrix examples) live in [backend-architect](../../subagents/backend/backend-architect.md). This station owns governance gates and the sessions-vs-JWT decision framework.
+
 ---
 
 ## 8.1 Objective

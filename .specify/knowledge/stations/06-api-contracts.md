@@ -1,5 +1,7 @@
 # Station 06 — API Contract Standards (OpenAPI-First): Procedures + Conventions + Templates
 
+> **v0.2+ governance/pattern split**: code-level patterns (OpenAPI skeletons, error schemas, REST/GraphQL implementation specifics) live in [api-documenter](../../subagents/backend/api-documenter.md). This station owns governance gates and decision frameworks.
+
 ## 6.1 Objective
 
 Define API standards that enable:

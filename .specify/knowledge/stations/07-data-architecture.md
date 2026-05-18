@@ -2,6 +2,8 @@
 
 > ADRs, Enforcement, and Modeling
 
+> **v0.2+ governance/pattern split**: code-level patterns (schema DDL, tenant-scoped queries, repository discipline, index recipes, audit/PII/files patterns) live in [database-optimizer](../../subagents/data/database-optimizer.md) and [data-architecture](../../subagents/data/data-architecture.md). This station owns governance gates and the tenancy-model decision framework.
+
 ---
 
 ## 7.1 Objective

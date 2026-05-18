@@ -1,5 +1,7 @@
 # Station 05 — User Flows + Information Architecture (SaaS): Procedures + Templates
 
+> **v0.2+ governance/pattern split**: code-level patterns for user flows, state machines, and SaaS UX edge cases live in [interaction-patterns](../../subagents/ux/interaction-patterns.md). This station owns the governance gates and decision frameworks.
+
 ## 5.1 Objective
 
 Create user flows and an information architecture (IA) that:

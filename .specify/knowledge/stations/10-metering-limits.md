@@ -2,6 +2,8 @@
 
 > Design, Enforcement, and Cost Control
 
+> **v0.2+ governance/pattern split**: code-level patterns (entitlement table schema, usage-event ingestion, enforcement algorithm + two-phase variant, error response contract, concurrency patterns) live in [metering-engineer](../../subagents/backend/metering-engineer.md). This station owns the MVP-meter-selection method, warn→block→upgrade policy framework, and billing/auth integration governance.
+
 ---
 
 ## 10.1 Objective

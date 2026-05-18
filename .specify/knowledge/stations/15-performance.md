@@ -2,6 +2,8 @@
 
 > Fast UX, Predictable Costs, Safe Growth
 
+> **v0.2+ governance/pattern split**: code-level patterns (query contracts, indexing recipes, caching invalidation, rate-limit implementation, AI/token cost controls) live in [performance-engineer](../../subagents/devops/performance-engineer.md). This station owns p95/p99 targets as governance, noisy-neighbor vectors, queue-fairness decision framework, and load-testing gates.
+
 ## 15.1 Objective
 
 Design performance and scalability so you can:
