@@ -91,7 +91,11 @@ triggers:
         rationale: "Universal; works on any cloud provider with adapter."
 
   - id: search
-    keywords: ["search", "filter results", "find ", "query"]
+    # "query" removed — appeared in every technical spec (database queries,
+    # API queries) and false-triggered the search-infrastructure probe.
+    # "search", "filter results", and "find " (with trailing space) are
+    # sufficiently specific.
+    keywords: ["search", "filter results", "find ", "full-text"]
     sub_checklist:
       - field: infrastructure.search
         prompt: "Search infrastructure?"
@@ -179,7 +183,10 @@ triggers:
         rationale: "Most projects tokenize through a provider and are out of PCI scope."
 
   - id: hipaa
-    keywords: ["patient", "medical record", "PHI", "HIPAA", "health record", "diagnosis"]
+    # Keywords intentionally narrow — "patient" alone false-fires on
+    # "be patient", "Patient.io", veterinary apps. "diagnosis" alone matches
+    # "system diagnosis tools". Pair with another health-context word.
+    keywords: ["patient record", "medical record", "PHI", "HIPAA", "health record", "patient diagnosis", "medical diagnosis", "clinical diagnosis"]
     compliance: true
     sub_checklist:
       - field: compliance.hipaa
@@ -205,5 +212,10 @@ triggers:
       - field: compliance.gdpr
         prompt: "Will any users be EU residents (triggers GDPR even without an explicit EU mention)?"
         options: ["true", "false"]
-        default: "false"
-        rationale: "PII keywords detected, but jurisdiction not specified. If 'unsure', pick U at the compliance gate to defer rather than guessing true/false here."
+        # Conservative default flipped to "true": if PII is in scope AND the
+        # user reached the sub-checklist (already said Y to the gate), the
+        # safer assumption is "yes, GDPR may apply" — false negatives on PII
+        # / GDPR are an order of magnitude more expensive than false positives.
+        # Users with single-jurisdiction projects can override to false.
+        default: "true"
+        rationale: "PII detected and you're entering the sub-checklist. Default to GDPR scope; override to false only if you're certain no EU resident will ever use the system."

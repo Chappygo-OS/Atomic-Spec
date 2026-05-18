@@ -273,7 +273,7 @@ export default function Hero() {
             <span className="font-medium text-slate-200">eight Prime Directives</span>,{' '}
             <span className="font-medium text-slate-200">four HITL checkpoints</span>, atomic
             task files, and{' '}
-            <span className="font-medium text-slate-200">21 specialized subagents</span>.
+            <span className="font-medium text-slate-200">24 specialized subagents</span>.
           </p>
 
           <div className="fade-up relative z-20 space-y-4" style={{ animationDelay: '300ms' }}>

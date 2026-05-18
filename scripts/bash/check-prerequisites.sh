@@ -249,7 +249,7 @@ validate_gates() {
                         echo "✗ GATE FAIL: specs/_defaults/registry.yaml not found" >&2
                         echo "  → Run /atomicspec.registry to discover project defaults and create the file" >&2
                         echo "  → Or set ATOMIC_SPEC_NO_REGISTRY=1 to proceed with graceful degradation" >&2
-                        ((gate_failures++))
+                        gate_failures=$((gate_failures + 1))
                     fi
                     ;;
                 empty)
@@ -278,7 +278,7 @@ validate_gates() {
                 echo "✓ GATE PASS: spec.md has requirements defined" >&2
             else
                 echo "✗ GATE FAIL: spec.md missing or lacks requirements section" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
 
             # Check that plan.md Technical Context fields are actually filled (not [placeholder])
@@ -296,7 +296,7 @@ validate_gates() {
                 else
                     echo "✗ GATE FAIL: plan.md field '$field' is missing, empty, or still a [placeholder]" >&2
                     echo "  → Edit $IMPL_PLAN and replace the [...] placeholder with a real value" >&2
-                    ((gate_failures++))
+                    gate_failures=$((gate_failures + 1))
                 fi
             done
 
@@ -306,7 +306,7 @@ validate_gates() {
             else
                 echo "✗ GATE FAIL: Tech Stack not approved (HITL checkpoint)" >&2
                 echo "  → Run /atomicspec.plan and complete Phase 0.5 approval" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
 
             # Check Tech Stack Validation (Phase 0.6/0.7)
@@ -315,7 +315,7 @@ validate_gates() {
             else
                 echo "✗ GATE FAIL: Tech Stack validation not completed" >&2
                 echo "  → Run /atomicspec.plan and complete Phase 0.6/0.7 validation" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
             ;;
 
@@ -327,7 +327,7 @@ validate_gates() {
                 echo "✓ GATE PASS: tasks/ directory exists with task files" >&2
             else
                 echo "✗ GATE FAIL: tasks/ directory missing or empty" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
 
             # Check for index.md
@@ -335,7 +335,7 @@ validate_gates() {
                 echo "✓ GATE PASS: index.md exists" >&2
             else
                 echo "✗ GATE FAIL: index.md missing (required for navigation)" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
 
             # Check for traceability.md
@@ -343,7 +343,7 @@ validate_gates() {
                 echo "✓ GATE PASS: traceability.md exists" >&2
             else
                 echo "✗ GATE FAIL: traceability.md missing (required for coverage)" >&2
-                ((gate_failures++))
+                gate_failures=$((gate_failures + 1))
             fi
             ;;
 

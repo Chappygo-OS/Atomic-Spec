@@ -106,7 +106,7 @@ $statusOutput = & git status --porcelain 2>$null
 foreach ($line in $statusOutput) {
     if (-not $line) { continue }
     # Rename row
-    if ($line -match '^R\s+(?<src>\S+)\s+->\s+(?<dst>.+)$') {
+    if ($line -match '^R\s+(?<src>.+?)\s+->\s+(?<dst>.+)$') {
         [void]$changedSet.Add($Matches.dst.Trim())
         continue
     }

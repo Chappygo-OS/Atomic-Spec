@@ -319,7 +319,7 @@ Not all projects have all knowledge sources:
 
 ## Dynamic Agent Discovery
 
-**21 specialized subagents** are available in `.specify/subagents/`, matched dynamically based on feature needs.
+**24 specialized subagents** are available in `.specify/subagents/`, matched dynamically based on feature needs.
 
 ### How It Works
 
