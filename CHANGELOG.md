@@ -9,6 +9,61 @@ All notable changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-05-17
+
+> **v0.2 theme**: close the "AI silently picks structural defaults" gap. The framework now actively prevents — and retroactively catches — decisions the AI used to make on its own (Docker setup, payment provider, URL/ID shape, API versioning, deployment target). No new directives, no rewrite of the Eight Prime Directives. Surgical changes across the registry schema, Directive 7 wording, the clarify command, and a new implement-time gate.
+
+### Added
+
+- **Hardened `/atomicspec.clarify`** — extends the v0.1 11-category ambiguity scan with three new phases. New phases (Mode → Ambiguity → **Architectural Lurkers** → **Trigger-Driven Probes** → **Compliance Probes** → Write). Lite mode (~5 min, 7 questions, default) or Detailed (~15 min, 22 questions). Mid-session overrides: `lite` / `detailed` / `skip` / `done` / `?`.
+- **`.specify/knowledge/architectural-lurkers.yaml`** (new) — per-app-type packs (web_with_api, mobile, desktop, library) of universal must-decide / can-defer questions with opinionated defaults and one-line rationales.
+- **`.specify/knowledge/triggers.yaml`** (new) — 13 declarative triggers (8 functional + 5 compliance). Keyword-match on spec text (case-insensitive substring, `re:` prefix opts into regex). Each trigger fires at most once per session.
+- **Compliance probes** — GDPR / PCI / HIPAA / COPPA / SOC 2 sub-checklists with a two-step Y/N/Unsure gate. Default answer is N (skip), so paranoid prompts don't trap users who genuinely don't have scope.
+- **Pre-plan interview gate** — `/atomicspec.plan` Phase 0 now checks `interview_completed` in the registry. If null, surfaces a three-option AskUserQuestion (run clarify / proceed with assumed defaults / cancel) instead of an abort wall.
+- **Reverse-traceability exit gate** — new Phase 10 in `/atomicspec.implement`. Compares every changed file against `traceability.md` table rows; flags orphans (files no task referenced). Catches the "Docker without asking" failure mode after the fact. Bundled with new scripts `scripts/{bash,powershell}/check-traceability.{sh,ps1}`. **Default is warn-only on v0.2.0** (consumer projects get one release cycle to clean up legacy orphans); promoted to enforce-by-default in v0.2.1.
+- **Soft-nudge footer** in `/atomicspec.specify` advertising clarify with realistic time estimates (Lite ~5 min, Detailed ~15 min) without blocking.
+- **Two new subagents**:
+  - `backend/metering-engineer` (~190 lines) — entitlement table schemas, usage-event ingestion, standard + two-phase enforcement algorithms, three concurrency patterns, AI / token cost controls.
+  - `ux/interaction-patterns` (~210 lines) — IA / flow / state-machine templates, hide-vs-disable RBAC, tenant-mismatch deep-link handling, limit-threshold UI surfacing, billing-state UI mapping, empty/loading/error timing rules.
+- **Registry schema expansion** (`templates/registry-template.yaml`, `version` field bumped 3 → 4). New top-level sections:
+  - `payment.*` (provider, abstraction_pattern, billing_model, event_persistence)
+  - `email.*` (transactional_provider, marketing_provider, template_strategy)
+  - `domain.*` (money_representation, time_representation, identifier_exposure)
+  - `integrations.*` (webhook_ingress_contract, outbound_http_policy)
+  - `compliance.*` (gdpr, pci, hipaa, coppa, soc2, data_residency)
+  - `_provenance` block — tracks how each non-null decision was made (`human` / `accepted_recommendation` / `manifest_scan` / `plan_phase_0_9` / `implement_phase_9` / `unknown_legacy`). Lets `/atomicspec.plan` surface "you accepted N defaults" warnings.
+- New fields on existing sections: `backend.job_durability_semantics`, `frontend.i18n_posture`, `infrastructure.search`, `infrastructure.scheduling`, `infrastructure.file_storage`, `infrastructure.deployment_target` (closes the Docker-without-asking gap).
+- **`interview_completed: <iso-date>`** registry metadata — clarify mandatory at genesis (null), advertised after.
+
+### Changed
+
+- **Directive 7 (Project Defaults Registry) — clause amendment**: now explicitly states that registry-eligible decisions include *any structural choice that pervades the codebase*, not just the fields enumerated in `registry.yaml`. Lists: containerization, deployment target, monorepo layout, file-structure pattern, framework choice, payment / email / scheduling / file storage, money / id / time primitives, auth model, observability stack, CI/CD platform, package manager + runtime pins, testing framework. Adds explicit definition of "commit" (writing config/code or recording as a fixed value, NOT discussing). Mandates `AskUserQuestion` before applying, in any phase. Eight directives stays eight — clause amendment, not new directive.
+- **Directive 8 (Self-Contained Tasks) — companion row** added to the Embedded Context table: "Structural Decision Triggers" so tasks can recognize the new D7 trigger categories under Context Pinning.
+- **Governance / pattern split** — 7 Knowledge Stations (05, 06, 07, 08, 09, 10, 15) gained cross-reference headers pointing readers at the matching subagent for code-level patterns. Stations remain the source of truth for gate criteria + decision frameworks; subagents now own the code patterns (schemas, function signatures, library-specific guidance).
+- **Constitution mirror** — `site/src/content/docs/prime-directives.mdx` updated in lockstep with `memory/constitution.md`.
+
+### Fixed
+
+- **Registry classifier — Python-`lib/`-ignore false-empty regression** prevention: classifier now also excludes `interview_completed` and empty-dict `{}` placeholders (used for `_provenance: {}` default). Verified: fresh v0.2 registry still classifies as `empty`.
+
+### Migration notes
+
+**Fully backwards compatible.** Projects on v0.1.x keep working without changes:
+
+- New `interview_completed` field defaults to `null`. `/atomicspec.clarify` is *advertised* (soft nudge from specify) but does NOT block for projects with already-populated registries — only blocks at `/atomicspec.plan` Phase 0 if the registry is genuinely uninterviewed.
+- New registry fields default to `null` and fill in as features hit them.
+- Directive 7 clause amendment clarifies existing wording; doesn't change behavior for projects that were already disciplined.
+- Reverse-traceability gate is warn-only by default in v0.2.0; promote to blocking in v0.2.1.
+
+No migration script needed. No breaking changes to the v0.1.x registry schema (additive only).
+
+### Deferred to v0.2.1 (internal follow-ups, no user-facing impact)
+
+- Full content migration of patterns from Stations 06, 07, 08, 09, 15 into matching subagents (cross-reference headers + the two new subagents land in v0.2.0; bulk content move is editorial-only and ships as v0.2.1).
+- Reverse-traceability gate default flipped to `--enforce` (TODO marker in `check-traceability.{sh,ps1}` script header).
+- Several lower-priority UX polish items on the clarify flow (interrogation-theater wording, two-pass Detailed mode split, "what you bought" recap at session end).
+- Astro v5 → v6 upgrade on the public site (pre-existing CVE; latent, no `define:vars` usage).
+
 ## [0.1.1] - 2026-04-24
 
 ### Added
