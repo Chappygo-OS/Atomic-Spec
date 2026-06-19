@@ -117,8 +117,27 @@ During the implementation phase (`/atomicspec.implement`):
   - `index.md` (for navigation and context)
   - The specific `T-XXX-[name].md` file assigned to the current task loop
   - `traceability.md` (to update status after completion)
+  - `specs/_defaults/registry.yaml` (reference values during Phase 9 Registry Sync)
+  - Lifecycle Markers blocks of any artifact (during Phase 0 Orientation only — v0.3+)
 
 **Rationale**: This prevents context pollution and ensures focused, verifiable execution.
+
+**Phase 0 (Orientation) carve-out (v0.3+)**:
+
+Before any task loop begins, `/atomicspec.implement` runs a one-shot **Orientation Phase** that may read:
+
+- `index.md` and `traceability.md` (already allowed above)
+- The **Lifecycle Markers blocks** (not body content) of every artifact in the active feature folder — via `scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1} status`
+- The git branch name (to locate the active feature folder)
+
+The Orientation Phase exists **solely** to detect partially-completed work across provider handoff (e.g., a Claude session crashed mid-task; a Codex session resumes the work). Its output is exactly one of:
+
+1. **Clean state** — single-line summary, proceed to Phase 1 (normal Context Pinning resumes).
+2. **Conflict (unclosed artifact found)** — STOP, present options menu to user, await confirmation.
+
+The Orientation Phase **MAY NOT** read the body content of `plan.md`, `spec.md`, or `clarify-log.md` — only their Lifecycle Markers blocks. Once a task is pinned in Phase 1, full Context Pinning resumes for the remainder of the session.
+
+**Violation**: Reading body content of forbidden files under the guise of "orientation" is a Constitution violation. The carve-out is exact and narrow.
 
 #### Directive 4: Gate Compliance
 
@@ -279,6 +298,7 @@ Every task file MUST include an "Embedded Context" section containing:
 | **Feature Summary** | `plan.md` (extracted during task generation) | Always |
 | **Gate Criteria** | Subagent/Station gate checklists | When domain knowledge exists |
 | **Structural Decision Triggers** (v0.2+) | Directive 7 scope list | When the task may commit to containerization, deployment, framework, infrastructure provider, or domain primitive — so the implementer recognizes the AskUserQuestion trigger under Context Pinning |
+| **Lifecycle Markers block** (v0.3+) | `scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1}` (auto-injected at task generation time) | Always — every task file carries its own authoring + implementation lifecycle stamps so that any resuming AI can detect partial work without reading body content of sibling artifacts |
 
 **Graceful Degradation**:
 
