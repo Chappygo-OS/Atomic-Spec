@@ -9,7 +9,7 @@
 # Updates require HITL (Human-In-The-Loop) approval via AskUserQuestion
 # ============================================================================
 
-version: 4
+version: 5
 created: null  # Set when first decision is added
 last_updated: null
 last_updated_by: null
@@ -18,6 +18,22 @@ last_updated_by: null
 # planning gate (genesis behaviour). When set, /atomicspec.specify still
 # advertises clarify but does not block.
 interview_completed: null
+
+# ============================================================================
+# LIFECYCLE MARKERS (v0.3+)
+# ============================================================================
+# Configuration for the Lifecycle Markers system used by Phase 0 Orientation
+# (Article IX, Directive 9). These are framework defaults, not user product
+# decisions -- HITL approval is NOT required to override them.
+# ============================================================================
+lifecycle:
+  # Days after which an open Lifecycle Markers block (start present, end
+  # absent) is treated as STALE by the Phase 0 Orientation procedure:
+  #   < threshold  = Conflict outcome (blocking; user must confirm resume/redo)
+  #   >= threshold = Stale outcome (informational; "this work appears abandoned")
+  # Default 7 days balances "weekend pause" tolerance against "shelved feature"
+  # detection. Override if your team works in longer cycles.
+  stale_threshold_days: 7
 
 # ============================================================================
 # TARGET PLATFORM (What type of application is being built)
