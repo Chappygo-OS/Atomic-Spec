@@ -144,6 +144,24 @@ Given that feature description, do this:
 
 4. Load `templates/spec-template.md` to understand required sections.
 
+4.5. **Stamp Lifecycle Markers — open authoring (v0.3+, per Constitution Directive 9)**:
+
+   Immediately after `create-new-feature.sh` has bootstrapped SPEC_FILE (the file now exists with the template's `## Lifecycle Markers` heading), and BEFORE you start filling in the spec content, run from repo root:
+
+   ```bash
+   # Bash:
+   scripts/bash/stamp-lifecycle.sh init  "$SPEC_FILE" --lifecycle authoring
+   scripts/bash/stamp-lifecycle.sh start "$SPEC_FILE" --lifecycle authoring --provider {{AGENT_NAME}}
+   ```
+
+   ```powershell
+   # PowerShell:
+   scripts\powershell\stamp-lifecycle.ps1 -Command init  -Artifact "$SPEC_FILE" -Lifecycle authoring
+   scripts\powershell\stamp-lifecycle.ps1 -Command start -Artifact "$SPEC_FILE" -Lifecycle authoring -Provider {{AGENT_NAME}}
+   ```
+
+   `{{AGENT_NAME}}` is resolved at template copy time by `init-project.{sh,ps1}` to your actual provider (e.g. `claude`, `codex`, `gemini`). Do NOT hand-write the stamp lines — the script enforces the canonical format. If the start stamp already exists (rerun), the script will exit 6; that is expected and means a prior session began authoring.
+
 5. Follow this execution flow:
 
     1. Parse user description from Input
@@ -263,6 +281,25 @@ Given that feature description, do this:
         9. Re-run validation after all clarifications are resolved
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
+
+7.5. **Stamp Lifecycle Markers — close authoring (v0.3+, per Constitution Directive 9)**:
+
+   ONLY after all of the following are true:
+   - Spec content has been written to SPEC_FILE
+   - Section 7 validation has reached PASS (or user has accepted resolved [NEEDS CLARIFICATION] markers)
+   - The Platform field is present in the header
+
+   Close the authoring lifecycle:
+
+   ```bash
+   scripts/bash/stamp-lifecycle.sh end "$SPEC_FILE" --lifecycle authoring --provider {{AGENT_NAME}}
+   ```
+
+   ```powershell
+   scripts\powershell\stamp-lifecycle.ps1 -Command end -Artifact "$SPEC_FILE" -Lifecycle authoring -Provider {{AGENT_NAME}}
+   ```
+
+   If this step is skipped, the NEXT command run (`/atomicspec.clarify`, `/atomicspec.plan`, `/atomicspec.tasks`, or `/atomicspec.implement` — all of them check) will see `spec.md` as `authoring_in_progress` and abort with a resume prompt. This is the cross-phase guard working correctly. A forgotten end stamp blocks downstream work until the user explicitly resumes or marks the spec done.
 
 8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/atomicspec.clarify` or `/atomicspec.plan`).
 

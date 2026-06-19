@@ -62,6 +62,30 @@ If the registry file is absent, warn the user that `/atomicspec.registry` should
    - If JSON parsing fails, abort and instruct user to re-run `/atomicspec.specify` or verify the feature branch environment.
    - For single quotes in args like "I'm Groot", use escape syntax: e.g. `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`).
 
+1.5. **Pre-flight: detect unfinished spec authoring (v0.3+)**:
+
+   Run `stamp-lifecycle status` on `$FEATURE_SPEC`. If `state` is `authoring_in_progress`, abort:
+   > "Spec authoring is incomplete (started <ts> by <provider>). Finish /atomicspec.specify before clarifying."
+
+1.6. **Bootstrap clarify-log.md and stamp this session (v0.3+, per Constitution Directive 9)**:
+
+   Clarify is an EDIT to `$FEATURE_SPEC`, not a re-author — so it does NOT re-stamp spec.md. Instead each clarify session gets its own block in `$FEATURE_DIR/clarify-log.md`. The bootstrap helper handles "create if missing, otherwise prepend new Session block" deterministically — same shape across Claude / Codex / Gemini etc.
+
+   ```bash
+   CLARIFY_LOG="$(bash scripts/bash/clarify-session-bootstrap.sh --feature-dir "$FEATURE_DIR")"
+   bash scripts/bash/stamp-lifecycle.sh init  "$CLARIFY_LOG" --lifecycle authoring
+   bash scripts/bash/stamp-lifecycle.sh start "$CLARIFY_LOG" --lifecycle authoring --provider {{AGENT_NAME}}
+   ```
+   ```powershell
+   $CLARIFY_LOG = & powershell.exe -NoProfile -File scripts\powershell\clarify-session-bootstrap.ps1 -FeatureDir $FEATURE_DIR
+   scripts\powershell\stamp-lifecycle.ps1 -Command init  -Artifact $CLARIFY_LOG -Lifecycle authoring
+   scripts\powershell\stamp-lifecycle.ps1 -Command start -Artifact $CLARIFY_LOG -Lifecycle authoring -Provider {{AGENT_NAME}}
+   ```
+
+   The bootstrap script returns the path to `clarify-log.md` on stdout. The new session block is the topmost `## Session <ts>` in that file, with an H3 `### Lifecycle Markers` section. `init` populates the stamp lines under that H3 (stamp-lifecycle matches headings at any depth `^#{2,6}\s+Lifecycle Markers\s*$`); `start` opens the lifecycle.
+
+   This session's end stamp is written in Phase 6 after the registry batched write succeeds. If you abort mid-clarify, the next session sees `authoring_in_progress` on clarify-log.md and offers to resume.
+
 2. Load `$REPO_ROOT/specs/_defaults/registry.yaml`. Capture `target_platform.primary` (web / mobile / desktop / both / library) — drives Phase 3 pack selection. Also load `interview_completed` to gauge whether this is a genesis run or a re-run.
 
    **If `target_platform.primary` is null at this point** (genesis run, never set), ask exactly this question BEFORE entering Phase 1's mode prompt. This setup question does NOT count against the mode cap:
@@ -323,6 +347,19 @@ Compliance probes are flagged in `triggers.yaml` with `compliance: true`. They u
    - Spec.md `## Clarifications` section contains one bullet per accepted Phase 2 answer (no duplicates).
    - Registry YAML still parses (re-load with safe_load to confirm).
    - `interview_completed` is set IFF mode != Skip AND total questions > 0.
+
+5.5. **Close clarify session lifecycle (v0.3+)**:
+
+   ONLY after all Phase 6 sub-steps 1-5 succeed (registry write, changelog append, spec final-write, validation), close the authoring lifecycle on `clarify-log.md`:
+
+   ```bash
+   scripts/bash/stamp-lifecycle.sh end "$FEATURE_DIR/clarify-log.md" --lifecycle authoring --provider {{AGENT_NAME}}
+   ```
+   ```powershell
+   scripts\powershell\stamp-lifecycle.ps1 -Command end -Artifact "$FEATURE_DIR\clarify-log.md" -Lifecycle authoring -Provider {{AGENT_NAME}}
+   ```
+
+   If you picked Skip in Phase 1 (no questions answered), still write the end stamp — the session ran to completion, just with empty output. The orientation procedure treats an empty-but-closed session as benign.
 
 6. **Report** (always shown at end of session):
    ```

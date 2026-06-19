@@ -63,7 +63,8 @@ param(
     [string]$VerifyDepth,
     [switch]$Force,
     [switch]$Quiet,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$Closed
 )
 
 $ErrorActionPreference = 'Stop'
@@ -108,9 +109,19 @@ function Get-SanitizedModel {
 }
 
 function Test-Provider {
-    param([string]$P)
-    if ($script:PROVIDER_ALLOWLIST -notcontains $P) {
-        Write-Err "Provider '$P' not in allowlist. Allowed: $($script:PROVIDER_ALLOWLIST -join ' ')"
+    param([ref]$P)
+    # AGENT_NAME placeholder safety net (Directive 9: never silently default).
+    if ($P.Value -eq '{{AGENT_NAME}}') {
+        if ($env:ATOMICSPEC_PROVIDER) {
+            Write-Info "[warn] {{AGENT_NAME}} placeholder leaked; using ATOMICSPEC_PROVIDER=$($env:ATOMICSPEC_PROVIDER)"
+            $P.Value = $env:ATOMICSPEC_PROVIDER
+        } else {
+            Write-Err "Provider is unresolved {{AGENT_NAME}} placeholder and ATOMICSPEC_PROVIDER env var is not set. Run init-project.{sh,ps1} to substitute the placeholder, OR set `$env:ATOMICSPEC_PROVIDER = '<your-agent>'."
+            exit 5
+        }
+    }
+    if ($script:PROVIDER_ALLOWLIST -notcontains $P.Value) {
+        Write-Err "Provider '$($P.Value)' not in allowlist. Allowed: $($script:PROVIDER_ALLOWLIST -join ' ')"
         exit 5
     }
 }
@@ -197,7 +208,13 @@ function Set-FieldValue {
 }
 
 function Invoke-Init {
-    param([string]$Path, [string]$Lc)
+    param(
+        [string]$Path,
+        [string]$Lc,
+        [string]$ClosedProvider = '',
+        [string]$ClosedModel = '',
+        [string]$ClosedVerifyDepth = ''
+    )
     if (-not (Test-Path $Path -PathType Leaf)) {
         Write-Err "Artifact not found: $Path"; exit 3
     }
@@ -213,16 +230,30 @@ function Invoke-Init {
         return
     }
 
+    # Closed-init mode: synchronous authoring (start + end written together).
+    $closedValue = '<empty>'
+    if (-not [string]::IsNullOrEmpty($ClosedProvider)) {
+        Test-Provider ([ref]$ClosedProvider)
+        $actor = Get-Actor -P $ClosedProvider -M $ClosedModel
+        $ts = Get-TimestampUtc
+        $closedValue = "$ts by $actor"
+    }
+
     # Build the stamp lines.
     $newLines = @(
-        '- Authored start:        <empty>',
-        '- Authored end:          <empty>'
+        "- Authored start:        $closedValue",
+        "- Authored end:          $closedValue"
     )
     if ($Lc -eq 'both') {
+        $vdLine = if (-not [string]::IsNullOrEmpty($ClosedVerifyDepth)) {
+            "- verify-depth:          $ClosedVerifyDepth"
+        } else {
+            '- verify-depth:          <empty>'
+        }
         $newLines += @(
             '- Implementation start:  <empty>',
             '- Implementation end:    <empty>',
-            '- verify-depth:          <empty>'
+            $vdLine
         )
     }
 
@@ -250,7 +281,7 @@ function Invoke-Stamp {
     if (-not (Test-Path $Path -PathType Leaf)) {
         Write-Err "Artifact not found: $Path"; exit 3
     }
-    Test-Provider $Prov
+    Test-Provider ([ref]$Prov)
 
     # Implementation lifecycle scope guard.
     if ($Lc -eq 'implementation') {
@@ -407,7 +438,12 @@ switch ($Command) {
         if ($Lifecycle -notin @('authoring', 'both')) {
             Write-Err "-Lifecycle for init must be 'authoring' or 'both' (got: $Lifecycle)"; exit 2
         }
-        Invoke-Init -Path $Artifact -Lc $Lifecycle
+        if ($Closed.IsPresent) {
+            if ([string]::IsNullOrEmpty($Provider)) { Write-Err "-Closed requires -Provider"; exit 2 }
+            Invoke-Init -Path $Artifact -Lc $Lifecycle -ClosedProvider $Provider -ClosedModel $Model -ClosedVerifyDepth $VerifyDepth
+        } else {
+            Invoke-Init -Path $Artifact -Lc $Lifecycle
+        }
     }
     'start' {
         if ([string]::IsNullOrEmpty($Artifact)) { Write-Err "Artifact path required"; exit 2 }

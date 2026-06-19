@@ -79,15 +79,30 @@ sanitize_model() {
 }
 
 validate_provider() {
+    # Echoes the resolved provider (possibly substituted from
+    # ATOMICSPEC_PROVIDER if --provider was the unresolved {{AGENT_NAME}}
+    # placeholder). Callers MUST capture: provider="$(validate_provider "$provider")"
+    # Bash passes by value, so without echo-capture the caller's variable
+    # stays unresolved even after substitution here.
     local provider="$1"
+    if [[ "$provider" == "{{AGENT_NAME}}" ]]; then
+        if [[ -n "${ATOMICSPEC_PROVIDER:-}" ]]; then
+            log_info "[warn] {{AGENT_NAME}} placeholder leaked; using ATOMICSPEC_PROVIDER=${ATOMICSPEC_PROVIDER}"
+            provider="$ATOMICSPEC_PROVIDER"
+        else
+            log_error "Provider is unresolved {{AGENT_NAME}} placeholder and ATOMICSPEC_PROVIDER env var is not set. Run init-project.{sh,ps1} to substitute the placeholder, OR export ATOMICSPEC_PROVIDER=<your-agent>."
+            exit 5
+        fi
+    fi
     local p
     for p in "${PROVIDER_ALLOWLIST[@]}"; do
         if [[ "$provider" == "$p" ]]; then
+            printf '%s' "$provider"
             return 0
         fi
     done
     log_error "Provider '$provider' not in allowlist. Allowed: ${PROVIDER_ALLOWLIST[*]}"
-    return 5
+    exit 5
 }
 
 compose_actor() {
@@ -160,6 +175,9 @@ atomic_write() {
 cmd_init() {
     local file="$1"
     local lifecycle="${2:-authoring}"  # authoring | both
+    local closed_provider="${3:-}"     # if non-empty, init in CLOSED state
+    local closed_model="${4:-}"
+    local closed_verify_depth="${5:-}"
 
     [[ -f "$file" ]] || { log_error "Artifact not found: $file"; exit 3; }
 
@@ -181,14 +199,30 @@ cmd_init() {
         return 0
     fi
 
+    # Closed-init mode: synchronous authoring (start + end in one atomic write).
+    # Used when authoring completes within a single command run (no resume risk
+    # to detect). E.g., /atomicspec.tasks stamps 100 task files at once.
+    local closed_value="<empty>"
+    if [[ -n "$closed_provider" ]]; then
+        closed_provider="$(validate_provider "$closed_provider")"
+        local closed_actor closed_ts
+        closed_actor="$(compose_actor "$closed_provider" "$(sanitize_model "$closed_model")")"
+        closed_ts="$(timestamp_utc)"
+        closed_value="$closed_ts by $closed_actor"
+    fi
+
     # Build the stamp lines based on lifecycle scope.
     local lines=""
-    lines+="- Authored start:        <empty>"$'\n'
-    lines+="- Authored end:          <empty>"$'\n'
+    lines+="- Authored start:        ${closed_value}"$'\n'
+    lines+="- Authored end:          ${closed_value}"$'\n'
     if [[ "$lifecycle" == "both" ]]; then
         lines+="- Implementation start:  <empty>"$'\n'
         lines+="- Implementation end:    <empty>"$'\n'
-        lines+="- verify-depth:          <empty>"$'\n'
+        if [[ -n "$closed_verify_depth" ]]; then
+            lines+="- verify-depth:          ${closed_verify_depth}"$'\n'
+        else
+            lines+="- verify-depth:          <empty>"$'\n'
+        fi
     fi
 
     # Insert lines at the end of the block (just before the next heading or EOF).
@@ -220,7 +254,7 @@ cmd_stamp() {
     local force="${7:-0}"
 
     [[ -f "$file" ]] || { log_error "Artifact not found: $file"; exit 3; }
-    validate_provider "$provider"
+    provider="$(validate_provider "$provider")"
 
     # Reject implementation lifecycle on artifacts that don't support it.
     if [[ "$lifecycle" == "implementation" ]]; then
@@ -489,7 +523,7 @@ main() {
     local artifact="$1"
     shift
 
-    local lifecycle="" provider="" model="" verify_depth="" force="0" json="0"
+    local lifecycle="" provider="" model="" verify_depth="" force="0" json="0" closed="0"
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -497,6 +531,7 @@ main() {
             --provider)      provider="$2"; shift 2 ;;
             --model)         model="$2"; shift 2 ;;
             --verify-depth)  verify_depth="$2"; shift 2 ;;
+            --closed)        closed="1"; shift ;;
             --force)         force="1"; shift ;;
             --quiet)         QUIET="1"; shift ;;
             --json)          json="1"; shift ;;
@@ -510,7 +545,12 @@ main() {
             [[ "$lifecycle" == "authoring" || "$lifecycle" == "both" ]] || {
                 log_error "--lifecycle for 'init' must be 'authoring' or 'both' (got: $lifecycle)"; exit 2
             }
-            cmd_init "$artifact" "$lifecycle"
+            if [[ "$closed" == "1" ]]; then
+                [[ -z "$provider" ]] && { log_error "--closed requires --provider"; exit 2; }
+                cmd_init "$artifact" "$lifecycle" "$provider" "$model" "$verify_depth"
+            else
+                cmd_init "$artifact" "$lifecycle"
+            fi
             ;;
         start|end)
             [[ -z "$lifecycle" ]] && { log_error "--lifecycle is required for $subcommand"; exit 2; }
