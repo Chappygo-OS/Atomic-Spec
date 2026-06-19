@@ -5,6 +5,16 @@
 
 **Note**: This template is filled in by the `/atomicspec.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
+## Lifecycle Markers
+
+<!--
+  Script-managed. Do NOT hand-edit. (v0.3+)
+  Populated by scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1} during
+  /atomicspec.plan. Authoring lifecycle only — plan.md is never "implemented"
+  (Article IX, Directive 9). Empty section = legacy / pre-v0.3 artifact,
+  treated as `legacy_closed`.
+-->
+
 ## Planning Configuration
 
 <!--

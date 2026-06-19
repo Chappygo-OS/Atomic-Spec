@@ -330,7 +330,9 @@ The script returns JSON describing the Lifecycle Markers block state without exp
 
 **Evidence requirement**:
 
-The Orientation Phase MUST emit its findings as a single block at the bottom of `traceability.md` under a `## Orientation Evidence` heading, containing the script's JSON output for each inspected artifact and the timestamp of the orientation run. Absence of this evidence block fails the Phase 0 gate; the implementer cannot proceed to Phase 1.
+The Orientation Phase MUST emit its findings as a new `## Run <ISO-8601-UTC>` block (appended at the top, reverse-chronological) in `specs/<feature>/orientation-runs.md`. Each block contains the script's JSON output for every inspected artifact and the resume decision the user confirmed. Absence of this file or absence of the current run's block fails the Phase 0 gate; the implementer cannot proceed to Phase 1.
+
+Rationale for splitting from `traceability.md`: orientation evidence is high-volume append-only data; hosting it in `traceability.md` would drown the requirement-coverage matrix after a few dozen implement runs. `orientation-runs.md` is single-purpose and append-only.
 
 **Outcomes — exactly three**:
 

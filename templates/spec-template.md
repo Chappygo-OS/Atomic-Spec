@@ -6,6 +6,20 @@
 **Platform**: [Web | iOS | Android | React Native | Flutter | Backend-only | both]
 **Input**: User description: "$ARGUMENTS"
 
+## Lifecycle Markers
+
+<!--
+  Script-managed. Do NOT hand-edit. (v0.3+)
+  Populated by scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1} during
+  /atomicspec.specify. Lines appear as authoring starts and ends.
+  This artifact carries the AUTHORING lifecycle only — spec.md is never
+  "implemented" (Article IX, Directive 9). See `clarify-log.md` for the
+  per-session lifecycle of subsequent clarification passes.
+  Empty section = legacy / pre-v0.3 artifact, treated as `legacy_closed` (the
+  distinct state name in `stamp-lifecycle status` JSON output).
+-->
+
+
 <!--
   NOTE: The Platform field is set during /atomicspec.specify (Phase 0 - Platform Detection).
   All downstream commands (/atomicspec.plan, /atomicspec.build, etc.) will inherit this platform
