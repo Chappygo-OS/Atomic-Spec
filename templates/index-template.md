@@ -5,6 +5,17 @@
 **Plan**: [Link to plan.md](./plan.md)
 **Matrix**: [Link to traceability.md](./traceability.md)
 
+## Lifecycle Markers
+
+<!--
+  Script-managed. Do NOT hand-edit. (v0.3+)
+  Populated by scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1} during
+  /atomicspec.tasks (when index.md is first generated). Authoring lifecycle
+  only — index.md is a dashboard, not implemented code. See Article IX,
+  Directive 9. Empty section = legacy / pre-v0.3 artifact, treated as
+  `legacy_closed`.
+-->
+
 ## 📊 Status Overview
 
 | Metric      | Value |

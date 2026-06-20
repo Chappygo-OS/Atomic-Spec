@@ -46,6 +46,20 @@ if [[ -z "$TARGET_PATH" ]]; then
     exit 1
 fi
 
+# v0.3+: allowlist-validate $AI_AGENT before passing it to sed (the placeholder
+# substitution). Without this, an unsupported or malformed value (regex
+# metacharacters, paths) would silently produce broken command templates.
+case "$AI_AGENT" in
+    claude|gemini|copilot|cursor|cursor-agent|windsurf) ;;
+    *)
+        echo "ERROR: --ai must be one of: claude, gemini, copilot, cursor, cursor-agent, windsurf"
+        echo "       (got: '$AI_AGENT')"
+        echo "       For other agents in the 17-agent matrix (qwen, opencode, codex, etc.),"
+        echo "       use the PyPI atomicspec CLI: 'atomicspec init <path> --ai <agent>'."
+        exit 2
+        ;;
+esac
+
 echo "🚀 Initializing Atomic Spec (Atomic Traceability Model)"
 echo "   Source: $SOURCE_DIR"
 echo "   Target: $TARGET_PATH"
@@ -80,10 +94,14 @@ if [[ "$AI_AGENT" == "claude" ]]; then
     echo "🤖 Setting up Claude Code commands..."
     mkdir -p "$TARGET_PATH/.claude/commands"
 
-    # Copy command files with atomicspec. prefix
+    # Copy command files with atomicspec. prefix, substituting {{AGENT_NAME}}
+    # placeholder (v0.3+) with the selected agent. Without this substitution,
+    # stamp-lifecycle would receive the literal "{{AGENT_NAME}}" string and
+    # exit 5 (provider not in allowlist) -- breaking every command.
     for cmd in specify plan tasks implement analyze analyze-competitors checklist clarify constitution registry taskstoissues cleanup; do
         if [[ -f "$SOURCE_DIR/templates/commands/$cmd.md" ]]; then
-            cp "$SOURCE_DIR/templates/commands/$cmd.md" "$TARGET_PATH/.claude/commands/atomicspec.$cmd.md"
+            sed "s/{{AGENT_NAME}}/$AI_AGENT/g" "$SOURCE_DIR/templates/commands/$cmd.md" \
+                > "$TARGET_PATH/.claude/commands/atomicspec.$cmd.md"
         fi
     done
 else

@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/atomic-spec.svg?logo=python&logoColor=white)](https://pypi.org/project/atomic-spec/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Agents supported](https://img.shields.io/badge/agents-17-8A2BE2)](#ai-coding-agents-supported)
-[![Status](https://img.shields.io/badge/status-v0.1.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
+[![Status](https://img.shields.io/badge/status-v0.3.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
 
 **Spec-kit taught AI agents a workflow. Atomic Spec makes them obey it.** When `/atomicspec.implement` runs, the agent is *architecturally prevented* from reading `plan.md` or `spec.md` — it sees only the current task file, pre-loaded with every registry value, domain rule, and gate criterion it needs. No drifting mid-feature. No hallucinating a new approach on pass three. No 800-line "kitchen sink" PRs.
 
@@ -25,7 +25,11 @@ atomicspec init my-project --ai claude
 
 ## Status
 
-**v0.1.x · first public release.** The core governance model (Eight Prime Directives, Context Pinning, Atomic Injunction) is stable and exercised on every release. APIs and command names may evolve through v0.x. Claude Code is the reference implementation and validated end-to-end; 12 other agents are experimental (templates install correctly, agent-specific wiring not yet exhaustively tested). [See the agent tier table below](#ai-coding-agents-supported).
+**v0.3.0 · current.** The core governance model (now Nine Prime Directives — Directive 9 added in v0.3 for the Orientation Read Surface) is stable and exercised on every release. APIs and command names may evolve through v0.x. Claude Code is the reference implementation and validated end-to-end; 12 other agents are experimental (templates install correctly, agent-specific wiring not yet exhaustively tested). [See the agent tier table below](#ai-coding-agents-supported).
+
+**New in v0.3 — cross-provider AI handoff.** *Enforcement scope*: Lifecycle Markers, stamp-lifecycle scripts, and cross-phase pre-flight guards (in `/clarify`, `/plan`, `/tasks`) are machine-enforced. The Phase 0 Orientation procedure and Directive 9's `orientation-runs/` evidence requirement are **policy-enforced in v0.3.0** (the AI's compliance with Article IX is the control); the runtime gate (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing evidence ships in v0.3.1. Non-Claude `init-project` paths (gemini / copilot / cursor / windsurf + 12 experimental) ship via the PyPI CLI build pipeline in the same release window; until then, `--ai claude` is the only bash/PowerShell init path with full `{{AGENT_NAME}}` substitution.
+
+ When Claude crashes mid-feature and you switch to Codex (or Gemini, Cursor, etc.), the receiving AI now self-orients from files alone: detects which artifacts are half-done via Lifecycle Markers stamps, prompts you on conflict, and resumes cleanly without silently overwriting work. The orientation block is auto-injected into every agent file (CLAUDE.md / GEMINI.md / AGENTS.md / .cursorrules / 12 others), so a fresh provider session learns the framework rules on first read. See the v0.3 entry in [CHANGELOG.md](./CHANGELOG.md) for the full mechanism and honest disclosures.
 
 ---
 
@@ -45,9 +49,9 @@ If you want *recommendations* for your AI, the tools above are lighter and fine.
 
 ---
 
-## The Eight Prime Directives
+## The Nine Prime Directives
 
-Article IX of `memory/constitution.md` hardcodes eight non-negotiable rules. Every command in the framework enforces them.
+Article IX of `memory/constitution.md` hardcodes nine non-negotiable rules (Directive 9 added in v0.3 for cross-provider AI handoff). Every command in the framework enforces them.
 
 | # | Directive | Rule |
 |---|-----------|------|
@@ -59,6 +63,7 @@ Article IX of `memory/constitution.md` hardcodes eight non-negotiable rules. Eve
 | 6 | **Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval |
 | 7 | **Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
 | 8 | **Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
+| 9 | **Orientation Read Surface** (v0.3+) | `/atomicspec.implement` Phase 0 detects cross-provider handoff state via `stamp-lifecycle status`; direct body reads of `plan.md` / `spec.md` / `clarify-log.md` remain forbidden even during orientation. Sibling control to Directive 3, does NOT widen it. |
 
 ---
 

@@ -5,6 +5,20 @@
 **User Story**: [STORY ID] (e.g., US1)
 **Requirement**: [REQ ID] (e.g., FR-005)
 
+## Lifecycle Markers
+
+<!--
+  Script-managed. Do NOT hand-edit. (v0.3+)
+  Populated by scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1}.
+  Task files carry BOTH lifecycles: authoring (during /atomicspec.tasks)
+  and implementation (during /atomicspec.implement). See Article IX,
+  Directive 9 for the Orientation Read Surface that consumes these.
+  Optional verify-depth field (light|deep) is set by the authoring AI
+  (during /atomicspec.tasks) and obeyed — not re-decided — by the
+  resuming AI in Phase 0.
+  Empty section = legacy / pre-v0.3 artifact, treated as `legacy_closed`.
+-->
+
 ---
 
 ## 📋 Embedded Context (READ THIS FIRST)

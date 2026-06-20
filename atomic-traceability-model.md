@@ -6,7 +6,7 @@
 
 Spec-Driven Development (SDD, described below) is the **philosophy**: specifications become executable, generating working implementations rather than guiding them. Atomic Spec is the **governance** that makes SDD survive contact with AI coding agents.
 
-AI agents, left unconstrained, produce drift. They skip gates, invent file structures, read more context than needed, and quietly deviate from decisions made minutes earlier. The Atomic Traceability Model addresses this through **Eight Prime Directives** (see `memory/constitution.md` Article IX):
+AI agents, left unconstrained, produce drift. They skip gates, invent file structures, read more context than needed, and quietly deviate from decisions made minutes earlier. The Atomic Traceability Model addresses this through **Nine Prime Directives** (see `memory/constitution.md` Article IX — Directive 9 added in v0.3 for cross-provider AI handoff):
 
 1. **Directory Supremacy** — every feature has `index.md` + `traceability.md`
 2. **Atomic Injunction** — `/atomicspec.tasks` produces a `tasks/` directory of individual `T-XXX-[name].md` files; a single `tasks.md` is FORBIDDEN
@@ -16,6 +16,7 @@ AI agents, left unconstrained, produce drift. They skip gates, invent file struc
 6. **Human-In-The-Loop** — four mandatory checkpoints during `/atomicspec.plan`
 7. **Project Defaults Registry** — `specs/_defaults/registry.yaml` is the single source of truth for project-wide technical decisions
 8. **Self-Contained Tasks** — each task file embeds the context it needs to execute under Context Pinning
+9. **Orientation Read Surface (v0.3+)** — `/atomicspec.implement` Phase 0 detects cross-provider handoff state via `stamp-lifecycle status` on artifact Lifecycle Markers; sibling control to Directive 3, does NOT widen it
 
 The rest of this document covers the SDD philosophy that underpins those directives.
 
@@ -305,7 +306,7 @@ At the heart of Atomic Spec lies a constitution — a set of principles that gov
 Atomic Spec's constitution has **ten articles**:
 
 - **Articles I–VIII** are **project-authored placeholders**. Every project instantiates them via `/atomicspec.constitution`, filling in principles appropriate to its domain (library-first design, CLI mandates, TDD, observability, versioning, simplicity, anti-abstraction, or anything else the team chooses to enshrine).
-- **Article IX** is **framework-hardcoded and invariant**: it defines the Eight Prime Directives that make the Atomic Traceability Model work. This is the load-bearing article — every command template, every script, and every knowledge station references Article IX.
+- **Article IX** is **framework-hardcoded and invariant**: it defines the Nine Prime Directives that make the Atomic Traceability Model work (Directive 9 added in v0.3 for cross-provider AI handoff; Directives 1–8 are stable since v0.1). This is the load-bearing article — every command template, every script, and every knowledge station references Article IX.
 - **Article X** is the **Assembly Line Manual** — a pointer to `.specify/knowledge/stations/`, the 18 procedural guides that codify the pipeline.
 
 This split keeps the governance framework stable across projects while letting each project encode its own engineering philosophy in I–VIII.
@@ -323,7 +324,7 @@ These articles are intentionally blank in the shipped constitution template. Pro
 
 These are examples, not mandates. A project can have different Articles I–VIII and still be fully compliant with Atomic Spec — because the governance that makes the framework work lives in Article IX.
 
-### Article IX: The Eight Prime Directives (Hardcoded)
+### Article IX: The Nine Prime Directives (Hardcoded)
 
 Article IX is the non-negotiable core. Every command in this framework reads and enforces these directives:
 
@@ -335,6 +336,7 @@ Article IX is the non-negotiable core. Every command in this framework reads and
 6. **Human-In-The-Loop** — `/atomicspec.plan` pauses at Phase 0.5 (Tech Stack Review) as the constitutionally required checkpoint; `plan-template.md` additionally enforces template-driven pauses at Phase 0.7 (Validation), Phase 0.8 (UI), and Phase 0.9 (Registry Sync)
 7. **Project Defaults Registry** — all commands read `specs/_defaults/registry.yaml` and enforce project-wide standards
 8. **Self-Contained Tasks** — task files embed all context (registry values, domain rules, gate criteria) needed for execution under Context Pinning
+9. **Orientation Read Surface (v0.3+)** — `/atomicspec.implement` Phase 0 detects cross-provider handoff via the `stamp-lifecycle status` script on artifact Lifecycle Markers blocks; reads `index.md` + `traceability.md` (already allowed) plus stamp blocks only — direct body reads of `plan.md` / `spec.md` / `clarify-log.md` remain forbidden even during orientation. Outcomes: clean / stale / conflict. Evidence persisted as per-run files at `specs/<feature>/orientation-runs/<ts>-<provider>.md`. Sibling control to Directive 3 — Directive 3 stays verbatim since v0.1.
 
 The full normative text of each directive lives in `memory/constitution.md` Article IX. Command templates quote it; scripts validate against it; knowledge stations hook into it.
 
@@ -360,7 +362,7 @@ These principles combine well with Article IX's structural directives: Context P
 
 ### The Power of Stable Governance
 
-Article IX's invariance is the entire value proposition. Across time, across projects, across AI models, the eight directives stay constant — so a task file generated by one agent on Tuesday can be implemented by a different agent on Friday and still produce compatible, traceable work. Articles I–VIII can evolve per project; Article IX does not.
+Article IX's invariance is the entire value proposition. Across time, across projects, across AI models, the nine directives stay constant — so a task file generated by one agent on Tuesday can be implemented by a different agent on Friday and still produce compatible, traceable work. Articles I–VIII can evolve per project; Article IX is invariant within a major version. (Note: Directive 9 was added in the v0.3 minor bump as a sibling control to Directive 3, not as an expansion of it — so the "verbatim since v0.1" guarantee for Directives 1–8 holds.)
 
 ## The Transformation
 

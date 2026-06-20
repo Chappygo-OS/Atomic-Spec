@@ -100,6 +100,13 @@ done
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
+# v0.3: self-healing orientation injection. Idempotent (~50ms when sentinel
+# exists in every existing agent file). Set ATOMIC_SPEC_NO_INJECT=1 to skip.
+# Failures here are best-effort — never block the command (|| true).
+if [[ -z "${ATOMIC_SPEC_NO_INJECT:-}" ]] && [[ -x "$SCRIPT_DIR/inject-orientation.sh" ]]; then
+    "$SCRIPT_DIR/inject-orientation.sh" --quiet >/dev/null 2>&1 || true
+fi
+
 # Get feature paths and validate branch
 load_feature_paths
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1

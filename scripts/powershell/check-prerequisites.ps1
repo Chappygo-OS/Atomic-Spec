@@ -66,6 +66,20 @@ EXAMPLES:
 # Source common functions
 . "$PSScriptRoot/common.ps1"
 
+# v0.3: self-healing orientation injection. Idempotent (~50ms when sentinel
+# exists in every existing agent file). Set $env:ATOMIC_SPEC_NO_INJECT=1
+# to skip. Failures here are best-effort -- never block the command.
+if (-not $env:ATOMIC_SPEC_NO_INJECT) {
+    $injectScript = Join-Path $PSScriptRoot 'inject-orientation.ps1'
+    if (Test-Path $injectScript -PathType Leaf) {
+        try {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $injectScript -Quiet 2>&1 | Out-Null
+        } catch {
+            # Best-effort: never block the command on injection failure.
+        }
+    }
+}
+
 # Get feature paths and validate branch
 $paths = Get-FeaturePathsEnv
 

@@ -104,6 +104,14 @@ From `spec.md`, create a requirements table:
 
 **CRITICAL: Do NOT create a single tasks.md file.**
 
+#### 4.0 Pre-flight: detect unfinished earlier work (v0.3+, per Constitution Directive 9)
+
+Run `stamp-lifecycle status` on `$FEATURE_DIR/spec.md` AND `$FEATURE_DIR/plan.md` AND `$FEATURE_DIR/clarify-log.md` (last one only if it exists — clarify is optional). If ANY reports `state=authoring_in_progress`, abort:
+
+> "Unfinished work detected in <phase> (artifact: <path>, started <ts> by <provider>). Finish /atomicspec.<phase> before generating tasks."
+
+This is the lightweight cross-phase guard. Full Orientation (with the three-outcome menu) runs only in `/atomicspec.implement`.
+
 #### 4.1 Create tasks/ Directory
 
 ```bash
@@ -855,6 +863,50 @@ Create `FEATURE_DIR/traceability.md` using `templates/traceability-template.md`:
 - Map every task to its requirement(s)
 - Initialize all statuses to "Pending"
 - Calculate coverage metrics (MUST be 100%)
+
+#### 4.5 Stamp Lifecycle Markers on every generated artifact (v0.3+, per Constitution Directive 9)
+
+For each artifact just generated, use the **closed-init** mode (`--closed` flag) which writes both start and end timestamps in ONE atomic call. Tasks generation is synchronous — the file is fully written within this command — so the start/end window is microseconds (not a meaningful resume target). Closed-init halves the script invocations (from 3 → 1 per file) and removes the partial-failure window between start and end on the same file.
+
+Task files get the `both` lifecycle (they will carry implementation stamps too, written by `/atomicspec.implement`); `index.md` and `traceability.md` get `authoring` only.
+
+Run with `set -e` discipline so any per-file failure aborts the whole step — partial stamp state is worse than no stamp state (the orientation procedure would mis-detect).
+
+```bash
+set -e
+# Task files (both lifecycles, with author-set verify-depth):
+for task_file in "$FEATURE_DIR"/tasks/T-*.md; do
+  # Verify-depth heuristic: wiring tasks (T-037..T-039, T-057..T-059, T-077..T-079)
+  # and tasks touching auth, payment, security, or billing domain -> deep. Else light.
+  case "$task_file" in
+    *T-03[7-9]-*|*T-05[7-9]-*|*T-07[7-9]-*|*auth*|*payment*|*security*|*billing*)
+      verify_depth=deep ;;
+    *) verify_depth=light ;;
+  esac
+  scripts/bash/stamp-lifecycle.sh init "$task_file" --lifecycle both --closed \
+    --provider {{AGENT_NAME}} --verify-depth "$verify_depth"
+done
+
+# Dashboard + ledger (authoring only):
+scripts/bash/stamp-lifecycle.sh init "$FEATURE_DIR/index.md"        --lifecycle authoring --closed --provider {{AGENT_NAME}}
+scripts/bash/stamp-lifecycle.sh init "$FEATURE_DIR/traceability.md" --lifecycle authoring --closed --provider {{AGENT_NAME}}
+```
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Get-ChildItem -Path "$FEATURE_DIR\tasks" -Filter 'T-*.md' | ForEach-Object {
+  $vd = if ($_.Name -match 'T-(037|038|039|057|058|059|077|078|079)-' -or
+            $_.Name -match '(auth|payment|security|billing)') { 'deep' } else { 'light' }
+  scripts\powershell\stamp-lifecycle.ps1 -Command init -Artifact $_.FullName -Lifecycle both -Closed `
+    -Provider {{AGENT_NAME}} -VerifyDepth $vd
+}
+scripts\powershell\stamp-lifecycle.ps1 -Command init -Artifact "$FEATURE_DIR\index.md"        -Lifecycle authoring -Closed -Provider {{AGENT_NAME}}
+scripts\powershell\stamp-lifecycle.ps1 -Command init -Artifact "$FEATURE_DIR\traceability.md" -Lifecycle authoring -Closed -Provider {{AGENT_NAME}}
+```
+
+**Why verify-depth is set here, not in /implement**: Article IX, Directive 9 says the AUTHOR decides verify-depth and the RESUMER obeys. The /atomicspec.tasks command authors the task files, so verify-depth is finalized at generation time and never re-decided downstream. This prevents the "two AIs make different verify decisions on resume" pathology.
+
+**Recovery**: if the loop aborts mid-batch (disk full, permission, etc.), `set -e` halts immediately. Re-running this step is safe — `init` is idempotent on files where the stamp lines are already present, so partially-stamped batches resume cleanly from the next file.
 
 ### 5. Validation
 

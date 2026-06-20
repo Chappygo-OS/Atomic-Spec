@@ -75,13 +75,18 @@ if ($AIAgent -eq "claude") {
         New-Item -ItemType Directory -Path $claudeCommandsPath -Force | Out-Null
     }
 
-    # Copy command files with atomicspec. prefix
+    # Copy command files with atomicspec. prefix, substituting {{AGENT_NAME}}
+    # placeholder (v0.3+) with the selected agent. Without this substitution,
+    # stamp-lifecycle would receive the literal "{{AGENT_NAME}}" string and
+    # exit 5 (provider not in allowlist) -- breaking every command.
     $commandFiles = @("specify", "plan", "tasks", "implement", "analyze", "analyze-competitors", "checklist", "clarify", "constitution", "registry", "taskstoissues", "cleanup")
     foreach ($cmd in $commandFiles) {
         $sourceFile = Join-Path $sourceCommandsPath "$cmd.md"
         $targetFile = Join-Path $claudeCommandsPath "atomicspec.$cmd.md"
         if (Test-Path $sourceFile) {
-            Copy-Item $sourceFile -Destination $targetFile
+            $content = [System.IO.File]::ReadAllText($sourceFile, [System.Text.UTF8Encoding]::new($false))
+            $content = $content -replace '\{\{AGENT_NAME\}\}', $AIAgent
+            [System.IO.File]::WriteAllText($targetFile, $content, [System.Text.UTF8Encoding]::new($false))
         }
     }
 } else {

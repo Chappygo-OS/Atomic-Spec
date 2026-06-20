@@ -31,7 +31,42 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH.
 
+1.5. **Pre-flight: detect unfinished earlier work (v0.3+, per Constitution Directive 9)**:
+
+   Check BOTH `spec.md` AND `clarify-log.md` (the latter only if it exists — clarify is optional). Either being in `authoring_in_progress` blocks planning.
+
+   ```bash
+   scripts/bash/stamp-lifecycle.sh status "$FEATURE_SPEC" --json
+   # If clarify-log.md exists, also:
+   [ -f "$SPECS_DIR/$BRANCH/clarify-log.md" ] && scripts/bash/stamp-lifecycle.sh status "$SPECS_DIR/$BRANCH/clarify-log.md" --json
+   ```
+   ```powershell
+   scripts\powershell\stamp-lifecycle.ps1 -Command status -Artifact "$FEATURE_SPEC" -Json
+   $clog = "$SPECS_DIR\$BRANCH\clarify-log.md"
+   if (Test-Path $clog) { scripts\powershell\stamp-lifecycle.ps1 -Command status -Artifact $clog -Json }
+   ```
+
+   Parse each JSON. If ANY reports `state=authoring_in_progress`, ABORT with:
+   > "Unfinished <phase> detected (artifact: <path>, started <ts> by <provider>). Run /atomicspec.<phase> to finish, or /atomicspec.implement for the full resume procedure."
+
+   This is the lightweight cross-phase guard. Only `/atomicspec.implement` performs the full Phase 0 Orientation.
+
 2. **Load context**: Read FEATURE_SPEC and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+
+2.5. **Stamp Lifecycle Markers — open authoring on plan.md (v0.3+)**:
+
+   IMPL_PLAN was just copied by setup-plan and contains the `## Lifecycle Markers` heading. Initialize and open the authoring lifecycle:
+
+   ```bash
+   scripts/bash/stamp-lifecycle.sh init  "$IMPL_PLAN" --lifecycle authoring
+   scripts/bash/stamp-lifecycle.sh start "$IMPL_PLAN" --lifecycle authoring --provider {{AGENT_NAME}} --verify-depth deep
+   ```
+   ```powershell
+   scripts\powershell\stamp-lifecycle.ps1 -Command init  -Artifact "$IMPL_PLAN" -Lifecycle authoring
+   scripts\powershell\stamp-lifecycle.ps1 -Command start -Artifact "$IMPL_PLAN" -Lifecycle authoring -Provider {{AGENT_NAME}} -VerifyDepth deep
+   ```
+
+   `verify-depth deep` is set on plan.md because plan changes touch many downstream decisions — light verify on a half-done plan is insufficient. The resumer obeys this value; do not re-decide.
 
 3. **Load Project Defaults Registry + Interview Gate (v0.2+)**: Read `specs/_defaults/registry.yaml` per Constitution Directive 7. Extract existing defaults to pre-populate decisions.
 
@@ -69,6 +104,24 @@ You **MUST** consider the user input before proceeding (if not empty).
 5. **Execute plan workflow**: Follow the structure in IMPL_PLAN template with configured preferences.
 
 6. **Registry Sync (HITL)**: After all decisions are made, sync new decisions to registry with user approval.
+
+6.5. **Stamp Lifecycle Markers — close authoring on plan.md (v0.3+)**:
+
+   ONLY after all of:
+   - Phase 13 gates pass (`check-prerequisites.sh --check-gates --gate-context plan`)
+   - All 4 HITL checkpoints recorded in plan.md
+   - Registry Sync (step 6) confirmed by user
+
+   close the authoring lifecycle:
+
+   ```bash
+   scripts/bash/stamp-lifecycle.sh end "$IMPL_PLAN" --lifecycle authoring --provider {{AGENT_NAME}}
+   ```
+   ```powershell
+   scripts\powershell\stamp-lifecycle.ps1 -Command end -Artifact "$IMPL_PLAN" -Lifecycle authoring -Provider {{AGENT_NAME}}
+   ```
+
+   If any gate failed, do NOT write the end stamp — the plan is intentionally left open so the next session can resume from where the gate failed.
 
 7. **Stop and report**: Command ends after Phase 1 planning. Report branch, IMPL_PLAN path, and generated artifacts.
 

@@ -1,6 +1,6 @@
 [project]
 name = "atomic-spec"
-version = "0.2.0"
+version = "0.3.0"
 description = "Atomic Traceability for AI-Driven Development — a governance framework that constrains AI coding agents via gated, atomic, context-pinned phases."
 readme = "README.md"
 requires-python = ">=3.11"
