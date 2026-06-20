@@ -94,7 +94,7 @@ A few things that increase the odds of acceptance:
 - Update documentation ([`README.md`](./README.md), [`atomic-traceability-model.md`](./atomic-traceability-model.md), or the relevant MDX page in [`site/src/content/docs/`](./site/src/content/docs/)) if the change is user-visible
 - Keep the change focused — unrelated fixes should be separate PRs
 - Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
-- Respect the Eight Prime Directives (Article IX of `memory/constitution.md`) — do not weaken, bypass, or relax them without explicit governance discussion
+- Respect the Nine Prime Directives (Article IX of `memory/constitution.md`) — do not weaken, bypass, or relax them without explicit governance discussion (Directive 9 was added in v0.3 as a sibling control to Directive 3 — Directive 3 itself remains verbatim since v0.1)
 
 ## AI Contributions in Atomic Spec
 

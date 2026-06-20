@@ -422,7 +422,7 @@ When adding new agents:
 
 *This documentation should be updated whenever new agents are added to maintain accuracy and completeness.*
 
-<!-- ATOMIC-SPEC-ORIENTATION:v1:START -->
+<!-- ATOMIC-SPEC-ORIENTATION:v2:START -->
 ## Atomic Spec Orientation
 
 This project is governed by **Atomic Spec** (Atomic Traceability Model). Any AI
@@ -456,18 +456,21 @@ Run this on every session start, BEFORE picking up any task:
    ```
    scripts/powershell/stamp-lifecycle.ps1 -Command status -Artifact <path> -Json
    ```
-4. Categorize each result by `state`: `closed | done | legacy_closed` = OK;
-   `authoring_in_progress | implementing` = open, needs attention.
+4. Categorize each result by `state`: `closed | done | legacy_closed | authored`
+   = OK; `authoring_in_progress | implementing` = open, needs attention.
 5. Apply the three outcomes (Directive 9):
    - **Clean**: every artifact closed. Print one-line summary; proceed.
    - **Stale**: an open block whose `start` timestamp is older than the
-     registry's `lifecycle.stale_threshold` (default 7 days). Surface as
+     registry's `lifecycle.stale_threshold_days` (default 7 days). Surface as
      informational; let the user confirm resume-or-discard.
    - **Conflict**: an open block newer than the stale threshold. STOP,
      present options (resume / redo / skip / abort), await the user.
-6. Append the orientation evidence (the JSON outputs) to
-   `specs/<branch>/orientation-runs.md` under a new `## Run <ISO-8601-UTC>`
-   block. Absence of this evidence fails the Phase 0 gate.
+6. Write the orientation evidence (the JSON outputs + outcome + decision) as a
+   **per-run file** in `specs/<branch>/orientation-runs/<ISO-UTC>-<provider>.md`
+   (race-free under concurrent providers — no two timestamps collide at second
+   precision). This evidence is **required by policy in v0.3.0**; a runtime gate
+   (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing
+   evidence ships in v0.3.1.
 
 ### Lifecycle Markers -- hard rules
 
@@ -511,4 +514,4 @@ If a gate fails, fix the failure -- do not work around it.
   (Directive 7).
 - Hand-writing lifecycle stamps. ALWAYS via `stamp-lifecycle` script.
 
-<!-- ATOMIC-SPEC-ORIENTATION:v1:END -->
+<!-- ATOMIC-SPEC-ORIENTATION:v2:END -->

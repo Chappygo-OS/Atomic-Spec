@@ -8,7 +8,7 @@ This is **not a runtime application**. It is a **governance framework for AI-dri
 
 Inspired by Leapable's "Stop Vibe Coding (Until You Do This)" video. The core premise: AI agents produce drift unless forced through gated, atomic, context-pinned phases.
 
-## The Eight Prime Directives (memory/constitution.md, Article IX)
+## The Nine Prime Directives (memory/constitution.md, Article IX)
 
 These are the non-negotiable rules that every command in this framework enforces. When working in this repo, **never weaken or bypass them** — they are the entire value proposition:
 
@@ -20,6 +20,7 @@ These are the non-negotiable rules that every command in this framework enforces
 6. **Human-In-The-Loop** — `/atomicspec.plan` pauses at 4 mandatory checkpoints (tech stack, validation, UI, registry sync)
 7. **Project Defaults Registry** — all commands read `specs/_defaults/registry.yaml` and enforce project-wide standards
 8. **Self-Contained Tasks** — task files embed all context (registry values, domain rules, gate criteria) needed for execution under Context Pinning
+9. **Orientation Read Surface (v0.3+)** — `/atomicspec.implement` Phase 0 detects cross-provider handoff state via `stamp-lifecycle status` on artifact Lifecycle Markers; direct body reads of `plan.md` / `spec.md` / `clarify-log.md` remain forbidden, even during orientation. Sibling control to Directive 3; does NOT widen it.
 
 ## Architecture — The Phase Pipeline
 
@@ -41,7 +42,7 @@ Key architectural components that span multiple files:
 - **`.specify/knowledge/stations/`** — 18 procedural guides (01-introduction through 18-documentation). Commands look up station gate criteria here before allowing phase transitions.
 - **`.specify/subagents/`** — 21+ base subagents plus 146 mobile-specific ones organized by lifecycle phase (01-Discovery through 14-Documentation). Matched dynamically by **semantic similarity** between feature keywords and YAML frontmatter `description`, NOT hard-coded.
 - **`specs/_defaults/registry.yaml`** — the Project Defaults Registry. 80+ technical decisions (architecture pattern, data access style, tenancy model, etc.). Every command reads this on entry and offers to update it on exit (with HITL approval).
-- **`memory/constitution.md`** — Article IX hardcodes the 8 Prime Directives. Articles I-VIII are `[PLACEHOLDER]` sections filled in by `/atomicspec.constitution` in consumer projects.
+- **`memory/constitution.md`** — Article IX hardcodes the 9 Prime Directives (Directive 9 added in v0.3 for the Orientation Read Surface). Articles I-VIII are `[PLACEHOLDER]` sections filled in by `/atomicspec.constitution` in consumer projects.
 - **`src/specify_cli/__init__.py`** — the `atomicspec` Python CLI (PyPI distribution name: `atomic-spec`). Thin wrapper that downloads template releases and sets up agent-specific command directories. **Note:** the CLI's `repo_owner`/`repo_name` still point at upstream `github/spec-kit` for release zips — that path is orthogonal to the `init-project.sh` installer this repo documents. The v0.1.0 release will either repoint the CLI or publish release zips here; until then, `init-project.sh` is the canonical install path.
 
 ## Critical Conventions
@@ -100,7 +101,7 @@ All scripts have PowerShell equivalents in `scripts/powershell/`.
 - **`src/specify_cli/__init__.py` fetches templates from `Chappygo-OS/Atomic-Spec` GitHub Releases** (overridable via `ATOMIC_SPEC_REPO` and `ATOMIC_SPEC_ASSET_PREFIX` env vars). Release automation lives at `.github/workflows/release.yml` — on `v*` tag push it builds per-agent template zips (17 agents × 2 script types) and publishes a GitHub Release. `.github/workflows/publish.yml` then uploads the CLI to PyPI via OIDC Trusted Publishing (environment `pypi`). The `init-project.sh` / `init-project.ps1` installers remain a valid alternative install path that uses this repo's templates directly.
 - **Avoid adding new `tasks.md` references** anywhere. The atomic `tasks/` directory is the only correct output. Canonical per-feature artifacts: `index.md`, `traceability.md`, `tasks/T-XXX-[name].md`. The SDD/governance deep-dive lives in `atomic-traceability-model.md` (was previously `spec-driven.md`).
 
-<!-- ATOMIC-SPEC-ORIENTATION:v1:START -->
+<!-- ATOMIC-SPEC-ORIENTATION:v2:START -->
 ## Atomic Spec Orientation
 
 This project is governed by **Atomic Spec** (Atomic Traceability Model). Any AI
@@ -134,18 +135,21 @@ Run this on every session start, BEFORE picking up any task:
    ```
    scripts/powershell/stamp-lifecycle.ps1 -Command status -Artifact <path> -Json
    ```
-4. Categorize each result by `state`: `closed | done | legacy_closed` = OK;
-   `authoring_in_progress | implementing` = open, needs attention.
+4. Categorize each result by `state`: `closed | done | legacy_closed | authored`
+   = OK; `authoring_in_progress | implementing` = open, needs attention.
 5. Apply the three outcomes (Directive 9):
    - **Clean**: every artifact closed. Print one-line summary; proceed.
    - **Stale**: an open block whose `start` timestamp is older than the
-     registry's `lifecycle.stale_threshold` (default 7 days). Surface as
+     registry's `lifecycle.stale_threshold_days` (default 7 days). Surface as
      informational; let the user confirm resume-or-discard.
    - **Conflict**: an open block newer than the stale threshold. STOP,
      present options (resume / redo / skip / abort), await the user.
-6. Append the orientation evidence (the JSON outputs) to
-   `specs/<branch>/orientation-runs.md` under a new `## Run <ISO-8601-UTC>`
-   block. Absence of this evidence fails the Phase 0 gate.
+6. Write the orientation evidence (the JSON outputs + outcome + decision) as a
+   **per-run file** in `specs/<branch>/orientation-runs/<ISO-UTC>-<provider>.md`
+   (race-free under concurrent providers — no two timestamps collide at second
+   precision). This evidence is **required by policy in v0.3.0**; a runtime gate
+   (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing
+   evidence ships in v0.3.1.
 
 ### Lifecycle Markers -- hard rules
 
@@ -189,4 +193,4 @@ If a gate fails, fix the failure -- do not work around it.
   (Directive 7).
 - Hand-writing lifecycle stamps. ALWAYS via `stamp-lifecycle` script.
 
-<!-- ATOMIC-SPEC-ORIENTATION:v1:END -->
+<!-- ATOMIC-SPEC-ORIENTATION:v2:END -->

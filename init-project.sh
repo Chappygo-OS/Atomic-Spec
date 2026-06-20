@@ -46,6 +46,20 @@ if [[ -z "$TARGET_PATH" ]]; then
     exit 1
 fi
 
+# v0.3+: allowlist-validate $AI_AGENT before passing it to sed (the placeholder
+# substitution). Without this, an unsupported or malformed value (regex
+# metacharacters, paths) would silently produce broken command templates.
+case "$AI_AGENT" in
+    claude|gemini|copilot|cursor|cursor-agent|windsurf) ;;
+    *)
+        echo "ERROR: --ai must be one of: claude, gemini, copilot, cursor, cursor-agent, windsurf"
+        echo "       (got: '$AI_AGENT')"
+        echo "       For other agents in the 17-agent matrix (qwen, opencode, codex, etc.),"
+        echo "       use the PyPI atomicspec CLI: 'atomicspec init <path> --ai <agent>'."
+        exit 2
+        ;;
+esac
+
 echo "🚀 Initializing Atomic Spec (Atomic Traceability Model)"
 echo "   Source: $SOURCE_DIR"
 echo "   Target: $TARGET_PATH"
