@@ -53,10 +53,10 @@
 | T-001 | todo         | —                                     | —                                     | —      | —                   |
 
 <!--
-  Orientation Evidence (Directive 9) is stored separately at
-  `orientation-runs.md` in this same feature folder — keeping the append-only
-  Phase 0 log out of this matrix so requirement coverage and the lifecycle
-  ledger remain readable after dozens of implement runs.
+  Orientation Evidence (Directive 9) is stored separately in a per-run
+  directory: `orientation-runs/` in this same feature folder. Each Phase 0
+  run writes one file `<ISO-UTC>-<provider>.md` — race-free across
+  concurrent providers and easier to audit than an appended log.
 -->
 
 <!--

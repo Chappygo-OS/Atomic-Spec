@@ -330,9 +330,13 @@ The script returns JSON describing the Lifecycle Markers block state without exp
 
 **Evidence requirement**:
 
-The Orientation Phase MUST emit its findings as a new `## Run <ISO-8601-UTC>` block (appended at the top, reverse-chronological) in `specs/<feature>/orientation-runs.md`. Each block contains the script's JSON output for every inspected artifact and the resume decision the user confirmed. Absence of this file or absence of the current run's block fails the Phase 0 gate; the implementer cannot proceed to Phase 1.
+The Orientation Phase MUST emit its findings as a per-run file under `specs/<feature>/orientation-runs/`, named `<ISO-8601-UTC>-<provider>.md` (e.g., `2026-06-19T15-30-22Z-claude.md`). Each file contains the script's JSON output for every inspected artifact, the outcome (clean / stale / conflict), and the resume decision the user confirmed.
 
-Rationale for splitting from `traceability.md`: orientation evidence is high-volume append-only data; hosting it in `traceability.md` would drown the requirement-coverage matrix after a few dozen implement runs. `orientation-runs.md` is single-purpose and append-only.
+**Why per-run files, not a single appended log**: two providers racing on the same branch (e.g., a crashed Claude session and a fresh Codex session start within seconds) would silently overwrite each other if both prepended to a shared `orientation-runs.md`. Per-run files are append-free and race-free by construction (no two ISO timestamps collide at second precision).
+
+**Enforcement timeline**:
+- **v0.3.0** (this release): the evidence file is REQUIRED by policy. Absence is a Constitution violation but is NOT yet a runtime gate.
+- **v0.3.1** (next release): `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Marketed claims about Directive 9 enforcement should reflect this disclosure until v0.3.1 ships.
 
 **Outcomes — exactly three**:
 
