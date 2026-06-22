@@ -43,7 +43,7 @@ Key architectural components that span multiple files:
 - **`.specify/subagents/`** — 21+ base subagents plus 146 mobile-specific ones organized by lifecycle phase (01-Discovery through 14-Documentation). Matched dynamically by **semantic similarity** between feature keywords and YAML frontmatter `description`, NOT hard-coded.
 - **`specs/_defaults/registry.yaml`** — the Project Defaults Registry. 80+ technical decisions (architecture pattern, data access style, tenancy model, etc.). Every command reads this on entry and offers to update it on exit (with HITL approval).
 - **`memory/constitution.md`** — Article IX hardcodes the 9 Prime Directives (Directive 9 added in v0.3 for the Orientation Read Surface). Articles I-VIII are `[PLACEHOLDER]` sections filled in by `/atomicspec.constitution` in consumer projects.
-- **`src/specify_cli/__init__.py`** — the `atomicspec` Python CLI (PyPI distribution name: `atomic-spec`). Thin wrapper that downloads template releases and sets up agent-specific command directories. **Note:** the CLI's `repo_owner`/`repo_name` still point at upstream `github/spec-kit` for release zips — that path is orthogonal to the `init-project.sh` installer this repo documents. The v0.1.0 release will either repoint the CLI or publish release zips here; until then, `init-project.sh` is the canonical install path.
+- **`src/specify_cli/__init__.py`** — the `atomicspec` Python CLI (PyPI distribution name: `atomic-spec`). Thin wrapper that downloads template releases and sets up agent-specific command directories. The CLI fetches templates from `Chappygo-OS/Atomic-Spec` GitHub Releases (overridable via `ATOMIC_SPEC_REPO` and `ATOMIC_SPEC_ASSET_PREFIX` env vars). **PyPI distribution is live since v0.2.0** (Trusted Publishing via OIDC, `pypi` environment-gated). `init-project.{sh,ps1}` remains a valid alternative install path for offline/local setups using this repo's templates directly.
 
 ## Critical Conventions
 
@@ -72,17 +72,19 @@ This repo doesn't build or test in the traditional sense — it's a framework di
 
 Supported agents: `claude`, `gemini`, `copilot`, `cursor`, `windsurf`. The init scripts currently support only these five — the Python CLI supports ~18 more.
 
-**Python CLI (for distribution via PyPI):**
+**Python CLI (distributed via PyPI since v0.2.0):**
 ```bash
-# Install
-# Planned for v0.1.0 release
+# Install (live on PyPI)
 uv tool install atomic-spec
+# or: pipx install atomic-spec
 
 # Initialize
-specify init <project-name> --ai claude
-specify init . --here --ai claude
-specify check  # verify installed tools
+atomicspec init <project-name> --ai claude
+atomicspec init . --here --ai claude
+atomicspec check  # verify installed tools
 ```
+
+Note: the legacy alias `specify` is still mentioned in some upstream docs; the canonical command name in Atomic Spec is `atomicspec`.
 
 **Scripts invoked by command templates** (not called directly by humans):
 - `scripts/bash/check-prerequisites.sh` — validates gates before phase transitions
