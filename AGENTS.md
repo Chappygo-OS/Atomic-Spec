@@ -37,25 +37,29 @@ Specify supports multiple AI agents by generating agent-specific command files a
 
 ### Current Supported Agents
 
-| Agent                      | Directory              | Format   | CLI Tool        | Description                 |
-| -------------------------- | ---------------------- | -------- | --------------- | --------------------------- |
-| **Claude Code**            | `.claude/commands/`    | Markdown | `claude`        | Anthropic's Claude Code CLI |
-| **Gemini CLI**             | `.gemini/commands/`    | TOML     | `gemini`        | Google's Gemini CLI         |
-| **GitHub Copilot**         | `.github/agents/`      | Markdown | N/A (IDE-based) | GitHub Copilot in VS Code   |
-| **Cursor**                 | `.cursor/commands/`    | Markdown | `cursor-agent`  | Cursor CLI                  |
-| **Qwen Code**              | `.qwen/commands/`      | TOML     | `qwen`          | Alibaba's Qwen Code CLI     |
-| **opencode**               | `.opencode/command/`   | Markdown | `opencode`      | opencode CLI                |
-| **Codex CLI**              | `.codex/commands/`     | Markdown | `codex`         | Codex CLI                   |
-| **Windsurf**               | `.windsurf/workflows/` | Markdown | N/A (IDE-based) | Windsurf IDE workflows      |
-| **Kilo Code**              | `.kilocode/rules/`     | Markdown | N/A (IDE-based) | Kilo Code IDE               |
-| **Auggie CLI**             | `.augment/rules/`      | Markdown | `auggie`        | Auggie CLI                  |
-| **Roo Code**               | `.roo/rules/`          | Markdown | N/A (IDE-based) | Roo Code IDE                |
-| **CodeBuddy CLI**          | `.codebuddy/commands/` | Markdown | `codebuddy`     | CodeBuddy CLI               |
-| **Qoder CLI**              | `.qoder/commands/`     | Markdown | `qoder`         | Qoder CLI                   |
-| **Amazon Q Developer CLI** | `.amazonq/prompts/`    | Markdown | `q`             | Amazon Q Developer CLI      |
-| **Amp**                    | `.agents/commands/`    | Markdown | `amp`           | Amp CLI                     |
-| **SHAI**                   | `.shai/commands/`      | Markdown | `shai`          | SHAI CLI                    |
-| **IBM Bob**                | `.bob/commands/`       | Markdown | N/A (IDE-based) | IBM Bob IDE                 |
+The CLI accepts **17 agent keys**, but they are **NOT all equally validated**. Per README "AI coding agents supported," `Supported` = wired end-to-end and exercised on every release; `Experimental` = templates install correctly and the agent key is accepted, but agent-specific wiring is not exhaustively tested.
+
+| Agent                      | Tier             | Directory              | Format   | CLI Tool        | Description                 |
+| -------------------------- | ---------------- | ---------------------- | -------- | --------------- | --------------------------- |
+| **Claude Code**            | **Supported**    | `.claude/commands/`    | Markdown | `claude`        | Anthropic's Claude Code CLI |
+| **Gemini CLI**             | **Supported**    | `.gemini/commands/`    | TOML     | `gemini`        | Google's Gemini CLI         |
+| **GitHub Copilot**         | **Supported**    | `.github/agents/`      | Markdown | N/A (IDE-based) | GitHub Copilot in VS Code   |
+| **Cursor**                 | **Supported**    | `.cursor/commands/`    | Markdown | `cursor-agent`  | Cursor CLI                  |
+| **Windsurf**               | **Supported**    | `.windsurf/workflows/` | Markdown | N/A (IDE-based) | Windsurf IDE workflows      |
+| **Qwen Code**              | *Experimental*   | `.qwen/commands/`      | TOML     | `qwen`          | Alibaba's Qwen Code CLI     |
+| **opencode**               | *Experimental*   | `.opencode/command/`   | Markdown | `opencode`      | opencode CLI                |
+| **Codex CLI**              | *Experimental*   | `.codex/commands/`     | Markdown | `codex`         | Codex CLI                   |
+| **Kilo Code**              | *Experimental*   | `.kilocode/rules/`     | Markdown | N/A (IDE-based) | Kilo Code IDE               |
+| **Auggie CLI**             | *Experimental*   | `.augment/rules/`      | Markdown | `auggie`        | Auggie CLI                  |
+| **Roo Code**               | *Experimental*   | `.roo/rules/`          | Markdown | N/A (IDE-based) | Roo Code IDE                |
+| **CodeBuddy CLI**          | *Experimental*   | `.codebuddy/commands/` | Markdown | `codebuddy`     | CodeBuddy CLI               |
+| **Qoder CLI**              | *Experimental*   | `.qoder/commands/`     | Markdown | `qoder`         | Qoder CLI                   |
+| **Amazon Q Developer CLI** | *Experimental*   | `.amazonq/prompts/`    | Markdown | `q`             | Amazon Q Developer CLI      |
+| **Amp**                    | *Experimental*   | `.agents/commands/`    | Markdown | `amp`           | Amp CLI                     |
+| **SHAI**                   | *Experimental*   | `.shai/commands/`      | Markdown | `shai`          | SHAI CLI                    |
+| **IBM Bob**                | *Experimental*   | `.bob/commands/`       | Markdown | N/A (IDE-based) | IBM Bob IDE                 |
+
+Experimental-tier issues are labeled `experimental` and triaged best-effort. PRs that promote an agent to Supported tier are welcome — see `SUPPORT.md` for triage policy and promotion criteria.
 
 ### Step-by-Step Integration Guide
 
