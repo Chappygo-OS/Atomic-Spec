@@ -9,6 +9,50 @@ All notable changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-21
+
+> **v0.4 theme**: introduce advisory model-tier routing so consumer projects can split coordinator-role turns (Phase 0 orientation, gate checks, stamp writes) from implementer-role turns (code generation, verification loop) and HITL turns (Directive 6 checkpoints) onto different model tiers — Haiku / Sonnet / Opus by default on Anthropic, arbitrary strings for other providers. Shipped **advisor-off by default**: consumer projects on v0.3 see byte-for-byte identical behavior after upgrade. Per-feature measurement primitive lands in v0.4.1; v0.4 ships the config surface + lightweight advisory reporting so the tier map is exercisable and the promotion evidence bar is buildable. Follows the v0.3.0 → v0.3.1 "surface first, enforcement second" pattern that already held up.
+
+### Added
+
+- **Registry `efficiency:` block (v0.4+)** — new top-level in `templates/registry-template.yaml`. Fields: `model_tiers.coordinator` (default `claude-haiku-4-5`), `model_tiers.implementer` (default `claude-sonnet-4-6`), `model_tiers.hitl` (default `claude-opus-4-7`), `advisor_enabled` (default `false`), `snapshot_recorded` (default `null`). Registry schema bump **5 → 6**. Governed by Directive 7 — every field is amended via the standard `/atomicspec.registry` HITL flow.
+- **`atomicspec select-model --phase <coordinator|implementer|hitl>`** — machine-readable CLI subcommand for command templates. Prints the configured model on stdout, or empty on `advisor_enabled: false` / missing block / unset tier. Exit code always 0 so bash/PowerShell callers can `MODEL=$(atomicspec select-model ...)` and branch on `[ -n "$MODEL" ]` cleanly.
+- **`atomicspec cost snapshot`** — single-number cost snapshot recorder. Writes `.specify/efficiency-snapshots/<date>-<scope>.md` with YAML frontmatter (amount, provider, source, feature, tokens, note). Any provider. Atomic-write pattern (`.tmp` → rename). Advisory only — not per-turn measurement.
+- **`atomicspec efficiency report --advisory`** — prints tier resolution table + recent snapshots. Header labeled "advisory only" verbatim so it never reads as authoritative billing evidence. Silent no-op when no snapshots exist.
+- **Phase 1 Prelude — Efficiency Hint** — advisory prose block added to `templates/commands/specify.md`, `plan.md`, `tasks.md`, and `implement.md` at their Phase 0 anchors. Invokes `atomicspec select-model` and records the resolved model in orientation evidence. Does not affect gate criteria, Directive 3 pinning, or downstream steps. Advisory-only surface; naming is deliberately "Phase 1 Prelude," never "Phase 0.5."
+- **`## Efficiency` H2 block** — added to `implement.md` §0.6's per-run orientation-evidence template. Every Phase 0 run now records `advisor_enabled`, tier map source, and resolved models per phase. `atomicspec efficiency report --advisory` reads these files.
+- **`src/specify_cli/_registry.py`** (new module) — `load_registry()` + `resolve_tier()` helpers using `yaml.safe_load` exclusively. Graceful degradation: missing file, missing block, malformed YAML never raise. `TierResolution` dataclass returns a `reason` diagnostic (`resolved` / `advisor-disabled` / `efficiency-block-missing` / `tier-unset` / ...) for report rendering.
+- **`pyyaml>=6.0,<7`** — first YAML lib in the Python CLI. `safe_load`-only by design; every 2024–2026 PyYAML CVE is a `yaml.load()` deserialization attack, and `safe_load` is immune. Matches the upstream `github/spec-kit` dep set, and every peer template-distributor Python CLI (cookiecutter, copier, ansible).
+- **`docs/efficiency.md`** (new) — user-facing efficiency doc: how to configure the tier map, how to read the `--advisory` report, provider-portability posture, roadmap to v0.4.1 hook-based measurement, naming disambiguation vs the per-subagent `model:` frontmatter in `.specify/subagents/**/*.md`.
+
+### Changed
+
+- **Directive 7 (Project Defaults Registry) — clause amendment**: the enumerated scope list gains one bullet, *"Efficiency model-tier mapping (v0.4+) — coordinator/implementer/HITL model assignments used advisorily by `/atomicspec.implement` and its siblings for tier routing."* Nine directives stays nine — clause amendment, not new directive. Follows the v0.2 in-place precedent (commit `0185b86`).
+- **Directive 8 (Self-Contained Tasks) — companion row** added to the Embedded Context table: *"Efficiency Tier Hint (v0.4+) — Derived at read time from `registry.efficiency.model_tiers` + task phase. Optional; defaults to `implementer` when unset."* Row added; no other rows changed.
+- **Constitution mirror** — `site/src/content/docs/prime-directives.mdx` updated in lockstep with `memory/constitution.md`. Same commit, same wording.
+
+### Honest disclosures (v0.4.0)
+
+- **Advisor is OFF by default** (`advisor_enabled: false`). Consumer projects upgrading from v0.3 see byte-for-byte identical behavior until they explicitly flip it. The 28% cost-reduction figure the tier map is designed around is a **projection from Anthropic's own SWE-bench Multilingual eval (April 2026, −11.9% cost + 2.7 pp quality)**, extrapolated to Atomic Spec's coordination-heavy workload. It is not a v0.4-measured savings claim. Per-feature measurement lands in v0.4.1.
+- **Per-feature `baseline record` deliberately deferred to v0.4.1.** The command as originally scoped in the v0.4 PRD would have shipped either a client-side estimate (which Anthropic's own docs explicitly warn is not authoritative billing data) or a JSONL log tailer with documented P0 failure modes (30-day retention wipes, auto-update deletion, undocumented schema, Windows path collisions, ~2.3× duplicate-token inflation). v0.4.1 rebuilds it on Claude Code's stable hook API (`Stop` / `PostToolUse` / `SessionEnd`) plus Anthropic Console CSV import for API-key users, then flips `advisor_enabled` default to `true` behind the promotion evidence bar.
+- **Provider coverage is deliberately incomplete.** Claude Code / Codex CLI / Anthropic-API-key users all have measurement paths (Claude Code hooks in v0.4.1; Codex JSONL adapter later; CSV import for API users in v0.4.1). Cursor / Windsurf / Copilot / Gemini CLI have no equivalent hook API and no path to token-level measurement in v0.4.x. The tier config still applies to them advisorily; they just don't measure. This is honest about a real constraint, not a workaround.
+- **`select-model` is advisory, not enforcing.** Agents that respect per-turn model selection (Claude Code subagent `Task` tool) may honor the hint; other agents record it in orientation evidence and continue on their default model. This is by design — Atomic Spec is a governance framework, not a request-path proxy.
+- **`select-model.sh` / `select-model.ps1` were considered and rejected.** Python CLI is the single source of truth for reading `registry.efficiency`. Bash/PowerShell command-template blocks invoke `atomicspec select-model` directly. Avoids awk-parser drift and doubled maintenance for zero capability gain.
+
+### Migration notes
+
+**Fully backwards compatible.** Consumer projects on v0.3 upgrade to v0.4 with **no behavior change** unless they explicitly opt in:
+
+1. Existing `registry.yaml` files with `version: 5` continue to work. The `check-prerequisites.sh` awk classifier ignores the new top-level `efficiency:` block (structural-key skip-list is unchanged).
+2. Fresh `atomicspec init` writes `version: 6` with `advisor_enabled: false`. First `/atomicspec.plan` run auto-backfills `_provenance: efficiency.*` entries as `unknown_legacy` (template defaults were not human-chosen).
+3. Command templates gain the "Phase 1 Prelude — Efficiency Hint" block. When `advisor_enabled: false`, `atomicspec select-model` returns empty and templates proceed with byte-for-byte v0.3 behavior.
+4. Orientation-run files gain the `## Efficiency` H2 section. When advisor is off, the section reports `advisor_enabled: false` and the tier fields as `n/a`. Existing `orientation-runs/` files are not rewritten.
+
+Consumers wanting to try the advisor:
+1. Edit `specs/_defaults/registry.yaml`: set `efficiency.advisor_enabled: true`.
+2. (Optional) Replace `model_tiers.*` with provider-native model IDs for OpenAI / Google / etc.
+3. Run any `/atomicspec.*` command — resolved tier now appears in orientation evidence.
+
 ## [0.3.0] - 2026-06-21
 
 > **v0.3 theme**: close the cross-provider AI handoff gap. When Claude crashes mid-feature and the user switches to Codex (or hits a quota cliff and falls over to Gemini), the receiving AI now self-orients from files alone — detects which artifacts are half-done, prompts the user on conflict, and resumes cleanly without silently overwriting work. A new sibling Directive (9) governs this read surface narrowly so Directive 3's Context Pinning stays verbatim.

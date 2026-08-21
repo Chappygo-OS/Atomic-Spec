@@ -1,6 +1,6 @@
 [project]
 name = "atomic-spec"
-version = "0.3.0"
+version = "0.4.0"
 description = "Atomic Traceability for AI-Driven Development — a governance framework that constrains AI coding agents via gated, atomic, context-pinned phases."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -53,6 +53,13 @@ dependencies = [
     "platformdirs",
     "readchar",
     "truststore>=0.10.4",
+    # v0.4+ — read specs/_defaults/registry.yaml to resolve efficiency.model_tiers.
+    # Use yaml.safe_load ONLY (never yaml.load); every 2024–2026 PyYAML CVE is a
+    # yaml.load() deserialization attack. If ruff is present in a dev env, S506
+    # enforces this at lint time; without ruff it is a code-review responsibility.
+    # <7 pin is defensive against a hypothetical breaking major (no signal that
+    # PyYAML 7 is imminent as of this pin).
+    "pyyaml>=6.0,<7",
 ]
 
 [project.urls]
@@ -68,6 +75,14 @@ atomicspec = "specify_cli:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# v0.4+ — enforce the "yaml.safe_load only, never yaml.load" rule at lint time
+# when ruff is available in a dev environment. S506 (suspicious-yaml-load) is
+# ruff's implementation of the same bandit check. Ruff is NOT a runtime dep;
+# this section only matters if a contributor runs `ruff check`. Without ruff
+# installed the rule is a code-review responsibility.
+[tool.ruff.lint]
+extend-select = ["S506"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/specify_cli"]

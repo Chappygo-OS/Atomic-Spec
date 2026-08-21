@@ -3,7 +3,7 @@ title: Upgrade Guide
 description: Refresh the Atomic Spec CLI and pull the latest framework files into existing projects without losing customizations.
 category: Getting Started
 order: 30
-lastUpdated: 2026-05-18
+lastUpdated: 2026-08-21
 ---
 
 > You have Atomic Spec installed in one or more projects and want to refresh them with the latest framework files (knowledge stations, subagents, templates, slash commands, scripts).
@@ -18,6 +18,64 @@ lastUpdated: 2026-05-18
 | **Framework files in a project (PyPI path)** | `atomicspec init --here --force --ai <agent>` | Refresh templates, commands, scripts |
 | **Framework files in a project (clone path)** | `./init-project.sh /path/to/project --ai <agent>` (re-run) | Alternative if you cloned the repo |
 | **The Atomic Spec source clone** | `git pull origin main` inside your `Atomic-Spec/` checkout | Keep the source tree current before re-running `init-project.sh` |
+
+---
+
+## What Changed in v0.4.0?
+
+v0.4 introduces **advisory model-tier routing**: consumer projects can split coordinator-role turns (Phase 0 orientation, task selection, gate checks, stamp writes) from implementer-role turns (code generation, verification loop) and HITL turns (Directive 6 checkpoints) onto different model tiers. **Fully backwards compatible.** Shipped advisor-off by default; consumer projects on v0.3 see byte-for-byte identical behavior after upgrade until they explicitly flip it.
+
+- **Registry `efficiency:` block (schema 5 → 6)** — new top-level with `model_tiers.{coordinator,implementer,hitl}`, `advisor_enabled: false`, `snapshot_recorded: null`. Governed by Directive 7 — every field is amended via the standard `/atomicspec.registry` HITL flow.
+- **Three new CLI subcommands**:
+  - `atomicspec select-model --phase <coordinator|implementer|hitl>` — machine-readable model lookup. Prints the configured tier or empty on advisor-off; exit code always 0 so bash/PowerShell callers can `MODEL=$(atomicspec select-model ...)` cleanly.
+  - `atomicspec cost snapshot --amount <USD> --provider <name>` — record a single-number cost snapshot. Any provider. Writes `.specify/efficiency-snapshots/<YYYY-MM-DD-HHMMSSuuuuuu>-<scope>.md` with YAML frontmatter.
+  - `atomicspec efficiency report --advisory` — print the tier resolution table + recent snapshots. Header labeled "advisory only, measurement in v0.4.1" verbatim.
+- **Phase 1 Prelude — Efficiency Hint** added to `/atomicspec.specify`, `/plan`, `/tasks`, `/implement` command templates at their Phase 0 anchors. Advisory prose only — does not affect Directive 3 pinning, gate criteria, or downstream steps.
+- **Directive 7 clause amendment** — `efficiency.model_tiers` mapping added to the scope list. **Nine directives stays nine** — clause amendment, not new directive.
+- **Directive 8 companion row** — added "Efficiency Tier Hint" row to the Embedded Context table.
+- **Orientation-run files gain `## Efficiency` H2 section** — `/atomicspec.implement` §0.6 emits `advisor_enabled` state + tier map source + resolved models per phase.
+- **`pyyaml>=6.0,<7`** added to the Python CLI. First YAML lib in the CLI; `safe_load`-only by design (ruff `S506` enforced). Matches upstream `github/spec-kit` and every peer template-distributor CLI.
+- **Full details**: see the [efficiency guide](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/docs/efficiency.md).
+
+### Deliberately deferred to v0.4.1
+
+- **`atomicspec baseline record --feature NNN`** on Claude Code's stable hook API (`Stop` / `PostToolUse` / `SessionEnd`) + Anthropic Console CSV import for API-key users + Codex CLI JSONL adapter (behind separate flag). This is the per-feature measurement primitive that gates the advisor default flip.
+- **Flip `advisor_enabled: true` default** — behind the promotion evidence bar (≥60% of tracked consumer projects show non-empty baselines across ≥2 providers; measured cost reduction ≥15% median; zero P0 governance regressions for 4 weeks).
+
+### Deliberately scope-out for v0.4.x
+
+Cursor / Windsurf / Copilot / Gemini CLI have no equivalent hook API and no path to token-level measurement in v0.4.x. The tier config still applies to them advisorily; they just don't measure. This is honest about a real constraint.
+
+### Migration note
+
+**Fully backwards compatible.** Consumer projects on v0.3 upgrade to v0.4 with no behavior change unless they explicitly flip `advisor_enabled: true` in the new `efficiency:` block. Existing `registry.yaml` files with `version: 5` continue to work — the `check-prerequisites` awk classifier ignores the new top-level. Fresh `atomicspec init` writes `version: 6` with the advisor off. Command templates gain the "Phase 1 Prelude" block; when `advisor_enabled: false`, `atomicspec select-model` returns empty and templates proceed with byte-for-byte v0.3 behavior.
+
+To try the advisor:
+1. Edit `specs/_defaults/registry.yaml`, set `efficiency.advisor_enabled: true`.
+2. (Optional) Replace `model_tiers.*` with provider-native model IDs for OpenAI / Google / etc.
+3. Run any `/atomicspec.*` command — resolved tier appears in orientation evidence.
+
+---
+
+## What Changed in v0.3.0?
+
+v0.3 closes the **cross-provider AI handoff gap**. When Claude crashes mid-feature and you switch to Codex (or hit a quota cliff and fall over to Gemini), the receiving AI now self-orients from files alone — detects which artifacts are half-done, prompts you on conflict, and resumes cleanly without silently overwriting work. A new sibling directive (9) governs this read surface narrowly so Directive 3's Context Pinning stays verbatim.
+
+- **Lifecycle Markers** — every artifact (`spec.md`, `clarify-log.md`, `plan.md`, `index.md`, `traceability.md`, `tasks/T-*.md`) now carries a `## Lifecycle Markers` block recording start/end timestamps and provider names for authoring + implementation lifecycles. Script-managed; AIs MUST NEVER hand-write stamps.
+- **`scripts/{bash,powershell}/stamp-lifecycle.{sh,ps1}`** — deterministic gate for all Lifecycle Markers writes. Subcommands: `init` / `start` / `end` / `status`. 18-provider allowlist, ISO 8601 UTC timestamps, atomic writes.
+- **Article IX, Directive 9: Orientation Read Surface** — a NEW sibling to Directive 3 (Context Pinning). Defines a narrow, single-shot carve-out for the Phase 0 Orientation procedure in `/atomicspec.implement`: read Lifecycle Markers blocks via the status script (NOT direct file reads of `plan.md` / `spec.md` / `clarify-log.md`), classify outcome as Clean / Stale / Conflict, write evidence to `orientation-runs/<ts>-<provider>.md`, present resume menu on conflict via AskUserQuestion. Directive 3 stays verbatim — no governance creep.
+- **Registry schema bump (4 → 5)** — adds `lifecycle.stale_threshold_days` (default 7). Framework-level setting, no HITL gate required.
+- **`clarify-log.md`** (new artifact) + **`scripts/{bash,powershell}/clarify-session-bootstrap.{sh,ps1}`** — clarify is an EDIT to `spec.md`, not a re-author, so `spec.md` is NEVER re-stamped per session. Each clarify run gets its own H2 `## Session <ts>` block in `clarify-log.md`.
+- **Atomic Spec Orientation block** auto-injected into every agent file (CLAUDE.md / GEMINI.md / AGENTS.md / .cursorrules / 12 others) by `scripts/{bash,powershell}/inject-orientation.{sh,ps1}`. Sentinel-versioned; auto-upgrades older blocks; never downgrades newer ones.
+- **`init-project.{sh,ps1}`** substitutes the `{{AGENT_NAME}}` placeholder in command templates with the `--ai` value at copy time.
+
+### Honest disclosure
+
+**Orientation Evidence enforcement** — the current release defines `orientation-runs/<ts>-<provider>.md` as REQUIRED by policy; a runtime gate (`check-prerequisites --check-orientation`) blocking Phase 1 on missing evidence ships in v0.3.1.
+
+### Migration note
+
+**Fully backwards compatible.** v0.2.x projects work without changes. New Lifecycle Markers blocks are added incrementally by command runs; pre-v0.3 artifacts without stamps are treated as `legacy_closed` by the Phase 0 Orientation procedure.
 
 ---
 

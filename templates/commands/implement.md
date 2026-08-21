@@ -42,6 +42,14 @@ Per Constitution Article IX, Directive 3, during implementation you are:
 
 The orientation is the cross-provider handoff substrate. Skipping it is a Constitution violation.
 
+#### 0.0 Phase 1 Prelude — Efficiency Hint (v0.4+) _(advisory)_
+
+Run: `atomicspec select-model --phase coordinator`
+
+If a non-empty model name is printed, the project has configured an advisory tier for coordinator-role turns like this Phase 0 Orientation sweep; agents that support per-turn model selection (Claude Code subagent `Task` tool) MAY honor it. When Phase 1 begins and actual task work starts, re-run with `--phase implementer` for the implementer tier. If the command prints nothing, `advisor_enabled` is `false` (v0.4 default) — proceed with default behavior; byte-for-byte v0.3 compatibility is preserved.
+
+**This surface is advisory only.** It does not widen Directive 3 pinning, does not permit reading `plan.md` / `spec.md` / `clarify-log.md` body content, and does not affect the stamp-lifecycle enumeration below. `atomicspec select-model` reads ONLY `specs/_defaults/registry.yaml`, which is not a Directive-3-restricted artifact. Record the resolved model in §0.6's Orientation Evidence file under the `## Efficiency` section. Per-feature measurement lands in v0.4.1.
+
 #### 0.1 Locate the active feature folder
 
 ```bash
@@ -205,7 +213,26 @@ Each run file follows the structure from `templates/orientation-runs-template.md
 ## Decision
 
 <Proceeded to Phase 1 | Resumed T-007 from prior session | Discarded prior work on T-007 (redo) | User aborted>
+
+## Efficiency (v0.4+)
+
+- advisor_enabled: <true|false>
+- tier_map_source: specs/_defaults/registry.yaml
+- provider_detected: {{AGENT_NAME}}
+- notes: advisory only; per-feature measurement lands in v0.4.1
 ```
+
+<!--
+  Why only advisor state + registry pointer, not resolved tier values:
+  the tier map is derived from the registry at read time by v0.4.1
+  measurement tooling; persisting a snapshot of it here would guarantee
+  bit-rot when the registry changes. This block's job in v0.4 is to give
+  a v0.4.1 hook-based baseline reader an unambiguous "was the advisor on
+  during this run, and where should I look up its tier map?" — nothing
+  more. Do NOT expand this to record which model actually ran; that's
+  what the hook API returns, not what the framework can honestly claim.
+-->
+
 
 **Status of enforcement (v0.3 honest disclosure)**: this evidence is REQUIRED by Directive 9, but the wiring that BLOCKS Phase 1 on missing evidence (`check-prerequisites.sh --check-orientation`) ships in v0.3.1, not v0.3.0. For v0.3.0, missing or stale evidence is a Constitution violation by policy but NOT a hard gate. The forthcoming v0.3.1 hardening will make this a runtime block.
 

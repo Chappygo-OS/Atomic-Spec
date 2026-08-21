@@ -7,6 +7,7 @@
 #     "platformdirs",
 #     "readchar",
 #     "httpx",
+#     "pyyaml>=6.0,<7",
 # ]
 # ///
 """
@@ -32,6 +33,7 @@ import tempfile
 import shutil
 import shlex
 import json
+from enum import Enum
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -61,7 +63,16 @@ from typer.core import TyperGroup
 import readchar
 import ssl
 import truststore
+import yaml  # v0.4+: registry.yaml parsing for efficiency block; safe_load only
 from datetime import datetime, timezone
+
+# v0.4+: efficiency tier resolver, imported here so both `select-model` and
+# `efficiency report` subcommands share one code path.
+from specify_cli._registry import (
+    VALID_PHASES,
+    load_registry,
+    resolve_tier,
+)
 
 ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 client = httpx.Client(verify=ssl_context)
@@ -1326,6 +1337,325 @@ def version():
 
     console.print(panel)
     console.print()
+
+# =============================================================================
+# v0.4+ EFFICIENCY SUBCOMMANDS
+# =============================================================================
+# `atomicspec select-model` — machine-readable model lookup for command
+# templates. `atomicspec cost snapshot` — record a single-number cost snapshot
+# from any provider/source. `atomicspec efficiency report --advisory` — print
+# tier resolution + recent snapshots. All advisory in v0.4; per-feature
+# measurement lands in v0.4.1.
+# =============================================================================
+
+cost_app = typer.Typer(
+    name="cost",
+    help="Cost tracking (v0.4+). Advisory single-number snapshots; per-feature measurement lands in v0.4.1.",
+    add_completion=False,
+)
+efficiency_app = typer.Typer(
+    name="efficiency",
+    help="Efficiency reporting (v0.4+). Advisory only in v0.4.",
+    add_completion=False,
+)
+
+
+class Phase(str, Enum):
+    """Valid `--phase` values for `atomicspec select-model`.
+
+    Backed by str so `Phase.coordinator.value == "coordinator"` and callers
+    can pass the enum through to `resolve_tier` without unwrapping. Typer
+    validates the choice at parse time — a typo like `--phase coord`
+    fails loudly with a helpful message rather than silently returning empty.
+    """
+
+    coordinator = "coordinator"
+    implementer = "implementer"
+    hitl = "hitl"
+
+
+@app.command("select-model")
+def select_model(
+    phase: Phase = typer.Option(
+        ...,
+        "--phase",
+        help="Turn phase to resolve: coordinator, implementer, or hitl.",
+    ),
+) -> None:
+    """Print the advisory model for a phase, or empty on disabled/missing.
+
+    Machine-readable: prints the model name + trailing newline on stdout when
+    advisor is on and the tier is set; prints an empty line otherwise. Exit
+    code is always 0 so callers in bash/PowerShell can `MODEL=$(atomicspec ...)`
+    and branch on `[ -n "$MODEL" ]` without special-casing.
+    """
+    resolution = resolve_tier(phase.value)
+    typer.echo(resolution.model or "")
+
+
+@cost_app.command("snapshot")
+def cost_snapshot(
+    amount: float = typer.Option(
+        ..., "--amount", help="Cost in USD for this snapshot (e.g., 1.50)."
+    ),
+    provider: str = typer.Option(
+        ..., "--provider", help="Provider label: anthropic | openai | google | other."
+    ),
+    source: str = typer.Option(
+        "paste",
+        "--source",
+        help="Where the amount came from: paste | jsonl | csv | other.",
+    ),
+    feature: Optional[str] = typer.Option(
+        None,
+        "--feature",
+        help="Optional feature identifier (e.g., 042). Recorded as ad hoc if omitted.",
+    ),
+    tokens: Optional[int] = typer.Option(
+        None, "--tokens", help="Optional token count for provenance."
+    ),
+    note: Optional[str] = typer.Option(
+        None, "--note", help="Free-text note describing the measurement context."
+    ),
+) -> None:
+    """Record a cost snapshot to .specify/efficiency-snapshots/<date>-<scope>.md.
+
+    Atomic-write pattern (`.tmp` → rename). YAML frontmatter carries the
+    numeric fields; prose section is human-readable summary. Snapshots are
+    advisory only — not per-turn measurement.
+    """
+    show_banner()
+
+    cwd = Path.cwd()
+    snapshots_dir = cwd / ".specify" / "efficiency-snapshots"
+    snapshots_dir.mkdir(parents=True, exist_ok=True)
+
+    now = datetime.now(timezone.utc)
+    date_slug = now.strftime("%Y-%m-%d")
+    # HHMMSS + microseconds so same-day+same-scope runs do NOT silently overwrite
+    # the previous snapshot even when a script batch-records within a single
+    # second. This is the "record every paste" contract the docs promise; users
+    # reconciling Anthropic Console entries need every snapshot preserved.
+    time_slug = now.strftime("%H%M%S") + f"{now.microsecond:06d}"
+    feature_slug = f"feature-{feature}" if feature else "adhoc"
+    filename = f"{date_slug}-{time_slug}-{feature_slug}.md"
+    target = snapshots_dir / filename
+
+    frontmatter = {
+        "kind": "efficiency-snapshot",
+        "schema_version": 1,
+        "recorded_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "feature": feature,
+        "provider": provider,
+        "source": source,
+        "amount_usd": amount,
+        "tokens": tokens,
+        "note": note,
+    }
+
+    # yaml.safe_dump handles every YAML-special character correctly: Windows
+    # paths (`C:\Users\x` where `\U` would otherwise be a double-quoted YAML
+    # unicode escape), newlines, colons, quotes, backticks, and unicode.
+    # Hand-rolled quoting was a Windows landmine and dropped newlines silently.
+    # sort_keys=False preserves the order set above so recorded_at reads first.
+    fm_text = yaml.safe_dump(
+        frontmatter,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+    )
+    lines: list[str] = ["---", fm_text.rstrip(), "---", ""]
+    scope_label = f"feature {feature}" if feature else "ad hoc"
+    lines.append(f"# Cost Snapshot — {scope_label}")
+    lines.append("")
+    lines.append(
+        f"Recorded on {date_slug} for provider `{provider}` from source `{source}`."
+    )
+    lines.append("")
+    lines.append(f"**Amount**: ${amount:.2f} USD")
+    if tokens is not None:
+        lines.append(f"**Tokens**: {tokens}")
+    if note:
+        # Preserve multi-line notes verbatim by rendering as a fenced block
+        # rather than collapsing to a single line. Normalize CRLF → LF first.
+        normalized_note = note.replace("\r\n", "\n").replace("\r", "\n")
+        if "\n" in normalized_note:
+            lines.append("**Note**:")
+            lines.append("")
+            lines.append("```")
+            lines.extend(normalized_note.split("\n"))
+            lines.append("```")
+        else:
+            lines.append(f"**Note**: {normalized_note}")
+    lines.append("")
+    lines.append("---")
+    lines.append(
+        "*Advisory data. This snapshot is not a per-turn measurement. "
+        "Per-feature measurement primitive lands in v0.4.1.*"
+    )
+    lines.append("")
+    body = "\n".join(lines)
+
+    tmp_path = target.with_suffix(target.suffix + ".tmp")
+    tmp_path.write_text(body, encoding="utf-8")
+    tmp_path.replace(target)
+
+    console.print(f"[green]Snapshot written:[/green] {target.relative_to(cwd)}")
+    console.print()
+    console.print(
+        "[dim]Use `atomicspec efficiency report --advisory` to see all snapshots.[/dim]"
+    )
+
+
+@efficiency_app.command("report")
+def efficiency_report(
+    advisory: bool = typer.Option(
+        False,
+        "--advisory",
+        help="Print the advisory tier resolution table. Required in v0.4 (only supported mode).",
+    ),
+    feature: Optional[str] = typer.Option(
+        None, "--feature", help="Filter snapshot listing to this feature identifier."
+    ),
+    limit: int = typer.Option(
+        5, "--limit", help="Number of most-recent snapshots to display."
+    ),
+) -> None:
+    """Print the advisory tier map and recent cost snapshots.
+
+    v0.4 supports `--advisory` only. Full per-feature measurement lands in
+    v0.4.1. Output is labeled "advisory only" so it never reads as
+    authoritative billing evidence.
+    """
+    show_banner()
+
+    if not advisory:
+        console.print(
+            "[yellow]v0.4 only supports `--advisory` mode.[/yellow] "
+            "Full measurement lands in v0.4.1."
+        )
+        console.print("Re-run: [cyan]atomicspec efficiency report --advisory[/cyan]")
+        raise typer.Exit(1)
+
+    registry = load_registry()
+    console.print(
+        "[bold]Advisory tier resolution[/bold] "
+        "[dim](advisory only — measurement in v0.4.1)[/dim]"
+    )
+    console.print()
+
+    tier_table = Table(show_header=True, header_style="bold cyan")
+    tier_table.add_column("Phase")
+    tier_table.add_column("Advisor")
+    tier_table.add_column("Configured model")
+    tier_table.add_column("Reason")
+
+    for phase in VALID_PHASES:
+        resolution = resolve_tier(phase, registry)
+        model_cell = resolution.model or "[dim]—[/dim]"
+        advisor_cell = (
+            "[green]on[/green]" if resolution.advisor_enabled else "[dim]off[/dim]"
+        )
+        tier_table.add_row(phase, advisor_cell, model_cell, resolution.reason)
+
+    console.print(tier_table)
+    console.print()
+
+    snapshots_dir = Path.cwd() / ".specify" / "efficiency-snapshots"
+    if not snapshots_dir.is_dir():
+        console.print(
+            "[dim]No snapshots recorded yet.[/dim] "
+            "Use `atomicspec cost snapshot` to record one."
+        )
+        return
+
+    # Load every snapshot's frontmatter once, then sort by recorded_at (which
+    # is monotonic and precise) rather than filename (alphabetical). Skips
+    # files whose frontmatter fails to parse — those render nowhere. The
+    # `--feature NNN` filter matches against the parsed feature field, not
+    # the filename suffix, so it does not collide on "42" vs "042" vs "1042".
+    all_snaps: list[tuple[Path, dict]] = []
+    for path in snapshots_dir.glob("*.md"):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        meta = _parse_snapshot_frontmatter(text)
+        if not meta:
+            continue
+        all_snaps.append((path, meta))
+
+    all_snaps.sort(
+        key=lambda item: str(item[1].get("recorded_at") or item[0].name),
+        reverse=True,
+    )
+
+    if feature:
+        all_snaps = [
+            (p, m) for (p, m) in all_snaps if str(m.get("feature") or "") == feature
+        ]
+
+    if not all_snaps:
+        console.print("[dim]No matching snapshots.[/dim]")
+        return
+
+    snap_table = Table(
+        title=f"Recent snapshots (last {min(limit, len(all_snaps))})",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    snap_table.add_column("Date")
+    snap_table.add_column("Scope")
+    snap_table.add_column("Provider")
+    snap_table.add_column("Amount")
+    snap_table.add_column("Source")
+
+    for _, meta in all_snaps[:limit]:
+        scope = f"feature {meta['feature']}" if meta.get("feature") else "ad hoc"
+        snap_table.add_row(
+            str(meta.get("recorded_at", "?")),
+            scope,
+            str(meta.get("provider", "?")),
+            f"${meta.get('amount_usd', '?')}",
+            str(meta.get("source", "?")),
+        )
+
+    console.print(snap_table)
+
+
+def _parse_snapshot_frontmatter(text: str) -> dict:
+    """Extract YAML frontmatter from a snapshot file. Returns {} on failure.
+
+    Tolerates a leading UTF-8 BOM (``\\ufeff``) on the first line so files
+    re-saved by BOM-adding editors (Notepad, some VS Code configs) still
+    parse. ``str.strip()`` does not remove ``\\ufeff`` on its own, so we
+    strip it explicitly before the ``---`` delimiter check.
+    """
+    lines = text.splitlines()
+    if lines:
+        lines[0] = lines[0].lstrip("﻿")
+    if not lines or lines[0].strip() != "---":
+        return {}
+    body: list[str] = []
+    closed = False
+    for line in lines[1:]:
+        if line.strip() == "---":
+            closed = True
+            break
+        body.append(line)
+    if not closed:
+        return {}
+    try:
+        parsed = yaml.safe_load("\n".join(body))
+    except yaml.YAMLError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+# Register subcommand groups. Must run after group definitions but before main().
+app.add_typer(cost_app, name="cost")
+app.add_typer(efficiency_app, name="efficiency")
+
 
 def main():
     app()

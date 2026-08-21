@@ -69,6 +69,14 @@ Given that feature description, do this:
 
    **NOTE**: Downstream commands (`/atomicspec.plan`, `/atomicspec.build`, etc.) will inherit this platform setting from the spec. This ensures consistent platform context throughout the entire feature lifecycle.
 
+0.5. **Phase 1 Prelude — Efficiency Hint (v0.4+)** _(advisory)_
+
+   Run: `atomicspec select-model --phase coordinator`
+
+   If a non-empty model name is printed (e.g., `claude-haiku-4-5`), the project has configured an advisory tier for coordinator-role turns like this one; agents that support per-turn model selection (Claude Code subagent `Task` tool) MAY honor it. If the command prints nothing, `registry.efficiency.advisor_enabled` is `false` (v0.4 default) or the efficiency block is absent — proceed with default behavior. Byte-for-byte v0.3 compatibility is preserved in the empty case.
+
+   Advisory only: does not affect Directive 3 pinning, gate criteria, or any downstream step. Per-feature measurement lands in v0.4.1.
+
 1. **Check Project Defaults Registry** (per Constitution Directive 7):
 
    Read `specs/_defaults/registry.yaml` to check for existing project defaults.
