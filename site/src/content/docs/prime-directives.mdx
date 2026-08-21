@@ -1,9 +1,9 @@
 ---
-title: The Eight Prime Directives
-description: Article IX of the Atomic Spec constitution — the eight non-negotiable rules that turn AI agents from drift-prone collaborators into a governed assembly line.
+title: The Nine Prime Directives
+description: Article IX of the Atomic Spec constitution — the nine non-negotiable rules (Directive 9 added in v0.3) that turn AI agents from drift-prone collaborators into a governed assembly line.
 category: Concepts
 order: 20
-lastUpdated: 2026-04-29
+lastUpdated: 2026-08-21
 ---
 
 The following directives are **NON-NEGOTIABLE** and enforce the "Atomic Traceability" model:
@@ -127,6 +127,7 @@ Registry-eligible decisions include not only the fields explicitly enumerated in
 - CI/CD platform and deployment workflow
 - Package manager and runtime version pins
 - Testing framework (unit / integration / E2E)
+- **Efficiency model-tier mapping** (v0.4+) — coordinator/implementer/HITL model assignments used advisorily by `/atomicspec.implement` and its siblings for tier routing. See the `registry.efficiency` block. Purely advisory in v0.4 (`advisor_enabled: false` by default); measurement primitive and default flip land in v0.4.1.
 
 **Definition of "commit"**: writing config or code that encodes the choice (e.g., creating `docker-compose.yml`, adding a dependency to `package.json`, importing a framework module), OR recording the choice in `plan.md` or a task file as a fixed value. Drafting a comment that *discusses* options is not committing.
 
@@ -211,6 +212,7 @@ Every task file MUST include an "Embedded Context" section containing:
 | **Feature Summary** | `plan.md` (extracted during task generation) | Always |
 | **Gate Criteria** | Subagent/Station gate checklists | When domain knowledge exists |
 | **Structural Decision Triggers** (v0.2+) | Directive 7 scope list | When the task may commit to containerization, deployment, framework, infrastructure provider, or domain primitive — so the implementer recognizes the AskUserQuestion trigger under Context Pinning |
+| **Efficiency Tier Hint** (v0.4+) | Derived at read time from `registry.efficiency.model_tiers` + task phase | Optional; defaults to `implementer` when unset. Advisory only — surfaces which tier the coordinator/implementer/HITL split would apply for this task's phase, without changing task selection or gate logic |
 
 **Graceful Degradation**:
 
@@ -229,3 +231,57 @@ Not all knowledge sources may exist. Handle gracefully:
 **Violation**: Generating task files WITHOUT an Embedded Context section is a Constitution violation. The implementer must have EVERYTHING needed to complete the task without reading forbidden files.
 
 **Rationale**: Subagents during `/atomicspec.implement` are "blind" to stations, subagents, plan.md, and spec.md. Embedding context ensures they follow project patterns instead of guessing.
+
+## Directive 9: Orientation Read Surface (v0.3+)
+
+**Directive 3 (Context Pinning) is unchanged.** This Directive defines a separate, narrower control for the one-shot **Orientation Phase** that runs at the start of `/atomicspec.implement` to detect cross-provider handoff state. It exists as a sibling to Directive 3, not an expansion of it.
+
+**Purpose**: Before any task loop begins, the implementer must detect whether prior work in this feature folder is partially completed (e.g., a Claude session crashed mid-task; a Codex session resumes). Without this detection, a resuming AI silently re-implements work or overwrites half-finished output.
+
+**Scope — enumerated artifacts only**:
+
+The Orientation Phase MAY inspect the following artifacts in the active feature folder, and ONLY these:
+
+- `spec.md`
+- `clarify-log.md` (if present)
+- `plan.md`
+- `index.md`
+- `traceability.md`
+- Every file matching `tasks/T-*.md`
+
+"Any artifact" is not permitted. The list above is exhaustive.
+
+**Permitted read mechanism**:
+
+The Orientation Phase MUST read these artifacts ONLY through the `stamp-lifecycle status` script:
+
+```
+scripts/bash/stamp-lifecycle.sh status --artifact <path>
+scripts/powershell/stamp-lifecycle.ps1 status -Artifact <path>
+```
+
+The script returns JSON describing the Lifecycle Markers block state without exposing surrounding content. **Direct `Read`-tool invocation on `spec.md`, `plan.md`, or `clarify-log.md` body content during Phase 0 is a Constitution violation, regardless of intent.** `index.md` and `traceability.md` may be read directly because Directive 3 already permits them.
+
+**Evidence requirement**:
+
+The Orientation Phase MUST emit its findings as a per-run file under `specs/<feature>/orientation-runs/`, named `<ISO-8601-UTC>-<provider>.md` (e.g., `2026-06-19T15-30-22Z-claude.md`). Each file contains the script's JSON output for every inspected artifact, the outcome (clean / stale / conflict), and the resume decision the user confirmed.
+
+**Why per-run files, not a single appended log**: two providers racing on the same branch (e.g., a crashed Claude session and a fresh Codex session start within seconds) would silently overwrite each other if both prepended to a shared `orientation-runs.md`. Per-run files are append-free and race-free by construction (no two ISO timestamps collide at second precision).
+
+**Enforcement timeline**:
+- **v0.3.0**: the evidence file is REQUIRED by policy. Absence is a Constitution violation but is NOT yet a runtime gate.
+- **v0.3.1**: `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Marketed claims about Directive 9 enforcement should reflect this disclosure until v0.3.1 ships.
+
+**Outcomes — exactly three**:
+
+1. **Clean state** — every artifact reports `closed` (or `legacy_closed` for pre-v0.3 artifacts without stamps). Print a single-line summary; proceed to Phase 1. Normal Context Pinning resumes.
+2. **Stale state** — one or more artifacts have an `open` block whose start timestamp is older than the registry's `lifecycle.stale_threshold` (default: 7 days). Surface as informational ("this work appears abandoned"), let the user confirm resume-or-discard. Not blocking.
+3. **Conflict** — one or more artifacts have an `open` block with a start timestamp newer than the stale threshold. STOP, present options menu to user (resume / redo / skip / abort), await confirmation before proceeding.
+
+**Termination**:
+
+Once a task is pinned in Phase 1, the Orientation Phase is finished. Subsequent reads in the session are governed by Directive 3 alone. The Phase 0 carve-out is single-shot, not persistent.
+
+**Violation**: Reading body content of `spec.md`, `plan.md`, or `clarify-log.md` during Phase 0; omitting the `## Orientation Evidence` block from `traceability.md`; or expanding the enumerated artifact scope without a Constitution amendment.
+
+**Rationale**: A governance framework that prevents drift during implementation must also prevent silent failure at session start. The Orientation Phase is the one place where cross-artifact reads are necessary, and isolating it as its own narrow Directive keeps Directive 3 verbatim — preserving the "implementer reads exactly three files" guarantee that the framework's positioning depends on.

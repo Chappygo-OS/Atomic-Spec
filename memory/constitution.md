@@ -4,7 +4,7 @@
 
 > **Note to Atomic Spec users**: Articles I–VIII below are **intentionally left as `[PLACEHOLDER]` tokens**. They are filled in per consumer project by running `/atomicspec.constitution` — that command interactively authors your project's governing principles and replaces every placeholder.
 >
-> **Article IX (Prime Directives) is NOT a placeholder** — it is hardcoded below and encodes the eight non-negotiable rules of the Atomic Traceability Model. Do not edit Article IX unless you are deliberately changing framework governance.
+> **Article IX (Prime Directives) is NOT a placeholder** — it is hardcoded below and encodes the nine non-negotiable rules of the Atomic Traceability Model (Directive 9 added in v0.3 for the Orientation Read Surface). Do not edit Article IX unless you are deliberately changing framework governance.
 
 ## Core Principles
 
@@ -195,6 +195,7 @@ Registry-eligible decisions include not only the fields explicitly enumerated in
 - CI/CD platform and deployment workflow
 - Package manager and runtime version pins
 - Testing framework (unit / integration / E2E)
+- **Efficiency model-tier mapping** (v0.4+) — coordinator/implementer/HITL model assignments used advisorily by `/atomicspec.implement` and its siblings for tier routing. See the `registry.efficiency` block. Purely advisory in v0.4 (`advisor_enabled: false` by default); measurement primitive and default flip land in v0.4.1.
 
 **Definition of "commit"**: writing config or code that encodes the choice (e.g., creating `docker-compose.yml`, adding a dependency to `package.json`, importing a framework module), OR recording the choice in `plan.md` or a task file as a fixed value. Drafting a comment that *discusses* options is not committing.
 
@@ -279,6 +280,7 @@ Every task file MUST include an "Embedded Context" section containing:
 | **Feature Summary** | `plan.md` (extracted during task generation) | Always |
 | **Gate Criteria** | Subagent/Station gate checklists | When domain knowledge exists |
 | **Structural Decision Triggers** (v0.2+) | Directive 7 scope list | When the task may commit to containerization, deployment, framework, infrastructure provider, or domain primitive — so the implementer recognizes the AskUserQuestion trigger under Context Pinning |
+| **Efficiency Tier Hint** (v0.4+) | Derived at read time from `registry.efficiency.model_tiers` + task phase | Optional; defaults to `implementer` when unset. Advisory only — surfaces which tier the coordinator/implementer/HITL split would apply for this task's phase, without changing task selection or gate logic |
 
 **Graceful Degradation**:
 

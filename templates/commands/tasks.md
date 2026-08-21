@@ -48,6 +48,14 @@ Run `{SCRIPT}` from repo root. This script will:
 
 If the script outputs gate failures, report them to the user and **DO NOT PROCEED**.
 
+### 1.25 Phase 1 Prelude — Efficiency Hint (v0.4+) _(advisory)_
+
+Run: `atomicspec select-model --phase coordinator`
+
+If a non-empty model name is printed, the project has configured an advisory tier for coordinator-role turns like task generation; agents that support per-turn model selection (Claude Code subagent `Task` tool) MAY honor it. If the command prints nothing, `advisor_enabled` is `false` (v0.4 default) — proceed with default behavior; byte-for-byte v0.3 compatibility is preserved.
+
+Advisory only: does not affect Directive 3 pinning (task generation is not yet under Context Pinning; that begins at `/atomicspec.implement`), gate criteria, atomic task naming (Directive 2), or embedded-context generation (Directive 8). Per-feature measurement lands in v0.4.1.
+
 ### 1.5 Load Project Defaults Registry
 
 **Per Constitution Article IX, Directive 7 - Load registry before generating tasks.**

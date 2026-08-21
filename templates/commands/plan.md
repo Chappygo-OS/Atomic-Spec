@@ -232,6 +232,14 @@ Store configuration in plan.md:
 
 Before any planning work, load the project defaults registry:
 
+**Phase 1 Prelude — Efficiency Hint (v0.4+)** _(advisory)_
+
+Run: `atomicspec select-model --phase coordinator`
+
+If a non-empty model name is printed, the project has configured an advisory tier for coordinator-role turns like this Phase 0.x work; agents that support per-turn model selection (Claude Code subagent `Task` tool) MAY honor it. When Phase 1 begins (Technical Context, architecture drafting, actual planning), re-run with `--phase implementer` for that phase's advisory tier. For HITL checkpoints (Phase 0.5, 0.7, 0.8, 0.9), `--phase hitl` applies. If the command prints nothing, `advisor_enabled` is `false` (v0.4 default) — proceed with default behavior; byte-for-byte v0.3 compatibility is preserved.
+
+Advisory only: does not affect Directive 3 pinning, gate criteria, or the HITL checkpoints below. Per-feature measurement lands in v0.4.1.
+
 1. **Read registry file**:
    ```
    Read: specs/_defaults/registry.yaml

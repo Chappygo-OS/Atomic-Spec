@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/atomic-spec.svg?logo=python&logoColor=white)](https://pypi.org/project/atomic-spec/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Agents supported](https://img.shields.io/badge/agents-17-8A2BE2)](#ai-coding-agents-supported)
-[![Status](https://img.shields.io/badge/status-v0.3.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
+[![Status](https://img.shields.io/badge/status-v0.4.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
 
 **Spec-kit taught AI agents a workflow. Atomic Spec makes them obey it.** When `/atomicspec.implement` runs, the agent is *architecturally prevented* from reading `plan.md` or `spec.md` — it sees only the current task file, pre-loaded with every registry value, domain rule, and gate criterion it needs. No drifting mid-feature. No hallucinating a new approach on pass three. No 800-line "kitchen sink" PRs.
 
@@ -19,17 +19,17 @@ atomicspec init my-project --ai claude
 
 </div>
 
-> **TL;DR** — One AI instruction file isn't enough. Atomic Spec enforces **eight non-negotiable rules**: one task per file, AI sees only the current task during coding, human sign-off at four checkpoints, and a project registry that remembers every decision. If you've ever reviewed an AI PR and thought *"where did this pattern come from?"* — that's the problem this exists to kill.
+> **TL;DR** — One AI instruction file isn't enough. Atomic Spec enforces **nine non-negotiable rules**: one task per file, AI sees only the current task during coding, human sign-off at four checkpoints, a project registry that remembers every decision, and cross-provider handoff detection so a fresh session picks up exactly where the last one crashed. If you've ever reviewed an AI PR and thought *"where did this pattern come from?"* — that's the problem this exists to kill.
 
 ---
 
 ## Status
 
-**v0.3.0 · current.** The core governance model (now Nine Prime Directives — Directive 9 added in v0.3 for the Orientation Read Surface) is stable and exercised on every release. APIs and command names may evolve through v0.x. Claude Code is the reference implementation and validated end-to-end; 12 other agents are experimental (templates install correctly, agent-specific wiring not yet exhaustively tested). [See the agent tier table below](#ai-coding-agents-supported).
+**v0.4.0 · current.** The core governance model (Nine Prime Directives — Directive 9 added in v0.3 for the Orientation Read Surface) is stable and exercised on every release. APIs and command names may evolve through v0.x. Claude Code is the reference implementation and validated end-to-end; 12 other agents are experimental (templates install correctly, agent-specific wiring not yet exhaustively tested). [See the agent tier table below](#ai-coding-agents-supported).
 
-**New in v0.3 — cross-provider AI handoff.** *Enforcement scope*: Lifecycle Markers, stamp-lifecycle scripts, and cross-phase pre-flight guards (in `/clarify`, `/plan`, `/tasks`) are machine-enforced. The Phase 0 Orientation procedure and Directive 9's `orientation-runs/` evidence requirement are **policy-enforced in v0.3.0** (the AI's compliance with Article IX is the control); the runtime gate (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing evidence ships in v0.3.1. Non-Claude `init-project` paths (gemini / copilot / cursor / windsurf + 12 experimental) ship via the PyPI CLI build pipeline in the same release window; until then, `--ai claude` is the only bash/PowerShell init path with full `{{AGENT_NAME}}` substitution.
+**New in v0.4 — advisory model-tier routing.** Consumer projects can now split coordinator turns (Phase 0 orientation, task selection, gate checks, stamp writes) from implementer turns (code generation, verification loop) and HITL turns (Directive 6 checkpoints) onto different model tiers. Defaults on Anthropic: Haiku for coordination, Sonnet for implementation, Opus for HITL. Shipped **advisor-off by default** (`registry.efficiency.advisor_enabled: false`) — consumer projects on v0.3 see byte-for-byte identical behavior after upgrade. Two new CLI subcommands surface the config: `atomicspec select-model --phase <coordinator|implementer|hitl>` (machine-readable model lookup) and `atomicspec efficiency report --advisory` (dry-run of tier decisions + snapshot log). Per-feature measurement primitive lands in v0.4.1 on Claude Code's stable hook API + Anthropic Console CSV import; v0.4 ships the config surface + honest snapshot recorder (`atomicspec cost snapshot`), not per-turn accounting. Directives 7 and 8 amended in place — nine directives stays nine. Full details: [`docs/efficiency.md`](./docs/efficiency.md).
 
- When Claude crashes mid-feature and you switch to Codex (or Gemini, Cursor, etc.), the receiving AI now self-orients from files alone: detects which artifacts are half-done via Lifecycle Markers stamps, prompts you on conflict, and resumes cleanly without silently overwriting work. The orientation block is auto-injected into every agent file (CLAUDE.md / GEMINI.md / AGENTS.md / .cursorrules / 12 others), so a fresh provider session learns the framework rules on first read. See the v0.3 entry in [CHANGELOG.md](./CHANGELOG.md) for the full mechanism and honest disclosures.
+**New in v0.3 — cross-provider AI handoff.** Lifecycle Markers, stamp-lifecycle scripts, and cross-phase pre-flight guards (in `/clarify`, `/plan`, `/tasks`) are machine-enforced. The Phase 0 Orientation procedure and Directive 9's `orientation-runs/` evidence requirement are **policy-enforced in v0.3.0** (the AI's compliance with Article IX is the control); the runtime gate (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing evidence ships in v0.3.1. When Claude crashes mid-feature and you switch to Codex (or Gemini, Cursor, etc.), the receiving AI now self-orients from files alone: detects which artifacts are half-done via Lifecycle Markers stamps, prompts you on conflict, and resumes cleanly without silently overwriting work. See the v0.3 entry in [CHANGELOG.md](./CHANGELOG.md) for the full mechanism and honest disclosures.
 
 ---
 
@@ -612,6 +612,16 @@ Tasks follow a numbering scheme by phase:
 | `/atomicspec.analyze` | Cross-artifact consistency analysis |
 | `/atomicspec.checklist` | Generate quality validation checklists |
 | `/atomicspec.taskstoissues` | Convert tasks to GitHub issues |
+
+### Efficiency Commands (v0.4+)
+
+Advisory tier routing and cost snapshotting. All commands work with `advisor_enabled: false` (v0.4 default); they simply return empty or unchanged output. Full details: [`docs/efficiency.md`](./docs/efficiency.md).
+
+| Command | Description |
+|---------|-------------|
+| `atomicspec select-model --phase <coordinator\|implementer\|hitl>` | Machine-readable model lookup for command templates. Prints the configured tier model or empty on advisor-off. |
+| `atomicspec cost snapshot --amount <USD> --provider <name> [--feature NNN] [--tokens N] [--note "..."]` | Record a single-number cost snapshot from paste / CSV / JSONL. Writes `.specify/efficiency-snapshots/`. |
+| `atomicspec efficiency report --advisory [--feature NNN] [--limit N]` | Print the tier resolution table + recent snapshots. `--advisory` required; per-feature measurement lands in v0.4.1. |
 
 ### Cleanup Command Details
 
