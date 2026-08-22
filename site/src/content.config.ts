@@ -24,6 +24,11 @@ const docs = defineCollection({
     order: z.number().default(100),
     lastUpdated: z.coerce.date().optional(),
     draft: z.boolean().default(false),
+    // Search keywords — hand-authored per page. Merged with title,
+    // description, and body H2/H3 headings at build time to form the
+    // static docs search index. Each page owns its own recall surface
+    // explicitly rather than relying on inferred full-text weighting.
+    keywords: z.array(z.string()).default([]),
   }),
 });
 

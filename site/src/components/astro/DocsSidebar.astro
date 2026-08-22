@@ -15,6 +15,7 @@
  */
 import type { NavGroup } from '../../lib/nav';
 import { normalizePathname } from '../../lib/url';
+import DocsSearchBar from '../react/DocsSearchBar.tsx';
 
 interface Props {
   nav: NavGroup[];
@@ -29,6 +30,9 @@ const currentPath = normalizePathname(Astro.url.pathname);
     aria-label="Documentation"
     class="sticky top-[calc(var(--header-h,4rem)+1rem)] max-h-[calc(100dvh-var(--header-h,4rem)-2rem)] overflow-y-auto pr-4"
   >
+    <div class="mb-6">
+      <DocsSearchBar client:idle />
+    </div>
     {
       nav.map((group) => (
         <div class="mb-8">
