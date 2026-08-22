@@ -1,0 +1,173 @@
+---
+/**
+ * Directives — the nine Prime Directives from Article IX of the constitution.
+ *
+ * Static Astro. 3x3 grid on desktop, 2-column on tablet, single column on
+ * mobile. Every card is a `.glass-card` (the signature material — see
+ * global.css section "LIQUID GLASS MATERIALS"). Design tokens only; no
+ * hard-coded colors.
+ *
+ * Special treatment:
+ *   - Directive 3 (Context Pinning) is load-bearing. Rendered with the
+ *     `.callout-directive` iris tint on top of the glass card so the eye
+ *     lands on it first when scanning the grid.
+ *   - Directive 9 (Orientation Read Surface) is the v0.3+ addition. Small
+ *     emerald `NEW - v0.3+` pill in the top-right corner.
+ *
+ * Motion: cards fade up on entry with a 60ms stagger (via inline
+ * animation-delay). Reduced-motion falls back to instant render courtesy
+ * of the global @media (prefers-reduced-motion) rule in global.css.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Directive {
+  number: string;   // zero-padded (01..09) — shown in monospace badge
+  name: string;     // short name
+  rule: string;     // one-sentence rule
+  prevents: string; // what this prevents (failure mode)
+}
+
+const directives: Directive[] = [
+  {
+    number: '01',
+    name: 'Directory Supremacy',
+    rule: 'Every feature owns an index.md and traceability.md.',
+    prevents: 'implementations that no one can trace back to a requirement.',
+  },
+  {
+    number: '02',
+    name: 'Atomic Injunction',
+    rule: 'Tasks live one per file in tasks/T-XXX-*.md, never a single tasks.md.',
+    prevents: 'AI reading sibling tasks and drifting mid-feature.',
+  },
+  {
+    number: '03',
+    name: 'Context Pinning',
+    rule: 'During /implement, AI may only read index.md, the current task, and traceability.md.',
+    prevents: 'kitchen-sink PRs that re-derive decisions from plan.md.',
+  },
+  {
+    number: '04',
+    name: 'Gate Compliance',
+    rule: 'Knowledge Station gate criteria must pass before phase transitions.',
+    prevents: 'proceeding on "feels good" instead of objective criteria.',
+  },
+  {
+    number: '05',
+    name: 'Knowledge Routing',
+    rule: 'Unknown decisions consult the Station Map first, then the specific station.',
+    prevents: 'AI improvising when a proven pattern exists.',
+  },
+  {
+    number: '06',
+    name: 'Human-In-The-Loop',
+    rule: '/plan pauses at 4 mandatory HITL checkpoints.',
+    prevents: 'silent architectural commitments the reviewer never sees.',
+  },
+  {
+    number: '07',
+    name: 'Project Defaults Registry',
+    rule: 'All commands read specs/_defaults/registry.yaml and enforce project-wide standards.',
+    prevents: 'inconsistent conventions across a codebase.',
+  },
+  {
+    number: '08',
+    name: 'Self-Contained Tasks',
+    rule: 'Task files embed all context needed for implementation.',
+    prevents: 'the implementer needing to read forbidden files.',
+  },
+  {
+    number: '09',
+    name: 'Orientation Read Surface',
+    rule: '/implement Phase 0 detects cross-provider handoff via stamp-lifecycle status.',
+    prevents: "one AI silently overwriting another AI's half-finished work.",
+  },
+];
+---
+
+<section id="directives" class="relative overflow-hidden bg-transparent py-24">
+  <div class="container relative z-10 mx-auto px-4">
+    <header class="mb-16 text-center">
+      <p class="mb-2 font-mono text-sm font-semibold uppercase tracking-wider text-primary-soft">
+        Article IX
+      </p>
+      <h2 class="text-3xl font-bold text-text md:text-4xl">The Nine Prime Directives</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-text-muted">
+        Non-negotiable rules every command enforces. Articles I-VIII of the constitution flex
+        with your project; Article IX is invariant across every consumer of the framework.
+      </p>
+    </header>
+
+    <ul
+      role="list"
+      class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {
+        directives.map((d, i) => {
+          const isLoadBearing = d.number === '03';
+          const isNew = d.number === '09';
+          return (
+            <li
+              class:list={[
+                'glass-card fade-up relative p-6',
+                isLoadBearing && 'ring-1 ring-primary/30',
+              ]}
+              style={`animation-delay: ${i * 60}ms;`}
+            >
+              {isNew && (
+                <span
+                  class="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-gate-open/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-gate-open"
+                  aria-label="New in v0.3 and later"
+                >
+                  New - v0.3+
+                </span>
+              )}
+
+              <div class="mb-5 flex items-center gap-3">
+                <span
+                  class:list={[
+                    'flex h-10 w-10 items-center justify-center rounded-full font-mono text-sm font-bold',
+                    isLoadBearing ? 'bg-primary/20 text-primary-soft' : 'bg-primary/10 text-primary-soft',
+                  ]}
+                  aria-hidden="true"
+                >
+                  {d.number}
+                </span>
+                {isLoadBearing && (
+                  <span class="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary-soft">
+                    Load-bearing
+                  </span>
+                )}
+              </div>
+
+              <h3 class="mb-2 text-lg font-semibold text-text">{d.name}</h3>
+              <p class="mb-4 text-sm leading-relaxed text-text-muted">{d.rule}</p>
+
+              <p class="flex items-start gap-2 text-sm text-text-muted">
+                <Icon
+                  name="lucide:shield-alert"
+                  class="mt-0.5 h-4 w-4 flex-shrink-0 text-gate-closed"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span class="font-semibold uppercase tracking-wider text-text-muted">Prevents:</span>{' '}
+                  {d.prevents}
+                </span>
+              </p>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <div class="mt-14 text-center">
+      <a
+        href="/docs/prime-directives"
+        class="inline-flex items-center gap-2 font-mono text-sm text-primary-soft transition-colors hover:text-primary"
+      >
+        Read the full text of Article IX
+        <Icon name="lucide:arrow-right" class="h-4 w-4" aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+</section>

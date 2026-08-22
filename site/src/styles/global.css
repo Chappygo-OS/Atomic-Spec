@@ -1,44 +1,114 @@
 /* ----------------------------------------------------------------------------
- * global.css — Atomic Spec site
+ * global.css — Atomic Spec site (v0.4 redesign — liquid glass)
  *
  * Layer order:
  *   1. Tailwind 4 entrypoint
  *   2. @theme tokens (extend Tailwind defaults via CSS variables)
  *   3. Base resets / element defaults
- *   4. Custom utilities (.bg-grid)
+ *   4. Signature materials (.glass-hero, .glass-card, .callout-*)
+ *   5. Motion primitives + reduced-motion / reduced-transparency fallbacks
  *
- * Fonts are loaded via <link> in BaseLayout.astro with preconnect for
- * faster first paint. Animation keyframes live with their components.
+ * Design tokens follow the visual-direction agent's brief:
+ * dark-first OKLCH neutrals, iris primary (not violet — avoids AI-purple),
+ * amber "gate-closed" as governance-native warning, emerald "gate-open"
+ * for success/passing states, one animated background max (rejected as
+ * project-wide; used only on the hero via an isolated stacking context).
  * ------------------------------------------------------------------------- */
 
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 /* -----------------------------------------------------------------
- * Theme tokens — surfaced as Tailwind utilities (e.g. text-primary,
- * font-sans). oklch values match emerald-500 / 600 from Tailwind v4.
+ * ROOT TOKENS (non-@theme — accessible as var() only, not as Tailwind utilities).
+ * `--header-h` is the canonical site-header height — any sticky element
+ * below the header should offset by this value so they stay in sync if
+ * the header ever changes height.
  * ----------------------------------------------------------------- */
-/* Global root tokens. `--header-h` is the canonical site-header height —
-   any sticky element below the header should offset by this value so they
-   stay in sync if the header ever changes height. */
 :root {
   --header-h: 3.5rem;
+
+  /* Motion tokens (v0.4+) — three durations, three curves. Governance products
+     don't perform urgency; motion is deliberate, weighted, precise. See
+     design-research-motion.md § "Motion Principles". */
+  --dur-tap: 120ms;
+  --dur-state: 240ms;
+  --dur-narrative: 480ms;
+  --dur-signature: 720ms;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);   /* entry — feels engineered */
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);     /* exit — clean departure */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* bidirectional */
+
+  /* Glass material recipe — the three layers that sell "liquid glass":
+     specular top edge + ambient shadow + backdrop blur. Adjust per surface. */
+  --glass-blur: 20px;
+  --glass-saturate: 1.4;
+  --glass-tint: rgb(255 255 255 / 0.04);
+  --glass-tint-strong: rgb(255 255 255 / 0.06);
+  --glass-highlight: rgb(255 255 255 / 0.12);
+  --glass-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.5), 0 4px 16px -4px rgb(0 0 0 / 0.3);
+  --glass-rim: 1px solid rgb(255 255 255 / 0.08);
 }
 
 @theme {
-  --color-primary: oklch(69.6% 0.17 162.48);     /* ~ emerald-500 */
-  --color-primary-strong: oklch(59.6% 0.145 163.225); /* ~ emerald-600 */
-  --color-surface: #020617;                       /* slate-950 */
-  --color-surface-soft: #0f172a;                  /* slate-900 */
+  /* --- NEUTRALS (dark-first) --------------------------------------
+     Cool blue-tinted neutrals (hue 260-ish). surface-0 is body bg;
+     surface-1 is the base card; surface-2 is elevated / hover. */
+  --color-surface-0: oklch(19.5% 0.02 264);
+  --color-surface-1: oklch(23% 0.02 264);
+  --color-surface-2: oklch(28% 0.025 265);
+  --color-surface-3: oklch(33% 0.03 266);
 
+  --color-text: oklch(96% 0.005 265);       /* primary text */
+  --color-text-muted: oklch(75% 0.015 265); /* body prose */
+  --color-text-dim: oklch(60% 0.02 265);    /* meta, captions */
+  --color-border: oklch(30% 0.02 265);
+  --color-border-strong: oklch(40% 0.025 265);
+
+  /* --- ACCENTS ------------------------------------------------------
+     Iris primary — hue 265, chroma tuned for trust/technical without
+     drifting into AI-purple. Cyan secondary for links/info. */
+  --color-primary: oklch(68% 0.18 265);              /* iris — main CTA */
+  --color-primary-strong: oklch(60% 0.19 265);       /* hover/active */
+  --color-primary-soft: oklch(78% 0.14 265);         /* on-glass tint */
+
+  --color-secondary: oklch(78% 0.12 220);            /* cyan — informational */
+  --color-secondary-strong: oklch(70% 0.14 220);
+
+  /* --- GOVERNANCE STATES -------------------------------------------
+     Semantic hues for gate state — the product's whole vocabulary.
+     Amber (not red) for "gate closed" keeps warning distinct from
+     violation. Emerald for "gate open" retains the existing CTA
+     recognition (v0.3 install-button green). Red used sparingly. */
+  --color-gate-closed: oklch(76% 0.15 70);           /* amber */
+  --color-gate-closed-soft: oklch(85% 0.10 70);
+  --color-gate-open: oklch(71% 0.17 162);            /* emerald */
+  --color-gate-open-strong: oklch(60% 0.15 163);
+  --color-directive-violation: oklch(65% 0.20 25);   /* red — rare */
+
+  /* --- TYPOGRAPHY --------------------------------------------------
+     Inter var for display + body (sans), JetBrains Mono var for code
+     and micro-labels. Fallbacks target system-native when the web
+     fonts haven't loaded yet, minimizing FOIT/FOUT layout shift. */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* --- ANIMATION EASINGS AS TOKENS ---------------------------------
+     Exposed as Tailwind `ease-*` utilities so components stay
+     off ad-hoc bezier values. */
+  --ease-fluid: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-precise: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- LEGACY ALIASES (transitional — keeps pre-redesign components
+     rendering while we migrate them piece by piece) ----------------- */
+  --color-surface: var(--color-surface-0);
+  --color-surface-soft: var(--color-surface-1);
 }
 
 /* -----------------------------------------------------------------
- * Base resets — keep minimal; rely on Tailwind's preflight.
- * The `slate-950` body bg lets the AnimatedBackground blobs read
- * with their `mix-blend-mode: overlay`.
+ * Base resets — keep minimal; rely on Tailwind's preflight. Body
+ * paints its own solid ground so viewer's system theme doesn't leak
+ * through translucent glass materials.
  * ----------------------------------------------------------------- */
 html {
   -webkit-font-smoothing: antialiased;
@@ -47,27 +117,29 @@ html {
 }
 
 body {
-  background-color: var(--color-surface);
-  color: rgb(226 232 240); /* slate-200 */
+  background-color: var(--color-surface-0);
+  color: var(--color-text);
   font-family: var(--font-sans);
   min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
+  font-feature-settings: 'ss01' on, 'cv11' on;
+  letter-spacing: -0.011em;
 }
 
 /* -----------------------------------------------------------------
- * .bg-grid — recreates the Hero grid backdrop (40px × 40px lines on
- * slate-800 #1e293b). Use as `class="bg-grid"` on any container.
+ * GRID BACKDROP — existing utility retained. New neutral border
+ * hue (was slate-800 #1e293b; now matches token surface-3).
  * ----------------------------------------------------------------- */
 .bg-grid {
   background-image:
-    linear-gradient(to right, #1e293b 1px, transparent 1px),
-    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+    linear-gradient(to right, oklch(28% 0.02 265) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(28% 0.02 265) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 /* -----------------------------------------------------------------
- * Skip-link target — keep <main id="main"> clear of the sticky header
+ * SKIP-LINK TARGET — keep <main id="main"> clear of the sticky header
  * when the user activates the skip-link or any other in-page anchor.
  * ----------------------------------------------------------------- */
 main#main {
@@ -75,27 +147,121 @@ main#main {
 }
 
 /* -----------------------------------------------------------------
- * Entrance animations — replace Framer Motion's `initial → animate`
- * fades with plain CSS keyframes. Saves ~30 KB gzipped. The
- * `prefers-reduced-motion` rule below collapses durations to ~0.
- * Use with `[animation-delay:Nms]` Tailwind arbitrary classes for
- * staggered reveals.
+ * LIQUID GLASS MATERIALS (v0.4+)
+ *
+ * Three signature surfaces — use each once per page, not everywhere.
+ * The visual-direction agent's rule: "glass is a frame, never the
+ * content." Long-form text sits on solid --color-surface-1, not glass.
+ *
+ * Every glass surface has a reduced-transparency fallback that swaps
+ * `backdrop-filter` for a solid --color-surface-2 fill. WCAG-safe.
+ * ----------------------------------------------------------------- */
+
+/* Hero — the money shot. Large surface, deep ambient shadow.
+   `contain: layout paint style` isolates the hero card's rendering work
+   from the rest of the page so mouse-tilt transforms + backdrop blurs
+   never invalidate anything outside its bounding box. */
+.glass-hero {
+  background: linear-gradient(135deg, var(--glass-tint-strong), var(--glass-tint));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    var(--glass-shadow);
+  border-radius: 1.25rem;
+  contain: layout paint style;
+}
+
+/* Feature card — repeated on the homepage (Directives grid, etc.).
+   Per the CSS-review pass: blur reduced 14 → 10px (2× cheaper × 12
+   card instances on the homepage), and `contain: layout paint style`
+   isolates per-card work so hovering one never repaints the eight
+   others in the grid. */
+.glass-card {
+  background: linear-gradient(180deg, var(--glass-tint-strong), var(--glass-tint));
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  border: var(--glass-rim);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 8px 24px -8px rgb(0 0 0 / 0.4);
+  border-radius: 0.875rem;
+  contain: layout paint style;
+  transition:
+    box-shadow var(--dur-state) var(--ease-fluid),
+    border-color var(--dur-state) var(--ease-fluid);
+}
+
+/* Hover state — materials refract rather than translate. IMPORTANT:
+   we intentionally do NOT animate `backdrop-filter` here. The CSS-review
+   agent flagged that animating blur radius forces the backdrop-copy pass
+   to re-run every frame of the 240ms transition — worst-case cost. Border
+   + inset shadow shift alone sells the "leans in" material response and
+   is essentially free (composite-only). Zero vertical hop means adjacent
+   cards don't nudge each other on grid hover. */
+.glass-card:hover {
+  border-color: rgb(255 255 255 / 0.20);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.24),
+    inset 0 0 32px 0 rgb(255 255 255 / 0.05),
+    0 12px 32px -8px rgb(0 0 0 / 0.5);
+}
+
+/* Callouts — semantic materials keyed to governance state.
+   Gate-closed (amber) is the framework's signature caution color;
+   gate-open (emerald) marks progress; violation (red) is rare and
+   reserved for constitution-breach documentation. */
+.callout-gate-closed {
+  background: color-mix(in oklch, var(--color-gate-closed) 12%, transparent);
+  backdrop-filter: blur(10px);
+  border-left: 3px solid var(--color-gate-closed);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.callout-gate-open {
+  background: color-mix(in oklch, var(--color-gate-open) 10%, transparent);
+  backdrop-filter: blur(10px);
+  border-left: 3px solid var(--color-gate-open);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.callout-directive {
+  background: color-mix(in oklch, var(--color-primary) 10%, transparent);
+  backdrop-filter: blur(10px);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+/* -----------------------------------------------------------------
+ * ENTRANCE ANIMATIONS — CSS keyframes only. Framer Motion would add
+ * ~30 KB gzipped for what these four keyframes do. Use with
+ * `[animation-delay:Nms]` Tailwind arbitrary classes for stagger.
  * ----------------------------------------------------------------- */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-scale {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.98); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-.fade-up    { animation: fade-up 0.5s ease-out both; }
-.fade-scale { animation: fade-scale 0.8s ease-out both; }
+@keyframes aurora-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33%      { transform: translate(2%, -1%) rotate(120deg); }
+  66%      { transform: translate(-1%, 1%) rotate(240deg); }
+}
+
+.fade-up    { animation: fade-up var(--dur-narrative) var(--ease-fluid) both; }
+.fade-scale { animation: fade-scale var(--dur-signature) var(--ease-fluid) both; }
 
 /* -----------------------------------------------------------------
- * Skip-to-content link — visually hidden until focused. Provides a
+ * SKIP-TO-CONTENT LINK — visually hidden until focused. Provides a
  * keyboard bypass past the sticky header to <main>.
  * ----------------------------------------------------------------- */
 .skip-link {
@@ -105,24 +271,25 @@ main#main {
   z-index: 100;
   padding: 0.5rem 0.875rem;
   background: var(--color-primary);
-  color: #020617;
+  color: var(--color-surface-0);
   border-radius: 0.5rem;
   font-weight: 600;
   font-size: 0.875rem;
   transform: translateY(-200%);
-  transition: transform 150ms ease-out;
+  transition: transform var(--dur-state) var(--ease-fluid);
 }
 
 .skip-link:focus,
 .skip-link:focus-visible {
   transform: translateY(0);
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
 }
 
 /* -----------------------------------------------------------------
- * Default focus-visible — emerald ring against any surface.
- * Applies to anything the page doesn't already style.
+ * DEFAULT FOCUS-VISIBLE — iris ring against any surface. Uses
+ * outline-offset so it doesn't touch button edges (which have their
+ * own border on some components).
  * ----------------------------------------------------------------- */
 :focus-visible {
   outline: 2px solid var(--color-primary);
@@ -130,11 +297,28 @@ main#main {
   border-radius: 2px;
 }
 
-/* Respect users who opt out of motion. */
+/* -----------------------------------------------------------------
+ * ACCESSIBILITY GUARDRAILS
+ * - prefers-reduced-motion: collapse durations, static end-state visible
+ * - prefers-reduced-transparency: swap glass for opaque surface fill
+ *   (per visual-direction agent — never leave WCAG contrast to blur)
+ * ----------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-hero,
+  .glass-card,
+  .callout-gate-closed,
+  .callout-gate-open,
+  .callout-directive {
+    background: var(--color-surface-2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }

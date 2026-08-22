@@ -29,7 +29,7 @@ atomicspec init my-project --ai claude
 
 **New in v0.4 — advisory model-tier routing.** Consumer projects can now split coordinator turns (Phase 0 orientation, task selection, gate checks, stamp writes) from implementer turns (code generation, verification loop) and HITL turns (Directive 6 checkpoints) onto different model tiers. Defaults on Anthropic: Haiku for coordination, Sonnet for implementation, Opus for HITL. Shipped **advisor-off by default** (`registry.efficiency.advisor_enabled: false`) — consumer projects on v0.3 see byte-for-byte identical behavior after upgrade. Two new CLI subcommands surface the config: `atomicspec select-model --phase <coordinator|implementer|hitl>` (machine-readable model lookup) and `atomicspec efficiency report --advisory` (dry-run of tier decisions + snapshot log). Per-feature measurement primitive lands in v0.4.1 on Claude Code's stable hook API + Anthropic Console CSV import; v0.4 ships the config surface + honest snapshot recorder (`atomicspec cost snapshot`), not per-turn accounting. Directives 7 and 8 amended in place — nine directives stays nine. Full details: [`docs/efficiency.md`](./docs/efficiency.md).
 
-**New in v0.3 — cross-provider AI handoff.** Lifecycle Markers, stamp-lifecycle scripts, and cross-phase pre-flight guards (in `/clarify`, `/plan`, `/tasks`) are machine-enforced. The Phase 0 Orientation procedure and Directive 9's `orientation-runs/` evidence requirement are **policy-enforced in v0.3.0** (the AI's compliance with Article IX is the control); the runtime gate (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing evidence ships in v0.3.1. When Claude crashes mid-feature and you switch to Codex (or Gemini, Cursor, etc.), the receiving AI now self-orients from files alone: detects which artifacts are half-done via Lifecycle Markers stamps, prompts you on conflict, and resumes cleanly without silently overwriting work. See the v0.3 entry in [CHANGELOG.md](./CHANGELOG.md) for the full mechanism and honest disclosures.
+**New in v0.3 — cross-provider AI handoff.** Lifecycle Markers, stamp-lifecycle scripts, and cross-phase pre-flight guards (in `/clarify`, `/plan`, `/tasks`) are machine-enforced. The Phase 0 Orientation procedure and Directive 9's `orientation-runs/` evidence requirement are **policy-enforced** (the AI's compliance with Article IX is the control); the runtime gate (`check-prerequisites --check-orientation`) that would BLOCK Phase 1 on missing evidence was scoped for v0.3.1, which was not released — that gate now targets v0.4.1 alongside per-feature `baseline record`. When Claude crashes mid-feature and you switch to Codex (or Gemini, Cursor, etc.), the receiving AI still self-orients from files alone: detects which artifacts are half-done via Lifecycle Markers stamps, prompts you on conflict, and resumes cleanly without silently overwriting work. See the v0.3 entry in [CHANGELOG.md](./CHANGELOG.md) for the full mechanism and honest disclosures.
 
 ---
 
@@ -556,7 +556,7 @@ your-project/
 │       ├── T-021-add-validation.md    # - Gate Criteria (from stations)
 │       └── ...
 │
-│   SUBAGENTS (21 specialized agents, dynamically discovered):
+│   SUBAGENTS (24 base agents, dynamically discovered):
 │
 └── .specify/subagents/
     ├── backend-architect.md

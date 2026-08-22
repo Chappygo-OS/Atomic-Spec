@@ -70,9 +70,10 @@ Run this on every session start, BEFORE picking up any task:
 6. Write the orientation evidence (the JSON outputs + outcome + decision) as a
    **per-run file** in `specs/<branch>/orientation-runs/<ISO-UTC>-<provider>.md`
    (race-free under concurrent providers — no two timestamps collide at second
-   precision). This evidence is **required by policy in v0.3.0**; a runtime gate
-   (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing
-   evidence ships in v0.3.1.
+   precision). This evidence is **required by policy** since v0.3.0. The runtime
+   gate (`check-prerequisites --check-orientation`) that would BLOCK Phase 1 on
+   missing evidence was originally scoped for v0.3.1 (not released) and now
+   targets v0.4.1 alongside per-feature `baseline record`.
 
 ### Lifecycle Markers -- hard rules
 

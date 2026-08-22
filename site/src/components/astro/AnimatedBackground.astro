@@ -100,7 +100,9 @@
 
   /* Mobile: drop the third blob, drop the noise filter, halve the blur,
      freeze the animation. The blobs become static gradient washes — visually
-     close enough, GPU work down ~70%. */
+     close enough, GPU work down ~70%. `will-change: auto` releases the GPU
+     layer promoted for the (now-frozen) animation — hygiene fix from the
+     CSS-review pass. */
   @media (max-width: 768px) {
     .desktop-only {
       display: none;
@@ -111,6 +113,7 @@
       opacity: 0.3;
       animation: none;
       transform: none;
+      will-change: auto;
     }
   }
 

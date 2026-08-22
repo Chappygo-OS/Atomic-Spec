@@ -270,7 +270,7 @@ The Orientation Phase MUST emit its findings as a per-run file under `specs/<fea
 
 **Enforcement timeline**:
 - **v0.3.0**: the evidence file is REQUIRED by policy. Absence is a Constitution violation but is NOT yet a runtime gate.
-- **v0.3.1**: `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Marketed claims about Directive 9 enforcement should reflect this disclosure until v0.3.1 ships.
+- **Future release (targeting v0.4.1)**: `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Originally scoped for v0.3.1, which was not released; the gate now targets v0.4.1 alongside the per-feature `baseline record` work. Marketed claims about Directive 9 enforcement must reflect this disclosure until the gate ships.
 
 **Outcomes — exactly three**:
 

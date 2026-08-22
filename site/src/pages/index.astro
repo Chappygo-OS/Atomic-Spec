@@ -23,6 +23,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/react/Hero.tsx';
 import Problem from '../components/astro/Problem.astro';
 import Solution from '../components/astro/Solution.astro';
+import Directives from '../components/astro/Directives.astro';
 import Manual from '../components/react/Manual.tsx';
 import Agents from '../components/astro/Agents.astro';
 import HITL from '../components/react/HITL.tsx';
@@ -32,11 +33,13 @@ import Workflow from '../components/astro/Workflow.astro';
 
 <BaseLayout
   title="Atomic Spec — Precision engineering for AI-written code"
-  description="A governance framework that turns unpredictable AI into a governed assembly line — eight Prime Directives, four HITL checkpoints, atomic task files, and 24 specialized subagents."
+  description="A governance framework that turns unpredictable AI into a governed assembly line — nine Prime Directives, four HITL checkpoints, atomic task files, and specialized subagents matched by semantic similarity."
+  hideBackground={true}
 >
   <Hero client:load />
   <Problem />
   <Solution />
+  <Directives />
   <Manual client:idle />
   <Agents />
   <HITL client:visible />

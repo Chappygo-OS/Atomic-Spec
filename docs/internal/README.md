@@ -9,7 +9,7 @@ User-facing docs live in `site/src/content/docs/` and are rendered by Astro on e
 - **`KNOWLEDGE-WIRING-PLAN.md`** — Knowledge Station design decisions and the Plan→Tasks gate ordering rationale (post-implementation, 2026-02).
 - **`mobile-extension-audit.md`** — 31-issue gap analysis between the v0.1.0 framework and shipping mobile coverage (2026-03).
 - **`mobile-extension-plan.md`** — feature-planning predecessor to the audit; superseded by the shipped implementation but useful for design-decision context.
-- **`mobile-subagents-report.md`** — inventory of the 146 mobile-specific subagents organized by lifecycle phase.
+- **`mobile-subagents-report.md`** — inventory of the mobile-specific subagents organized by lifecycle phase (v0.1.0 shipped with 146; current tree has 157).
 
 ## When to add a doc here
 

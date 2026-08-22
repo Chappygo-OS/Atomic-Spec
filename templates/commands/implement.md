@@ -178,7 +178,7 @@ If the user genuinely needs to inspect `plan.md` / `spec.md` / `clarify-log.md` 
 
 Wait for the user. Only after they choose a valid menu letter, proceed.
 
-#### 0.6 Write Orientation Evidence (required for v0.3.1 enforcement)
+#### 0.6 Write Orientation Evidence (required for the forthcoming v0.4.1 enforcement gate)
 
 Every Phase 0 run writes a per-run evidence file under `$FEATURE_DIR/orientation-runs/` — one file per run, named by ISO-8601 timestamp + provider. This avoids the concurrent-writer race that an append-at-top `orientation-runs.md` would have when two providers race on the same branch (e.g., a crashed Claude session and a fresh Codex session start within the same minute).
 
@@ -234,7 +234,7 @@ Each run file follows the structure from `templates/orientation-runs-template.md
 -->
 
 
-**Status of enforcement (v0.3 honest disclosure)**: this evidence is REQUIRED by Directive 9, but the wiring that BLOCKS Phase 1 on missing evidence (`check-prerequisites.sh --check-orientation`) ships in v0.3.1, not v0.3.0. For v0.3.0, missing or stale evidence is a Constitution violation by policy but NOT a hard gate. The forthcoming v0.3.1 hardening will make this a runtime block.
+**Status of enforcement (honest disclosure)**: this evidence is REQUIRED by Directive 9, but the wiring that BLOCKS Phase 1 on missing evidence (`check-prerequisites.sh --check-orientation`) has not shipped. It was originally scoped for v0.3.1, which was not released; the gate now targets v0.4.1 alongside per-feature `baseline record`. Until then, missing or stale evidence is a Constitution violation by policy but NOT a hard gate.
 
 Per-run files are auditable, append-free, and race-free by construction (no two timestamps collide at second precision). For aggregate views, a future `atomicspec orientation log` command can sort and merge the per-run files at read time.
 
