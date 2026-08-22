@@ -20,22 +20,12 @@
 import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { withBase } from '../lib/url';
-
-export interface SearchHeading {
-  text: string;
-  slug: string;
-  depth: number;
-}
-
-export interface SearchIndexEntry {
-  slug: string;
-  href: string;
-  title: string;
-  description: string;
-  category: string;
-  keywords: string[];
-  headings: SearchHeading[];
-}
+// Re-export the entry types from the shared search module so anything
+// that used to import them from this endpoint keeps working, and so the
+// emitted JSON shape and the client-side scorer share one source of
+// truth.
+export type { SearchHeading, SearchIndexEntry } from '../lib/search';
+import type { SearchIndexEntry } from '../lib/search';
 
 export const GET: APIRoute = async () => {
   const entries = await getCollection('docs', (e) => !e.data.draft);

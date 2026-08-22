@@ -18,28 +18,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Search, ArrowUpRight } from 'lucide-react';
 import { withBase } from '../../lib/url';
-
-// ---- Types --------------------------------------------------------------
-interface SearchHeading {
-  text: string;
-  slug: string;
-  depth: number;
-}
-
-interface SearchIndexEntry {
-  slug: string;
-  href: string;
-  title: string;
-  description: string;
-  category: string;
-  keywords: string[];
-  headings: SearchHeading[];
-}
-
-interface ScoredResult extends SearchIndexEntry {
-  score: number;
-  matchedHeading?: SearchHeading;
-}
+import { rankResults } from '../../lib/search';
+import type { ScoredResult, SearchIndexEntry } from '../../lib/search';
 
 // Module-scoped cache — the index is fetched once per browser session.
 // Cheaper than an in-component ref because it survives unmount/remount.
@@ -58,75 +38,6 @@ async function loadIndex(): Promise<SearchIndexEntry[]> {
       return data;
     });
   return inflightFetch;
-}
-
-// ---- Scoring ------------------------------------------------------------
-// Hand-tuned weights: title matches dominate; keywords are the second
-// signal (they're author-declared so they carry intent); headings and
-// description are recall widening. A raw substring match on the whole
-// query gets a bonus so "prime directives" ranks its own page first.
-const W_TITLE = 3.0;
-const W_KEYWORD = 2.5;
-const W_HEADING = 1.5;
-const W_DESCRIPTION = 1.0;
-const W_EXACT_PHRASE = 2.0;
-
-function tokenize(input: string): string[] {
-  return input
-    .toLowerCase()
-    .split(/\s+/)
-    .map((t) => t.trim())
-    .filter(Boolean);
-}
-
-function scoreEntry(entry: SearchIndexEntry, tokens: string[], phrase: string): ScoredResult {
-  if (tokens.length === 0) {
-    return { ...entry, score: 0 };
-  }
-
-  const title = entry.title.toLowerCase();
-  const description = entry.description.toLowerCase();
-  const keywords = entry.keywords.map((k) => k.toLowerCase());
-  const headings = entry.headings.map((h) => ({ ...h, textLower: h.text.toLowerCase() }));
-
-  let score = 0;
-  let bestHeading: SearchHeading | undefined;
-  let bestHeadingScore = 0;
-
-  for (const t of tokens) {
-    if (title.includes(t)) score += W_TITLE;
-    for (const k of keywords) {
-      if (k.includes(t)) {
-        score += W_KEYWORD;
-        break; // one keyword hit per token, avoid multi-counting
-      }
-    }
-    for (const h of headings) {
-      if (h.textLower.includes(t)) {
-        score += W_HEADING;
-        if (W_HEADING > bestHeadingScore) {
-          bestHeadingScore = W_HEADING;
-          bestHeading = { text: h.text, slug: h.slug, depth: h.depth };
-        }
-      }
-    }
-    if (description.includes(t)) score += W_DESCRIPTION;
-  }
-
-  if (tokens.length > 1 && title.includes(phrase)) score += W_EXACT_PHRASE;
-
-  return { ...entry, score, matchedHeading: bestHeading };
-}
-
-function rankResults(index: SearchIndexEntry[], query: string, limit = 6): ScoredResult[] {
-  const tokens = tokenize(query);
-  if (tokens.length === 0) return [];
-  const phrase = query.trim().toLowerCase();
-  return index
-    .map((entry) => scoreEntry(entry, tokens, phrase))
-    .filter((r) => r.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
 }
 
 // ---- Component ----------------------------------------------------------
