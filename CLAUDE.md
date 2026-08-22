@@ -40,7 +40,7 @@ Optional: `/atomicspec.AnalyzeCompetitors` runs between specify and plan (follow
 Key architectural components that span multiple files:
 
 - **`.specify/knowledge/stations/`** — 18 procedural guides (01-introduction through 18-documentation). Commands look up station gate criteria here before allowing phase transitions.
-- **`.specify/subagents/`** — 21+ base subagents plus 146 mobile-specific ones organized by lifecycle phase (01-Discovery through 14-Documentation). Matched dynamically by **semantic similarity** between feature keywords and YAML frontmatter `description`, NOT hard-coded.
+- **`.specify/subagents/`** — 24 base subagents plus 157 mobile-specific ones organized by lifecycle phase (01-Discovery through 14-Documentation). Matched dynamically by **semantic similarity** between feature keywords and YAML frontmatter `description`, NOT hard-coded.
 - **`specs/_defaults/registry.yaml`** — the Project Defaults Registry. 80+ technical decisions (architecture pattern, data access style, tenancy model, etc.). Every command reads this on entry and offers to update it on exit (with HITL approval).
 - **`memory/constitution.md`** — Article IX hardcodes the 9 Prime Directives (Directive 9 added in v0.3 for the Orientation Read Surface). Articles I-VIII are `[PLACEHOLDER]` sections filled in by `/atomicspec.constitution` in consumer projects.
 - **`src/specify_cli/__init__.py`** — the `atomicspec` Python CLI (PyPI distribution name: `atomic-spec`). Thin wrapper that downloads template releases and sets up agent-specific command directories. The CLI fetches templates from `Chappygo-OS/Atomic-Spec` GitHub Releases (overridable via `ATOMIC_SPEC_REPO` and `ATOMIC_SPEC_ASSET_PREFIX` env vars). **PyPI distribution is live since v0.2.0** (Trusted Publishing via OIDC, `pypi` environment-gated). `init-project.{sh,ps1}` remains a valid alternative install path for offline/local setups using this repo's templates directly.
@@ -149,9 +149,10 @@ Run this on every session start, BEFORE picking up any task:
 6. Write the orientation evidence (the JSON outputs + outcome + decision) as a
    **per-run file** in `specs/<branch>/orientation-runs/<ISO-UTC>-<provider>.md`
    (race-free under concurrent providers — no two timestamps collide at second
-   precision). This evidence is **required by policy in v0.3.0**; a runtime gate
-   (`check-prerequisites --check-orientation`) that BLOCKS Phase 1 on missing
-   evidence ships in v0.3.1.
+   precision). This evidence is **required by policy** since v0.3.0. The runtime
+   gate (`check-prerequisites --check-orientation`) that would BLOCK Phase 1 on
+   missing evidence was originally scoped for v0.3.1 (not released) and now
+   targets v0.4.1 alongside per-feature `baseline record`.
 
 ### Lifecycle Markers -- hard rules
 

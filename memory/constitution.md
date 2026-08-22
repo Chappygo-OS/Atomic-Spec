@@ -337,8 +337,8 @@ The Orientation Phase MUST emit its findings as a per-run file under `specs/<fea
 **Why per-run files, not a single appended log**: two providers racing on the same branch (e.g., a crashed Claude session and a fresh Codex session start within seconds) would silently overwrite each other if both prepended to a shared `orientation-runs.md`. Per-run files are append-free and race-free by construction (no two ISO timestamps collide at second precision).
 
 **Enforcement timeline**:
-- **v0.3.0** (this release): the evidence file is REQUIRED by policy. Absence is a Constitution violation but is NOT yet a runtime gate.
-- **v0.3.1** (next release): `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Marketed claims about Directive 9 enforcement should reflect this disclosure until v0.3.1 ships.
+- **v0.3.0** (this Directive's introduction): the evidence file is REQUIRED by policy. Absence is a Constitution violation but is NOT yet a runtime gate.
+- **Future release (targeting v0.4.1)**: `check-prerequisites.{sh,ps1} --check-orientation` will inspect `orientation-runs/` for a file matching the current session and BLOCK Phase 1 if absent or stale. Originally scoped for v0.3.1, which was not released; the gate now targets v0.4.1 alongside the per-feature `baseline record` work. Marketed claims about Directive 9 enforcement must reflect this disclosure until the gate ships.
 
 **Outcomes — exactly three**:
 

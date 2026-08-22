@@ -119,14 +119,27 @@
 
 /* -----------------------------------------------------------------
  * Tables — bordered, alternating row tint, header tinted.
+ *
+ * Mobile: `display: block` + `overflow-x: auto` turns the table into a
+ * horizontally scrollable strip when its columns exceed the viewport.
+ * Without this, wide tables (e.g., verification-commands-guide's 6-column
+ * matrix) were silently truncated at the edge on 375px because the outer
+ * `body { overflow-x: hidden }` clipped them with no scroll affordance.
+ * The `display: block` trick is Tailwind Typography's own responsive
+ * pattern — inner thead/tbody/tr/td keep their default table roles, so
+ * the visual layout is preserved.
  * ----------------------------------------------------------------- */
 .prose.prose-invert :where(table):not(:where([class~="not-prose"] *)) {
   font-size: 0.9em;
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid rgb(30 41 59);              /* slate-800 */
   border-radius: 0.5rem;
-  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose.prose-invert :where(thead):not(:where([class~="not-prose"] *)) {

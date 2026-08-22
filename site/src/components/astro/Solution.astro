@@ -1,105 +1,206 @@
 ---
 /**
- * Solution — the three pillars of the Atomic Traceability Model.
+ * Solution — the three enforcement mechanisms that make Atomic Spec work.
  *
- * Static Astro. Boss's component used `motion.div` with `whileHover={{ y: -5 }}`;
- * we replace that with Tailwind `hover:-translate-y-1` so the card still lifts
- * but we don't ship Framer Motion for a hover lift.
+ * Framing (per copy strategist, design-research-copy.md § 6): the phase
+ * pipeline (Specify -> Plan -> Tasks -> Implement) is already covered by
+ * `Workflow.astro`. This section instead answers "why does that pipeline
+ * produce different code from a raw agent?" by naming the three constraints
+ * the AI cannot re-interpret or skip:
  *
- * Pillars come from the README and Article IX of the constitution:
- *   1. Constitutional governance (eight Prime Directives + Project Defaults Registry)
- *   2. HITL checkpoints (the four gates: Tech Stack, Validation, UI, Registry sync)
- *   3. Atomic task decomposition (Atomic Injunction → tasks/T-XXX-*.md)
+ *   1. Atomic tasks         — one requirement per file, no monolithic tasks.md
+ *   2. Context Pinning      — implementer sees three files, plan/spec blocked
+ *   3. Registry enforcement — project defaults applied without asking
+ *
+ * Layout: three glass-card panels on `lg` with dashed-line + chevron
+ * connectors between them (static below `lg`). Panels stagger-fade on
+ * component load; connectors fade in after the panels have settled. All
+ * motion respects the global prefers-reduced-motion collapse in global.css.
+ *
+ * The "The AI proposes. Humans approve." line — flagged by the copy audit
+ * as one of the site's strongest — is preserved verbatim as the section's
+ * closing statement, above the docs link.
+ *
+ * Static Astro. No JS, no npm deps added.
  */
 import { Icon } from 'astro-icon/components';
 
-interface Pillar {
-  icon: string;
-  title: string;
-  body: string;
-  bullets: string[];
+type CodeKind = 'comment' | 'file' | 'blocked' | 'key' | 'value' | 'plain';
+
+interface CodeLine {
+  text: string;
+  kind?: CodeKind;
 }
 
-const pillars: Pillar[] = [
+interface Mechanism {
+  label: string;
+  title: string;
+  body: string;
+  icon: string;
+  code: CodeLine[];
+}
+
+const mechanisms: Mechanism[] = [
   {
-    icon: 'lucide:scale',
-    title: 'Constitutional governance',
-    body:
-      'Every AI decision is bound by a constitution. Article IX hardcodes the eight Prime Directives — non-negotiable rules every command enforces.',
-    bullets: [
-      'Consistency across features',
-      'Eight immutable Prime Directives',
-      'Project Defaults Registry as source of truth',
-    ],
-  },
-  {
-    icon: 'lucide:users',
-    title: 'HITL checkpoints',
-    body:
-      'The AI proposes. Humans approve. At four critical decision points, the system STOPS until you sign off.',
-    bullets: [
-      'No silent assumptions',
-      'Tech stack review',
-      'Validation review',
-      'UI/UX approval',
-      'Registry sync',
-    ],
-  },
-  {
+    label: '01 / atomic',
+    title: 'Atomic tasks',
+    body: 'One requirement per file — or the pipeline refuses to move. Every feature decomposes into isolated task files with domain rules, registry values, and the verification command embedded inline.',
     icon: 'lucide:file-code',
-    title: 'Atomic task decomposition',
-    body:
-      'Instead of one monolithic tasks.md, every feature explodes into isolated T-XXX files. The agent reads only the current task — by design.',
-    bullets: [
-      'One requirement per file',
-      'Embedded context (registry + domain rules + gate criteria)',
-      'Verification command included',
-      'Context Pinning during implementation',
+    code: [
+      { text: 'tasks/', kind: 'comment' },
+      { text: '├── T-001-scaffold-users-route.md', kind: 'file' },
+      { text: '├── T-002-validate-input-schema.md', kind: 'file' },
+      { text: '├── T-003-write-repository.md', kind: 'file' },
+      { text: '└── T-037-wire-users-nav.md', kind: 'file' },
+    ],
+  },
+  {
+    label: '02 / pinned',
+    title: 'Context Pinning',
+    body: 'The implementer sees exactly three files. plan.md and spec.md are architecturally blocked — when the model cannot read the roadmap, it stops building for it.',
+    icon: 'lucide:lock',
+    code: [
+      { text: '# readable', kind: 'comment' },
+      { text: 'index.md', kind: 'file' },
+      { text: 'T-002-validate-input-schema.md', kind: 'file' },
+      { text: 'traceability.md', kind: 'file' },
+      { text: '', kind: 'plain' },
+      { text: '# blocked', kind: 'comment' },
+      { text: 'spec.md    → denied', kind: 'blocked' },
+      { text: 'plan.md    → denied', kind: 'blocked' },
+    ],
+  },
+  {
+    label: '03 / enforced',
+    title: 'Registry enforcement',
+    body: 'Every project-wide default lives in one YAML file. Every command reads it on entry. Every new default routes through a HITL checkpoint before it lands.',
+    icon: 'lucide:git-branch',
+    code: [
+      { text: '# specs/_defaults/registry.yaml', kind: 'comment' },
+      { text: 'architecture:   hexagonal', kind: 'value' },
+      { text: 'data_access:    repository', kind: 'value' },
+      { text: 'tenancy:        shared-schema', kind: 'value' },
+      { text: 'error_envelope: rfc9457', kind: 'value' },
     ],
   },
 ];
+
+/**
+ * Map a code-line kind to a Tailwind text-color utility rooted in the
+ * design tokens defined in global.css. Keeps colour semantics consistent
+ * across panels.
+ */
+function toneFor(kind: CodeKind | undefined): string {
+  switch (kind) {
+    case 'comment':
+      return 'text-text-dim';
+    case 'blocked':
+      return 'text-gate-closed-soft';
+    case 'value':
+      return 'text-primary-soft';
+    case 'file':
+    case 'key':
+    case 'plain':
+    default:
+      return 'text-text';
+  }
+}
 ---
 
-<section id="solution" class="relative overflow-hidden bg-transparent py-24">
-  {/* Decorative blob — kept subtle since AnimatedBackground already supplies atmosphere. */}
-  <div
-    aria-hidden="true"
-    class="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-emerald-500/5 blur-3xl"
-  >
-  </div>
-
-  <div class="container relative z-10 mx-auto px-4">
-    <div class="mb-16 text-center">
-      <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-emerald-400">
-        The Solution
+<section
+  id="solution"
+  class="relative border-t border-border/60 bg-transparent py-24 md:py-32"
+>
+  <div class="container mx-auto px-4">
+    {/* Section header */}
+    <div class="mx-auto mb-16 max-w-3xl text-center">
+      <p class="mb-4 font-mono text-[11px] uppercase tracking-[0.22em] text-text-dim">
+        The mechanism
       </p>
-      <h2 class="text-3xl font-bold text-white md:text-4xl">The Atomic Traceability Model</h2>
-      <p class="mx-auto mt-4 max-w-2xl text-slate-400">
-        A governance framework that turns the AI from an unpredictable collaborator into a
-        system that ships consistent, traceable code — feature after feature.
+      <h2 class="text-3xl font-bold tracking-tight text-text md:text-4xl">
+        How Atomic Spec works,
+        <span class="text-primary-soft">in three moves</span>.
+      </h2>
+      <p class="mx-auto mt-5 max-w-2xl text-lg text-text-muted">
+        Not more instructions. Three enforced mechanisms the agent cannot
+        re-interpret, cannot skip, cannot silently ignore.
       </p>
     </div>
 
-    <div class="grid gap-8 lg:grid-cols-3">
-      {
-        pillars.map((p) => (
-          <article class="rounded-2xl border border-slate-800 bg-slate-950/60 p-8 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30">
-            <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-slate-900 text-emerald-400">
-              <Icon name={p.icon} class="h-8 w-8" />
-            </div>
-            <h3 class="mb-4 text-xl font-bold text-white">{p.title}</h3>
-            <p class="mb-4 text-slate-400">{p.body}</p>
-            <ul class="space-y-2 text-sm text-slate-400">
-              {p.bullets.map((b) => (
-                <li class="flex items-center gap-2">
-                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </article>
-        ))
-      }
+    {/* Panel grid — 1 column on mobile, 3 panels with connectors on lg+.
+        Grid template: 1fr | auto | 1fr | auto | 1fr so the connectors
+        collapse to their intrinsic width and the panels stay equal. */}
+    <div class="mx-auto max-w-7xl">
+      <div
+        class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-stretch lg:gap-5"
+      >
+        {
+          mechanisms.map((m, i) => (
+            <>
+              <article
+                class="glass-card fade-up flex flex-col p-7"
+                style={`animation-delay: ${i * 80}ms`}
+              >
+                <div class="mb-5 flex items-center justify-between">
+                  <span class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
+                    {m.label}
+                  </span>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/[0.14] text-primary-soft ring-1 ring-primary/25">
+                    <Icon name={m.icon} class="h-4 w-4" />
+                  </span>
+                </div>
+
+                <h3 class="mb-3 text-xl font-semibold tracking-tight text-text">
+                  {m.title}
+                </h3>
+
+                <p class="mb-6 text-sm leading-relaxed text-text-muted">
+                  {m.body}
+                </p>
+
+                {/* Code fragment — solid --surface-0 background (never blur code,
+                    per visual-direction agent §5 "Code block"). */}
+                <div class="mt-auto overflow-x-auto rounded-lg border border-border/70 bg-surface-0/80 p-4">
+                  <code class="block font-mono text-[12.5px] leading-6">
+                    {m.code.map((line) => (
+                      <span class={`block whitespace-pre ${toneFor(line.kind)}`}>
+                        {line.text === '' ? ' ' : line.text}
+                      </span>
+                    ))}
+                  </code>
+                </div>
+              </article>
+
+              {i < mechanisms.length - 1 && (
+                <div
+                  aria-hidden="true"
+                  class="fade-up hidden items-center justify-center gap-1 text-text-dim lg:flex"
+                  style="animation-delay: 400ms"
+                >
+                  <span class="block h-0 w-10 border-t border-dashed border-border-strong" />
+                  <Icon name="lucide:chevron-right" class="h-4 w-4" />
+                </div>
+              )}
+            </>
+          ))
+        }
+      </div>
+    </div>
+
+    {/* Preserved money-line + docs link. Copy strategist called
+        "The AI proposes. Humans approve." one of the site's strongest lines
+        — keep it verbatim as the section's closing statement. */}
+    <div class="mx-auto mt-16 max-w-3xl text-center">
+      <p class="text-lg font-semibold tracking-tight text-text md:text-xl">
+        The AI proposes. Humans approve.
+      </p>
+      <a
+        href="/docs/atomic-traceability-model"
+        class="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary-soft transition-colors duration-[var(--dur-state)] ease-[var(--ease-fluid)] hover:text-text"
+      >
+        See the full pipeline docs
+        <Icon name="lucide:arrow-right" class="h-4 w-4" />
+      </a>
     </div>
   </div>
 </section>

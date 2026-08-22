@@ -5,7 +5,7 @@
  * Subagents are matched dynamically by semantic similarity between feature
  * keywords and YAML frontmatter `description` — never hard-coded. The eight
  * shown here are a tasting menu; the bottom badge points at the rest under
- * .specify/subagents/ (21+ base subagents plus 146 mobile-specific).
+ * .specify/subagents/ (24 base subagents plus 157 mobile-specific).
  *
  * Static Astro with Tailwind group-hover transitions. Icons via astro-icon.
  */
@@ -38,9 +38,9 @@ const agents: Agent[] = [
     icon: 'lucide:layout',
   },
   {
-    name: 'security-auditor',
-    category: 'Security',
-    description: 'OWASP controls, vulnerability analysis.',
+    name: 'code-reviewer',
+    category: 'Review',
+    description: 'Regression audits, style checks, invariant verification.',
     icon: 'lucide:shield',
   },
   {
@@ -106,8 +106,9 @@ const agents: Agent[] = [
       <p
         class="inline-block rounded-full bg-slate-800/80 px-6 py-2 text-sm text-slate-300 backdrop-blur"
       >
-        Plus 13 more waiting in <code class="font-mono text-emerald-300">.specify/subagents/</code> —
-        and you can drop in your own.
+        Plus 16 more base subagents in <code class="font-mono text-emerald-300">.specify/subagents/</code>
+        — and 157 mobile-specialized ones under <code class="font-mono text-emerald-300">mobile/</code>.
+        Drop in your own to extend the set.
       </p>
     </div>
   </div>
