@@ -62,12 +62,19 @@
 
 /* -----------------------------------------------------------------
  * Links — emerald with underline-on-hover and no jumpy color shift.
+ *
+ * `overflow-wrap: anywhere` lets long inline URLs (installation.mdx has a
+ * few GitHub raw URLs, and prime-directives.mdx cites SHAs) break at any
+ * character rather than blow out to the right on 320-375px viewports.
+ * The `body { overflow-x: hidden }` in global.css would otherwise clip
+ * the overflowed link silently.
  * ----------------------------------------------------------------- */
 .prose.prose-invert :where(a):not(:where([class~="not-prose"] *)) {
   text-decoration: none;
   border-bottom: 1px solid rgba(16, 185, 129, 0.35);
   font-weight: 500;
   transition: border-color 150ms ease, color 150ms ease;
+  overflow-wrap: anywhere;
 }
 
 .prose.prose-invert :where(a):hover:not(:where([class~="not-prose"] *)) {
@@ -212,9 +219,24 @@
  * Heading anchor target — keep target headings clear of the sticky
  * header. Without this, jumping to `#section` lands the heading
  * under the header bar.
+ *
+ * Fallback matches root's `--header-h: 3.5rem` (was 4rem here — a stale
+ * fallback that only mattered when the var was missing but still worth
+ * aligning so future refactors don't split the two values).
  * ----------------------------------------------------------------- */
 .prose.prose-invert :where(h2, h3, h4):not(:where([class~="not-prose"] *)) {
   /* Use the global --header-h variable so this stays in sync with the
      actual sticky header height (defined in global.css / Header.astro). */
-  scroll-margin-top: calc(var(--header-h, 4rem) + 1rem);
+  scroll-margin-top: calc(var(--header-h, 3.5rem) + 1rem);
+}
+
+/* Mobile docs: when the DocsSidebarMobile trigger bar is visible below the
+   header, headings jumped-to via `#anchor` land under the trigger. Add its
+   height (~2.75rem = 44px min-h + border) so the anchor target clears both
+   bars. The trigger hides on scroll-down (see DocsSidebarMobile.tsx) so
+   this offset only bites when the user has scrolled UP toward an anchor. */
+@media (max-width: 1023px) {
+  .prose.prose-invert :where(h2, h3, h4):not(:where([class~="not-prose"] *)) {
+    scroll-margin-top: calc(var(--header-h, 3.5rem) + 3.75rem);
+  }
 }

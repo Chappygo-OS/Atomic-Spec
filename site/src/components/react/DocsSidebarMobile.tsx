@@ -33,11 +33,51 @@ const PANEL_ID = 'docs-mobile-nav-panel';
 
 export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobileProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  // Scroll-direction hide: reclaims ~44px of viewport chrome on mobile docs
+  // pages. Header alone is ~56px (~8% of iPhone SE 667px height); adding a
+  // second always-visible sticky trigger bar pushed combined docs chrome past
+  // 15% of viewport (see mobile-review flag). Hiding the trigger on
+  // scroll-down and revealing on scroll-up recovers the space during read
+  // flow while keeping nav one gesture away.
+  const [isTriggerVisible, setIsTriggerVisible] = useState<boolean>(true);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const drawerRef = useRef<HTMLElement | null>(null);
 
   const normalizedCurrent = normalizePathname(currentPath);
+
+  // Scroll-direction detection. Uses passive listener + rAF throttling so it
+  // never blocks the scroller. A 4px deadband suppresses jitter around the
+  // top and touch-inertia overshoot at the bottom.
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    function onScroll(): void {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        // Deadband: ignore micro-scrolls that would flicker the bar.
+        if (Math.abs(delta) > 4) {
+          // Always show near the top so first-view users never see a hidden trigger.
+          if (y < 80) {
+            setIsTriggerVisible(true);
+          } else if (delta > 0) {
+            setIsTriggerVisible(false);
+          } else {
+            setIsTriggerVisible(true);
+          }
+          lastY = y;
+        }
+        ticking = false;
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // ESC to close, focus management, body scroll lock, and full focus trap.
   useEffect(() => {
@@ -97,10 +137,20 @@ export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobil
     <>
       {/* Sticky bar visible only on <lg, sits below the site header.
           Uses --header-h CSS var so the offset stays in sync with the actual
-          header height (set in BaseLayout / Header.astro). */}
+          header height (set in BaseLayout / Header.astro).
+
+          Scroll-direction hide: translated -100% on scroll-down, back to 0
+          on scroll-up. This drops the always-on chrome from ~15% to ~8% of
+          an iPhone SE viewport during read flow while keeping nav one
+          scroll-up gesture away. `aria-hidden` follows so SRs don't announce
+          the offscreen control. */}
       <div
-        className="sticky z-30 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur lg:hidden"
+        className={[
+          'sticky z-30 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur transition-transform duration-200 lg:hidden',
+          isTriggerVisible ? 'translate-y-0' : '-translate-y-full',
+        ].join(' ')}
         style={{ top: 'var(--header-h, 3.5rem)' }}
+        aria-hidden={isTriggerVisible ? undefined : true}
       >
         <button
           ref={triggerRef}
@@ -108,8 +158,9 @@ export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobil
           aria-expanded={isOpen}
           aria-controls={PANEL_ID}
           aria-label="Open documentation menu"
+          tabIndex={isTriggerVisible ? 0 : -1}
           onClick={() => setIsOpen(true)}
-          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-slate-300 transition hover:text-white"
+          className="flex min-h-[44px] w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:text-white"
         >
           <Menu className="h-4 w-4" aria-hidden="true" />
           <span>Browse documentation</span>
@@ -154,7 +205,7 @@ export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobil
               type="button"
               aria-label="Close documentation menu"
               onClick={() => setIsOpen(false)}
-              className="rounded-md p-1 text-slate-400 transition hover:bg-white/5 hover:text-white"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-slate-400 transition hover:bg-white/5 hover:text-white"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -178,7 +229,11 @@ export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobil
                           aria-current={isActive ? 'page' : undefined}
                           onClick={() => setIsOpen(false)}
                           className={[
-                            'block rounded-md border-l-2 py-1.5 pl-3 text-sm transition',
+                            // min-h-[44px] + flex-center guarantees an iOS
+                            // HIG-conforming tap target regardless of text
+                            // wrap. py-1.5 kept as vertical breathing room
+                            // when the label wraps to two lines.
+                            'flex min-h-[44px] items-center rounded-md border-l-2 py-1.5 pl-3 pr-2 text-sm leading-snug transition',
                             isActive
                               ? 'border-emerald-500 font-semibold text-emerald-400'
                               : 'border-transparent text-slate-300 hover:text-white',
