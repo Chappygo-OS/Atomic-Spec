@@ -22,6 +22,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { NavGroup } from '../../lib/nav';
 import { normalizePathname } from '../../lib/url';
+import DocsSearchBar from './DocsSearchBar';
 
 interface DocsSidebarMobileProps {
   nav: NavGroup[];
@@ -212,6 +213,12 @@ export default function DocsSidebarMobile({ nav, currentPath }: DocsSidebarMobil
           </header>
 
           <nav className="flex-1 overflow-y-auto px-5 py-4" aria-label="Documentation">
+            {/* Search — visible at the top of the mobile drawer so the
+                keyword-index is one gesture away from any docs page.
+                On desktop the same search bar lives in DocsSidebar.astro. */}
+            <div className="mb-6">
+              <DocsSearchBar />
+            </div>
             {nav.map((group) => (
               <div key={group.category} className="mb-6 last:mb-0">
                 <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
