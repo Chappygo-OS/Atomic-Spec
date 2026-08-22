@@ -143,14 +143,14 @@ const directives: Directive[] = [
               <h3 class="mb-2 text-lg font-semibold text-text">{d.name}</h3>
               <p class="mb-4 text-sm leading-relaxed text-text-muted">{d.rule}</p>
 
-              <p class="flex items-start gap-2 text-xs text-text-dim">
+              <p class="flex items-start gap-2 text-sm text-text-muted">
                 <Icon
                   name="lucide:shield-alert"
                   class="mt-0.5 h-4 w-4 flex-shrink-0 text-gate-closed"
                   aria-hidden="true"
                 />
                 <span>
-                  <span class="font-semibold uppercase tracking-wider text-text-dim">Prevents:</span>{' '}
+                  <span class="font-semibold uppercase tracking-wider text-text-muted">Prevents:</span>{' '}
                   {d.prevents}
                 </span>
               </p>

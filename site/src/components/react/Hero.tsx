@@ -223,7 +223,7 @@ function InstallCommandCopy() {
         type="button"
         onClick={handleCopy}
         aria-label={`Copy install command: ${INSTALL_COMMAND}`}
-        className="group inline-flex w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-surface-1/60 px-4 py-3 font-mono text-xs text-text-muted backdrop-blur-sm transition-colors duration-[var(--dur-state)] ease-[var(--ease-fluid)] hover:border-primary/50 hover:text-text sm:w-auto sm:px-5 sm:text-sm"
+        className="group inline-flex min-h-[44px] w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-surface-1/60 px-4 py-3 font-mono text-xs text-text-muted backdrop-blur-sm transition-colors duration-[var(--dur-state)] ease-[var(--ease-fluid)] hover:border-primary/50 hover:text-text sm:w-auto sm:px-5 sm:text-sm"
       >
         <span className="flex min-w-0 items-center gap-2">
           <span
@@ -334,7 +334,7 @@ export default function Hero() {
       id="hero"
       // `isolate` locks the aurora's `-z-10` into this section's stacking
       // context so it can never leak behind the site-wide AnimatedBackground.
-      className="relative isolate flex min-h-[90vh] items-center justify-center overflow-hidden px-4 py-24 sm:py-32"
+      className="relative isolate flex min-h-[90dvh] items-center justify-center overflow-hidden px-4 py-24 sm:py-32"
     >
       {/* Faint structural grid — masked at the edges so it fades gracefully
           into the aurora rather than fighting with it. */}
