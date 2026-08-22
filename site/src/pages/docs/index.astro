@@ -13,6 +13,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getDocsNav } from '../../lib/nav';
 import { withBase } from '../../lib/url';
+import DocsSearchBar from '../../components/react/DocsSearchBar.tsx';
 
 const nav = await getDocsNav();
 const docsCount = nav.reduce((acc, group) => acc + group.items.length, 0);
@@ -24,6 +25,16 @@ const githubRepo = 'https://github.com/Chappygo-OS/Atomic-Spec';
   description="Atomic Spec documentation: installation, quick start, governance concepts, and contribution guides for the Atomic Traceability Model."
 >
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+    {/* Docs-landing hero search — spans the full inner-container width
+        (max-w-6xl minus the section's horizontal padding), sits above the
+        page header, and uses the `hero` variant of DocsSearchBar for a
+        larger tap target + inviting placeholder. `client:load` because
+        search is the primary action on this page; hydrate immediately
+        rather than waiting for idle. */}
+    <div class="mb-10">
+      <DocsSearchBar variant="hero" client:load />
+    </div>
+
     <header class="mb-14 max-w-3xl">
       <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-300">
         Documentation

@@ -41,13 +41,27 @@ async function loadIndex(): Promise<SearchIndexEntry[]> {
 }
 
 // ---- Component ----------------------------------------------------------
-export default function DocsSearchBar() {
+
+interface DocsSearchBarProps {
+  /**
+   * `sidebar` (default) — compact styling for the docs sidebar / mobile drawer.
+   * `hero`             — larger padding + text for landing-page placement
+   *                       (docs/index) where the search is the primary action.
+   *
+   * Both variants share behavior, keyboard nav, and accessibility surface.
+   * Only visual weight differs.
+   */
+  variant?: 'sidebar' | 'hero';
+}
+
+export default function DocsSearchBar({ variant = 'sidebar' }: DocsSearchBarProps = {}) {
   const [query, setQuery] = useState<string>('');
   const [index, setIndex] = useState<SearchIndexEntry[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [selected, setSelected] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const listId = 'docs-search-listbox';
+  const listId = variant === 'hero' ? 'docs-search-listbox-hero' : 'docs-search-listbox';
+  const isHero = variant === 'hero';
 
   const results = useMemo<ScoredResult[]>(
     () => (query ? rankResults(index, query) : []),
@@ -107,20 +121,22 @@ export default function DocsSearchBar() {
       </label>
       <div className="relative">
         <Search
-          size={16}
+          size={isHero ? 20 : 16}
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-dim ${
+            isHero ? 'left-5' : 'left-3'
+          }`}
         />
         <input
           ref={inputRef}
-          id="docs-search-input"
+          id={isHero ? 'docs-search-input-hero' : 'docs-search-input'}
           type="search"
           role="combobox"
           aria-expanded={showDropdown}
           aria-controls={listId}
           aria-autocomplete="list"
           autoComplete="off"
-          placeholder="Search docs..."
+          placeholder={isHero ? 'Search the docs — nine directives, install, upgrade, verification…' : 'Search docs...'}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -135,11 +151,17 @@ export default function DocsSearchBar() {
             setTimeout(() => setOpen(false), 120);
           }}
           onKeyDown={onKeyDown}
-          className="w-full min-h-[44px] rounded-lg border border-border bg-surface-1/60 px-9 py-2 text-sm text-text placeholder:text-text-dim backdrop-blur-sm transition-colors focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className={
+            isHero
+              ? 'w-full min-h-[56px] rounded-xl border border-border bg-surface-1/70 px-14 py-3 text-base text-text placeholder:text-text-dim placeholder:truncate backdrop-blur-md transition-colors focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/40 sm:text-lg'
+              : 'w-full min-h-[44px] rounded-lg border border-border bg-surface-1/60 px-9 py-2 text-sm text-text placeholder:text-text-dim backdrop-blur-sm transition-colors focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/40'
+          }
         />
         <kbd
           aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 select-none rounded border border-border bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-dim md:inline-block"
+          className={`pointer-events-none absolute top-1/2 hidden -translate-y-1/2 select-none rounded border border-border bg-surface-2/60 font-mono uppercase tracking-wider text-text-dim md:inline-block ${
+            isHero ? 'right-5 px-2 py-1 text-xs' : 'right-3 px-1.5 py-0.5 text-[10px]'
+          }`}
         >
           {typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘K' : 'Ctrl K'}
         </kbd>
@@ -153,7 +175,11 @@ export default function DocsSearchBar() {
         <ul
           id={listId}
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-surface-1/95 py-1 shadow-lg backdrop-blur-md"
+          className={`absolute left-0 right-0 z-30 max-h-[70vh] overflow-y-auto border border-border bg-surface-1/95 py-1 shadow-lg backdrop-blur-md ${
+            isHero
+              ? 'top-[calc(100%+0.75rem)] rounded-xl shadow-2xl'
+              : 'top-[calc(100%+0.5rem)] rounded-lg'
+          }`}
         >
           {results.length === 0 ? (
             <li className="px-4 py-3 text-sm text-text-dim">
