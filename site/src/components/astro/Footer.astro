@@ -1,14 +1,17 @@
 ---
 /**
- * Footer — site-wide footer for Phase 2 marketing landing.
+ * Footer — site-wide footer.
  *
- * Replaces the Phase 1 placeholder with brand line, three column links
- * (Product / Resources / Community), copyright, and license attribution per
- * the README's MIT licensing and upstream-fork acknowledgement.
+ * Brand line, three column links (Product / Resources / Community),
+ * a small "Built by" maintainer strip, copyright, and license attribution
+ * per the README's MIT licensing and upstream-fork acknowledgement.
  *
- * GitHub URL repointed from boss's dead `custom-speckit` org to the canonical
- * `Chappygo-OS/Atomic-Spec`. Educasium link dropped — site IA decision.
+ * GitHub URL repointed from the dead `custom-speckit` org to the canonical
+ * `Chappygo-OS/Atomic-Spec`. Community-column LinkedIn link → Chappygo
+ * company site; personal maintainer profiles live in the Built-by strip
+ * below so the two ownership signals aren't conflated.
  */
+import { Icon } from 'astro-icon/components';
 import { withBase } from '../../lib/url';
 
 interface FooterLink {
@@ -20,6 +23,16 @@ interface FooterLink {
 interface FooterColumn {
   title: string;
   links: FooterLink[];
+}
+
+interface Maintainer {
+  /** Two-letter monogram for the avatar tile. */
+  initials: string;
+  name: string;
+  /** Short role — kept ≤ 32 chars so chips don't wrap on mobile. */
+  role: string;
+  /** LinkedIn profile URL. Opens in a new tab. */
+  linkedin: string;
 }
 
 const docs = withBase('/docs');
@@ -62,11 +75,34 @@ const columns: FooterColumn[] = [
       { label: 'Support', href: support },
       { label: 'License', href: license },
       {
-        label: 'LinkedIn',
-        href: 'https://www.linkedin.com/in/pablo-nastar/',
+        // Chappygo is the company entity stewarding the fork; personal
+        // maintainer profiles live in the Built-by strip below, not here.
+        label: 'Chappygo',
+        href: 'https://chappygo.com/',
         external: true,
       },
     ],
+  },
+];
+
+// Both maintainers get equal billing, each credited for the load-bearing
+// framework pillar they own. Mohammad designed the Nine Prime Directives —
+// the governance logic that separates Atomic Spec from spec-kit upstream.
+// Pablo designed the Assembly-Line mental model — the metaphor that carries
+// the framework's positioning ("phases → stations → gates"). Both credits
+// point at named concepts a reader can go verify on the homepage.
+const maintainers: Maintainer[] = [
+  {
+    initials: 'MK',
+    name: 'Mohammad Khoddami',
+    role: 'Maintainer · Prime Directives',
+    linkedin: 'https://www.linkedin.com/in/mohammadkhoddami/',
+  },
+  {
+    initials: 'PN',
+    name: 'Pablo Nastar',
+    role: 'Maintainer · Assembly Line',
+    linkedin: 'https://www.linkedin.com/in/pablo-nastar/',
   },
 ];
 
@@ -114,8 +150,59 @@ const year = new Date().getFullYear();
       }
     </div>
 
+    {/* "Built by" strip — a small, honest maintainer surface. Sits between
+        the three-column link grid and the copyright row so it reads as
+        "who ships this" rather than a marketing surface. Two mini-chips
+        per maintainer: monogram avatar (iris tint, no photo file dependency),
+        name, role, and a LinkedIn icon-button as the tap target. Chips
+        stack vertically on mobile, sit side-by-side from sm+. */}
     <div
-      class="mt-12 flex flex-col items-center justify-between gap-3 border-t border-slate-900 pt-6 text-xs text-slate-500 md:flex-row"
+      class="mt-12 border-t border-slate-900 pt-6"
+      aria-label="Maintainers"
+    >
+      <p class="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+        Built by
+      </p>
+      <ul class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+        {
+          maintainers.map((m) => (
+            <li>
+              <a
+                href={m.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${m.name} on LinkedIn`}
+                class="group inline-flex min-h-[44px] items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 transition-colors hover:border-emerald-400/40 hover:bg-slate-900/70"
+              >
+                <span
+                  aria-hidden="true"
+                  class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-400/20 bg-emerald-400/10 font-mono text-[11px] font-bold uppercase tracking-wider text-emerald-300"
+                >
+                  {m.initials}
+                </span>
+                <span class="flex min-w-0 flex-col">
+                  <span class="text-sm font-medium text-slate-200 transition-colors group-hover:text-white">
+                    {m.name}
+                  </span>
+                  <span class="text-[11px] uppercase tracking-wider text-slate-500 group-hover:text-slate-400">
+                    {m.role}
+                  </span>
+                </span>
+                <Icon
+                  name="lucide:linkedin"
+                  size={16}
+                  aria-hidden="true"
+                  class="ml-1 text-slate-500 transition-colors group-hover:text-emerald-300"
+                />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div
+      class="mt-8 flex flex-col items-center justify-between gap-3 border-t border-slate-900 pt-6 text-xs text-slate-500 md:flex-row"
     >
       <p>
         &copy; {year} Atomic Spec contributors. MIT-licensed. Forked from{' '}

@@ -45,6 +45,7 @@ export default defineConfig({
           'git-commit',
           'layers',
           'layout',
+          'linkedin',
           'lock',
           'pen-tool',
           'play',
