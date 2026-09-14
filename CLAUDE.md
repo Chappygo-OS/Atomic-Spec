@@ -17,7 +17,7 @@ These are the non-negotiable rules that every command in this framework enforces
 3. **Context Pinning** — during `/atomicspec.implement`, the AI may ONLY read `index.md`, the current task file, and `traceability.md`. Reading `plan.md` or `spec.md` during implementation is forbidden
 4. **Gate Compliance** — Knowledge Station gate criteria must pass before phase transitions
 5. **Knowledge Routing** — unknown decisions consult the Station Map first, then the specific station
-6. **Human-In-The-Loop** — `/atomicspec.plan` pauses at 4 mandatory checkpoints (tech stack, validation, UI, registry sync)
+6. **Human-In-The-Loop** — `/atomicspec.plan` pauses at 4 mandatory checkpoints (tech stack, validation, UI, registry sync). v0.5+ adds an optional derivation checkpoint (Phase 0.85 — Test Strategy Derivation, HITL #3.5) that inherits the D6 contract; the 4-floor stays. Composes alongside, never replaces.
 7. **Project Defaults Registry** — all commands read `specs/_defaults/registry.yaml` and enforce project-wide standards
 8. **Self-Contained Tasks** — task files embed all context (registry values, domain rules, gate criteria) needed for execution under Context Pinning
 9. **Orientation Read Surface (v0.3+)** — `/atomicspec.implement` Phase 0 detects cross-provider handoff state via `stamp-lifecycle status` on artifact Lifecycle Markers; direct body reads of `plan.md` / `spec.md` / `clarify-log.md` remain forbidden, even during orientation. Sibling control to Directive 3; does NOT widen it.
