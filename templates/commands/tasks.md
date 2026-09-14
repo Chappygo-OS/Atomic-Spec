@@ -224,6 +224,29 @@ For EACH task, create a separate file in `tasks/`:
 ### Acceptance Criteria
 - [ ] [Testable criterion]
 
+### Test Strategy Slice (v0.5+, if applicable)
+
+<!--
+  CONSTITUTION ARTICLE IX, DIRECTIVE 8 (Test Strategy Slice row, v0.5+):
+  Include this block for test-writing tasks (Task Target ∈ {unit_test,
+  integration_test, e2e_test}). Extracted at task-generation time by
+  /atomicspec.tasks Step 1c from the matching row in plan.md's `## Test
+  Strategy` table.
+
+  The implementer respects Directive 3 Context Pinning — they never
+  read plan.md. All test-strategy context they need is embedded HERE.
+
+  Omit this section for feature tasks with no test adjacency, OR when
+  plan.md `## Test Strategy` was skipped (testing.enabled: false/null).
+-->
+
+- **Layer**: [Frontend Unit | Backend Unit | Backend Integration | E2E | Cross-Cutting]
+- **Test Type**: [unit | integration | e2e | a11y | perf | security]
+- **Tool**: [framework name OR `MANUAL-CONFIGURE — no subagent matched X`]
+- **Coverage Target**: [%]
+- **Subagent Reference**: [.specify/subagents/testing/... path OR `(none — configure manually)`]
+- **Rationale**: [why this layer needs this type of test — one line]
+
 ### Wiring Checklist (if applicable)
 
 <!--
@@ -743,6 +766,20 @@ backend.framework: express | fastapi | gin | spring-boot | etc.
 ```
 
 This provides framework-specific details but does NOT override plan.md platform.
+
+**Step 1c: Load Test Strategy from plan.md (v0.5+, if present)**
+
+If `plan.md` contains a populated `## Test Strategy` section (Phase 0.85 output), parse the 7-column table into memory. Each row represents a testing layer:
+
+```
+| Layer | Test Type | Tool | Coverage | Task-Range Slot | Subagent / Source | Rationale |
+```
+
+For each task being generated, determine its **Task Target** (unit_test, integration_test, e2e_test, feature, wiring, etc.). If Task Target ∈ {unit_test, integration_test, e2e_test}, select the matching row from the Test Strategy table by Layer match — this becomes the **Test Strategy Slice** embedded into the task file's Embedded Context (per Directive 8 Test Strategy Slice row, v0.5+).
+
+If `## Test Strategy` is absent (feature pre-dates v0.5 opt-in, or user answered No at consent gate, or Phase 0.85 was skipped): no slicing occurs; test tasks still generate but carry no strategy slice. Graceful degradation preserves v0.4.1 contract-test byte-identity.
+
+If a task's Task Target is a test type but no matching Layer row exists in the Test Strategy (subagent gap): emit slice with `Tool: MANUAL-CONFIGURE` and `Subagent: (none — configure manually)` — visible, never silent.
 
 **Step 2: Load Platform Verification Templates**
 

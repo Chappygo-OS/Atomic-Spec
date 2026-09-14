@@ -252,6 +252,38 @@
 **Validated By**: [awaiting user confirmation]
 **Validated At**: [timestamp]
 
+## Test Strategy
+
+<!--
+  CONSTITUTION ARTICLE IX, DIRECTIVE 6 (Extended Scope v0.5+):
+  Human-In-The-Loop Checkpoints — this section is filled during Phase 0.85
+  (Test Strategy Derivation) IF the user opted in via testing.enabled at
+  /clarify or via the Phase 0 migration hook. If testing.enabled is false
+  or null in a non-interactive session, this section stays as a placeholder
+  and Phase 0.85 logs a skip reason.
+
+  Directive 8 (Self-Contained Tasks) v0.5+: `/atomicspec.tasks` slices the
+  table below per test-writing T-XXX file and embeds the relevant row as
+  the "Test Strategy Slice" — so implementer respects Context Pinning (D3)
+  without ever reading plan.md.
+
+  Rows use MANUAL-CONFIGURE fallback when no matching subagent is found
+  in `.specify/subagents/testing/`. Never silent.
+-->
+
+**Consent Status**: [derived / skipped-user-opted-out / skipped-non-interactive / migrated_v0.5]
+**Consent Provenance**: [human / accepted_recommendation / migrated_v0.5]
+
+| Layer | Test Type | Tool (default) | Coverage | Task-Range Slot | Subagent / Source | Rationale |
+|-------|-----------|----------------|----------|-----------------|-------------------|-----------|
+| [filled by Phase 0.85] | [unit/integration/e2e/perf/a11y/security] | [tool or `MANUAL-CONFIGURE — no subagent matched X`] | [%] | [T-NNN or interleaved] | [.specify/subagents/testing/...] | [why this row] |
+
+**Approval**: Pending
+**Approved By**: [awaiting user confirmation]
+**Approved At**: [timestamp]
+
+**Row-level overrides**: [list any row where user chose Change tool / Change coverage / Drop this layer, with reason]
+
 ## Frontend/UI Specifications
 
 <!--
