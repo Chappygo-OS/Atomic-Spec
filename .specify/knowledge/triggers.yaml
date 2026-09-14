@@ -19,6 +19,20 @@
 # - `compliance: true` — fired in Phase 5 (Compliance) with a two-step
 #   confirmation; default answer is "skip" (favours false negatives, see
 #   design rationale).
+# - `suppress_when:` (v0.5+) — optional trigger-level predicate that
+#   soft-warns (never silent-skips) when the spec matches anti-keywords.
+#   Structure:
+#     suppress_when:
+#       anti_keywords: [prototype, spike, throwaway, POC, hackathon, scratch]
+#       lifecycle_override: production
+#   Semantics: if the spec matches any anti_keyword AND
+#   registry.lifecycle.intent != production, the trigger emits a
+#   soft-warning + AskUserQuestion ("This spec mentions '<keyword>' — skip
+#   this setup? [Y/N]"). Never silent skip. When lifecycle.intent ==
+#   production, suppress_when is bypassed unconditionally regardless of
+#   anti-keyword matches. Introduced to close the "payment-spike" footgun
+#   — a production feature with "spike" in the spec still gets its
+#   governance prompts.
 #
 # EXTENDING
 # ---------
@@ -219,3 +233,15 @@ triggers:
         # Users with single-jurisdiction projects can override to false.
         default: "true"
         rationale: "PII detected and you're entering the sub-checklist. Default to GDPR scope; override to false only if you're certain no EU resident will ever use the system."
+
+  - id: testing
+    keywords: ["test", "TDD", "coverage", "regression", "QA", "CI", "flake", "quality gate", "reliability SLO", "P0 bug"]
+    suppress_when:
+      anti_keywords: [prototype, spike, throwaway, POC, hackathon, scratch]
+      lifecycle_override: production
+    sub_checklist:
+      - field: testing.enabled
+        prompt: "Do you want automated tests for this feature? [Y / N]"
+        options: [yes, no]
+        default: yes
+        rationale: "Testing is opt-in; if yes, /plan Phase 0.85 derives per-layer strategy autonomously (framework, tool, coverage, task placement) with HITL row-by-row approval. Zero tokens spent on derivation without consent captured here or via architectural-lurker path."
