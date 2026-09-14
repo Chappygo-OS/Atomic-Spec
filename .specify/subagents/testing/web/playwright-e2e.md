@@ -31,7 +31,7 @@ General-purpose browser automation skill. I'll write custom Playwright code for 
    - If **multiple servers found**: Ask user which one to test
    - If **no servers found**: Ask for URL or offer to help start dev server
 
-2. **Write scripts to /tmp** - NEVER write test files to skill directory; always use `$TMPDIR/playwright-test-*.js`
+2. **Write scripts to /tmp** - NEVER write test files to skill directory; always use `${os.tmpdir()}/playwright-test-*.js`
 
 3. **Use visible browser by default** - Always use `headless: false` unless user specifically requests headless mode
 
@@ -41,7 +41,7 @@ General-purpose browser automation skill. I'll write custom Playwright code for 
 
 1. You describe what you want to test/automate
 2. I auto-detect running dev servers (or ask for URL if testing external site)
-3. I write custom Playwright code in `$TMPDIR/playwright-test-*.js` (won't clutter your project)
+3. I write custom Playwright code in `${os.tmpdir()}/playwright-test-*.js` (won't clutter your project)
 
 5. Results displayed in real-time, browser window visible for debugging
 6. Test files auto-cleaned from /tmp by your OS
@@ -66,7 +66,8 @@ cd $TESTING_SUBAGENT_DIR && node -e "require('./lib/helpers').detectDevServers()
 **Step 2: Write test script to /tmp with URL parameter**
 
 ```javascript
-// $TMPDIR/playwright-test-page.js
+const os = require('os');
+// <temp-dir>/playwright-test-page.js
 const { chromium } = require('playwright');
 
 // Parameterized URL (detected or user-provided)
@@ -79,8 +80,8 @@ const TARGET_URL = 'http://localhost:3001'; // <-- Auto-detected or from user
   await page.goto(TARGET_URL);
   console.log('Page loaded:', await page.title());
 
-  await page.screenshot({ path: '$TMPDIR/screenshot.png', fullPage: true });
-  console.log('Screenshot saved to $TMPDIR/screenshot.png');
+  await page.screenshot({ path: `${os.tmpdir()}/screenshot.png`, fullPage: true });
+  console.log('Screenshot saved to <temp-dir>/screenshot.png');
 
   await browser.close();
 })();
@@ -97,7 +98,8 @@ const TARGET_URL = 'http://localhost:3001'; // <-- Auto-detected or from user
 ### Test a Page (Multiple Viewports)
 
 ```javascript
-// $TMPDIR/playwright-test-responsive.js
+const os = require('os');
+// <temp-dir>/playwright-test-responsive.js
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:3001'; // Auto-detected
@@ -110,11 +112,11 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto(TARGET_URL);
   console.log('Desktop - Title:', await page.title());
-  await page.screenshot({ path: '$TMPDIR/desktop.png', fullPage: true });
+  await page.screenshot({ path: `${os.tmpdir()}/desktop.png`, fullPage: true });
 
   // Mobile test
   await page.setViewportSize({ width: 375, height: 667 });
-  await page.screenshot({ path: '$TMPDIR/mobile.png', fullPage: true });
+  await page.screenshot({ path: `${os.tmpdir()}/mobile.png`, fullPage: true });
 
   await browser.close();
 })();
@@ -123,7 +125,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
 ### Test Login Flow
 
 ```javascript
-// $TMPDIR/playwright-test-login.js
+// <temp-dir>/playwright-test-login.js
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:3001'; // Auto-detected
@@ -149,7 +151,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
 ### Fill and Submit Form
 
 ```javascript
-// $TMPDIR/playwright-test-form.js
+// <temp-dir>/playwright-test-form.js
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:3001'; // Auto-detected
@@ -211,6 +213,7 @@ const { chromium } = require('playwright');
 ### Take Screenshot with Error Handling
 
 ```javascript
+const os = require('os');
 const { chromium } = require('playwright');
 
 (async () => {
@@ -224,11 +227,11 @@ const { chromium } = require('playwright');
     });
 
     await page.screenshot({
-      path: '$TMPDIR/screenshot.png',
+      path: `${os.tmpdir()}/screenshot.png`,
       fullPage: true,
     });
 
-    console.log('Screenshot saved to $TMPDIR/screenshot.png');
+    console.log('Screenshot saved to <temp-dir>/screenshot.png');
   } catch (error) {
     console.error('❌ Error:', error.message);
   } finally {
@@ -240,7 +243,8 @@ const { chromium } = require('playwright');
 ### Test Responsive Design
 
 ```javascript
-// $TMPDIR/playwright-test-responsive-full.js
+const os = require('os');
+// <temp-dir>/playwright-test-responsive-full.js
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:3001'; // Auto-detected
@@ -269,7 +273,7 @@ const TARGET_URL = 'http://localhost:3001'; // Auto-detected
     await page.waitForTimeout(1000);
 
     await page.screenshot({
-      path: `$TMPDIR/${viewport.name.toLowerCase()}.png`,
+      path: `${os.tmpdir()}/${viewport.name.toLowerCase()}.png`,
       fullPage: true,
     });
   }
@@ -289,7 +293,7 @@ For quick one-off tasks, you can execute code inline without creating files:
 const browser = await chromium.launch({ headless: false });
 const page = await browser.newPage();
 await page.goto('http://localhost:3001');
-await page.screenshot({ path: '$TMPDIR/quick-screenshot.png', fullPage: true });
+await page.screenshot({ path: `${os.tmpdir()}/quick-screenshot.png`, fullPage: true });
 console.log('Screenshot saved');
 await browser.close();
 "
@@ -388,7 +392,7 @@ const context = await browser.newContext(
 
 - **CRITICAL: Detect servers FIRST** - Always run `detectDevServers()` before writing test code for localhost testing
 - **Custom headers** - Use `PW_HEADER_NAME`/`PW_HEADER_VALUE` env vars to identify automated traffic to your backend
-- **Use /tmp for test files** - Write to `$TMPDIR/playwright-test-*.js`, never to skill directory or user's project
+- **Use /tmp for test files** - Write to `${os.tmpdir()}/playwright-test-*.js`, never to skill directory or user's project
 - **Parameterize URLs** - Put detected/provided URL in a `TARGET_URL` constant at the top of every script
 - **DEFAULT: Visible browser** - Always use `headless: false` unless user explicitly asks for headless mode
 - **Headless mode** - Only use `headless: true` when user specifically requests "headless" or "background" execution
@@ -424,9 +428,9 @@ Claude: I'll test the marketing page across multiple viewports. Let me first det
 [Output: Found server on port 3001]
 I found your dev server running on http://localhost:3001
 
-[Writes custom automation script to $TMPDIR/playwright-test-marketing.js with URL parameterized]
+[Writes custom automation script to <temp-dir>/playwright-test-marketing.js with URL parameterized]
 
-[Shows results with screenshots from $TMPDIR/]
+[Shows results with screenshots from <temp-dir>/]
 ```
 
 ```
@@ -441,7 +445,7 @@ I found 2 dev servers. Which one should I test?
 
 User: "Use 3001"
 
-[Writes login automation to $TMPDIR/playwright-test-login.js]
+[Writes login automation to <temp-dir>/playwright-test-login.js]
 
 [Reports: ✅ Login successful, redirected to /dashboard]
 ```

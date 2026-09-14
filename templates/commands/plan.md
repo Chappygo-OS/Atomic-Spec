@@ -1448,7 +1448,7 @@ Skip UI framework questions (Steps 3-8) if:
 
 **Per Constitution Article IX, Directive 6 (Extended Scope v0.5+) — this checkpoint inherits the D6 HITL contract; it does not replace or expand the 4-checkpoint floor.**
 
-Runs AFTER Phase 0.8 (Frontend/UI Specifications) and BEFORE Phase 0.9 (Registry Sync). By this point, `frontend.framework`, `backend.framework`, `backend.language`, `mobile.framework`, `mobile.platforms`, `desktop.framework`, and `database.type` are pinned in `plan.md` (they get synced to `registry.yaml` at Phase 0.9).
+Runs AFTER Phase 0.8 (Frontend/UI Specifications) and BEFORE Phase 0.9 (Registry Sync). By this point, `frontend.framework`, `backend.framework`, `backend.language`, `target_platform.mobile_framework`, `target_platform.mobile_platforms`, `target_platform.desktop_framework`, and `database.type` are pinned in `plan.md` (they get synced to `registry.yaml` at Phase 0.9).
 
 **Purpose**: derive per-layer Test Strategy from the tech stack — test types, tool choices, coverage targets, task-range assignments — and get user approval row-by-row. Test tasks then get scheduled alongside feature work in `/atomicspec.tasks` (see Directive 8 Test Strategy Slice embedding).
 
@@ -1468,7 +1468,7 @@ Read `testing.enabled` from the loaded registry. Six branches:
 #### 2. Derivation
 
 Inputs:
-- Registry tech-stack fields (as pinned in plan.md through Phase 0.8): `frontend.framework`, `backend.framework`, `backend.language`, `mobile.framework`, `mobile.platforms`, `desktop.framework`, `database.type`.
+- Registry tech-stack fields (as pinned in plan.md through Phase 0.8): `frontend.framework`, `backend.framework`, `backend.language`, `target_platform.mobile_framework`, `target_platform.mobile_platforms`, `target_platform.desktop_framework`, `database.type`.
 - Testing subagents at `.specify/subagents/testing/` (matched by semantic keyword against tech-stack fields per `_subagent-discovery.md` protocol).
 - Knowledge stations: Station 12 (`12-cicd-release.md`) test pyramid guidance.
 - Platform registry: `.specify/knowledge/_platform-registry.yaml`.

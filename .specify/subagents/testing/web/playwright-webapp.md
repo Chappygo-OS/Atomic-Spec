@@ -68,7 +68,8 @@ with sync_playwright() as p:
 
 1. **Inspect rendered DOM**:
    ```python
-   page.screenshot(path='$TMPDIR/inspect.png', full_page=True)
+   import tempfile
+   page.screenshot(path=f"{tempfile.gettempdir()}/inspect.png", full_page=True)
    content = page.content()
    page.locator('button').all()
    ```

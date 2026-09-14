@@ -54,7 +54,7 @@ If consent was given (`testing.enabled: true`), `/atomicspec.plan` runs a new su
 
 **Phase 0.85 — Test Strategy Derivation (HITL #3.5)**
 
-By this point, `frontend.framework`, `backend.framework`, `backend.language`, `mobile.framework`, `mobile.platforms`, `desktop.framework`, and `database.type` are pinned in `plan.md` through Phase 0.5-0.8. Phase 0.85 reads them, matches them against testing subagents at `.specify/subagents/testing/`, consults Station 12 (`12-cicd-release.md`) for pyramid guidance, and emits a 7-column table:
+By this point, `frontend.framework`, `backend.framework`, `backend.language`, `target_platform.mobile_framework`, `target_platform.mobile_platforms`, `target_platform.desktop_framework`, and `database.type` are pinned in `plan.md` through Phase 0.5-0.8. Phase 0.85 reads them, matches them against testing subagents at `.specify/subagents/testing/`, consults Station 12 (`12-cicd-release.md`) for pyramid guidance, and emits a 7-column table:
 
 ```markdown
 | Layer | Test Type | Tool (default) | Coverage | Task-Range Slot | Subagent / Source | Rationale |
