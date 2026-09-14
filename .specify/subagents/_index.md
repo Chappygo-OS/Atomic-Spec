@@ -31,6 +31,7 @@ This folder contains specialized subagent prompts for domain-specific tasks. Sub
 ├── review/             # Code & architecture reviewers
 ├── languages/          # Language-specific experts
 ├── business/           # Business analysis
+├── testing/            # Testing specialists (12 subagents across 10 languages/domains)
 └── custom/             # Project-specific subagents
 ```
 
@@ -138,6 +139,25 @@ Complete mobile app development lifecycle coverage:
 | Agent | File | Platform | Use When |
 |-------|------|----------|----------|
 | Business Analyst | `business/business-analyst.md` | universal | Metrics, KPIs |
+
+### Testing (12 subagents — v0.5+)
+
+Consulted by `/atomicspec.plan` Phase 0.85 (Test Strategy Derivation) to pick tools and patterns per layer. Framework matches by stack keywords against subagent descriptions.
+
+| Agent | File | Platform | Use When |
+|-------|------|----------|----------|
+| Android ADB UI Verification | `testing/android/adb-ui-verification.md` | mobile | ADB-based Android UI verification via log markers |
+| C++ GoogleTest | `testing/cpp/googletest.md` | universal | C++ unit tests with GoogleTest / CTest / sanitizers |
+| Django TDD | `testing/python/django-tdd.md` | backend | Django test-driven development with pytest-django |
+| Go Testing | `testing/go/go-testing.md` | backend | Go standard-library testing patterns |
+| k6 Load Testing | `testing/cross-cutting/k6-load.md` | universal | Load and performance testing with k6 scenarios |
+| Kotlin Kotest + MockK | `testing/kotlin/kotest-mockk.md` | mobile | Kotlin/Android testing with Kotest, MockK, coroutine tests |
+| Laravel TDD | `testing/php/laravel-tdd.md` | backend | Laravel test-driven development |
+| Playwright E2E | `testing/web/playwright-e2e.md` | `[web, backend]` | Browser end-to-end tests with Playwright |
+| Playwright Web App Testing | `testing/web/playwright-webapp.md` | `[web, backend]` | Local web-app testing with Python Playwright |
+| Python pytest Patterns | `testing/python/pytest-patterns.md` | backend | Python unit tests with pytest, fixtures, mocking |
+| Rust Cargo Testing | `testing/rust/cargo-testing.md` | universal | Rust unit + integration tests with cargo test |
+| Spring Boot TDD | `testing/java/springboot-tdd.md` | backend | Spring Boot test-driven development |
 
 ## Custom Subagents
 
