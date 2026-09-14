@@ -242,6 +242,6 @@ triggers:
     sub_checklist:
       - field: testing.enabled
         prompt: "Do you want automated tests for this feature? [Y / N]"
-        options: [yes, no]
-        default: yes
+        options: [true, false]
+        default: true
         rationale: "Testing is opt-in; if yes, /plan Phase 0.85 derives per-layer strategy autonomously (framework, tool, coverage, task placement) with HITL row-by-row approval. Zero tokens spent on derivation without consent captured here or via architectural-lurker path."

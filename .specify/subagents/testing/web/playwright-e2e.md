@@ -1,7 +1,7 @@
 ---
 name: Playwright E2E
 platform: [web, backend]
-description: "IMPORTANT - Path Resolution: This skill can be installed in different locations (plugin system, manual installation, global, or project-specific). Before executing any commands, determine the skill directory based on where you loaded this SKILL.md file, and use that path in all commands below."
+description: "End-to-end web application testing with Playwright — cross-browser flows, dev-server auto-detection, visual verification. Use when the spec's test strategy calls for browser-based E2E coverage."
 model: opus
 category: testing/web
 ---

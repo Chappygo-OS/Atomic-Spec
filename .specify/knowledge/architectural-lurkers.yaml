@@ -133,8 +133,8 @@ packs:
 
       - field: testing.enabled
         prompt: "Do you want automated tests for this feature? [Y / N]"
-        options: [yes, no]
-        default: yes
+        options: [true, false]
+        default: true
         rationale: "Web apps ship to real users — regression cost outpaces test authoring cost within 2 sprints. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
 
     can_defer:
@@ -236,8 +236,8 @@ packs:
 
       - field: testing.enabled
         prompt: "Do you want automated tests for this feature? [Y / N]"
-        options: [yes, no]
-        default: yes
+        options: [true, false]
+        default: true
         rationale: "App store review cycles amplify regression cost; testing pays back on first rejection. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
 
     can_defer:
@@ -287,8 +287,8 @@ packs:
 
       - field: testing.enabled
         prompt: "Do you want automated tests for this feature? [Y / N]"
-        options: [yes, no]
-        default: yes
+        options: [true, false]
+        default: true
         rationale: "Desktop update rollouts are slow — bugs live in the wild for weeks. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
 
   # ====================================================================

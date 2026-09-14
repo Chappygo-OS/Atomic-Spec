@@ -1,7 +1,7 @@
 ---
 name: Playwright Web App Testing
 platform: [web, backend]
-description: "To test local web applications, write native Python Playwright scripts."
+description: "Functional web application testing with Playwright and Python — DOM inspection, selector discovery, form/navigation flows for static or dynamic pages below full E2E scope."
 model: opus
 category: testing/web
 ---
