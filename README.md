@@ -60,9 +60,9 @@ Article IX of `memory/constitution.md` hardcodes nine non-negotiable rules (Dire
 | 3 | **Context Pinning** | During `/atomicspec.implement`, AI is FORBIDDEN from reading `plan.md` — may ONLY read `index.md`, the specific task file, and `traceability.md` |
 | 4 | **Gate Compliance** | MUST follow Knowledge Station gate criteria before phase transitions |
 | 5 | **Knowledge Routing** | When encountering unknown decisions, MUST consult Station Map first, then the specific station |
-| 6 | **Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval |
+| 6 | **Human-In-The-Loop** | During `/atomicspec.plan`, AI MUST pause at 4 checkpoints for user approval. v0.5+ adds optional Phase 0.85 (Test Strategy Derivation) that inherits the D6 contract — composes alongside the 4-floor |
 | 7 | **Project Defaults Registry** | All commands MUST read `specs/_defaults/registry.yaml` and enforce project-wide standards |
-| 8 | **Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria) for implementation |
+| 8 | **Self-Contained Tasks** | Task files MUST embed all context (registry, domain rules, gate criteria, and — v0.5+ — Test Strategy Slice for test-writing tasks) for implementation |
 | 9 | **Orientation Read Surface** (v0.3+) | `/atomicspec.implement` Phase 0 detects cross-provider handoff state via `stamp-lifecycle status`; direct body reads of `plan.md` / `spec.md` / `clarify-log.md` remain forbidden even during orientation. Sibling control to Directive 3, does NOT widen it. |
 
 ---
