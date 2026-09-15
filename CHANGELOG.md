@@ -9,9 +9,11 @@ All notable changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — v0.5.0 Testing Derivation (in-flight, ships after v0.4.1)
+## [0.5.0] - 2026-09-15
 
-> **v0.5 theme**: close the "testing is always Later" gap in AI-driven development. Every /clarify session for a web / mobile / desktop feature now asks one yes/no question — *"Do you want automated tests for this feature?"* — with app-specific rationale explaining why tests would save time. If yes, a new /plan sub-phase (Phase 0.85) derives per-layer Test Strategy autonomously from the pinned tech stack, presents a 7-column table for row-by-row HITL approval, and hands the resulting per-task slice to /tasks for Directive 8 embedding. Zero derivation tokens spent without recorded consent. Consumers who answer No never get re-asked. Feature closes G-002 in `docs/internal/known-gaps.md`. Depends on v0.4.1 shipping first (orientation enforcement + baseline record + advisor flip); no timing pressure.
+> **v0.5 theme**: close the "testing is always Later" gap in AI-driven development. Every /clarify session for a web / mobile / desktop feature now asks one yes/no question — *"Do you want automated tests for this feature?"* — with app-specific rationale explaining why tests would save time. If yes, a new /plan sub-phase (Phase 0.85) derives per-layer Test Strategy autonomously from the pinned tech stack, presents a 7-column table for row-by-row HITL approval, and hands the resulting per-task slice to /tasks for Directive 8 embedding. Zero derivation tokens spent without recorded consent. Consumers who answer No never get re-asked. Feature closes G-002 in `docs/internal/known-gaps.md`.
+>
+> **Cadence note — v0.4.1 folded forward.** v0.4.1 was originally scoped to ship first with three carry-overs from v0.4.0: the runtime orientation-evidence enforcement gate (`check-prerequisites --check-orientation`), the per-feature `baseline record` command on Claude Code's hook API + Anthropic Console CSV import, and the `advisor_enabled: true` default flip behind the v0.4.1 evidence bar. v0.5.0 landed ahead of that release; the three v0.4.1 features are now deferred to a follow-up point release (v0.5.1 or v0.6.0 depending on scope). This is the second time the track record shows a point release folding forward (v0.3.1 was skipped between v0.3.0 and v0.4.0). Advisor default remains `false` until the evidence bar in v0.4 §8 is met.
 
 ### Added
 
