@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/atomic-spec.svg?logo=python&logoColor=white)](https://pypi.org/project/atomic-spec/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Agents supported](https://img.shields.io/badge/agents-17-8A2BE2)](#ai-coding-agents-supported)
-[![Status](https://img.shields.io/badge/status-v0.4.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
+[![Status](https://img.shields.io/badge/status-v0.5.x%20%E2%80%94%20APIs%20may%20change-yellow)](#status)
 
 **Spec-kit taught AI agents a workflow. Atomic Spec makes them obey it.** When `/atomicspec.implement` runs, the agent is *architecturally prevented* from reading `plan.md` or `spec.md` — it sees only the current task file, pre-loaded with every registry value, domain rule, and gate criterion it needs. No drifting mid-feature. No hallucinating a new approach on pass three. No 800-line "kitchen sink" PRs.
 
