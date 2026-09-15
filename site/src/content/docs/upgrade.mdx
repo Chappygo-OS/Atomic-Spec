@@ -11,6 +11,7 @@ keywords:
   - v0.2
   - v0.3
   - v0.4
+  - v0.5
   - what changed
   - release notes
   - CLI upgrade
@@ -19,6 +20,9 @@ keywords:
   - efficiency
   - model tiers
   - advisor
+  - testing derivation
+  - Phase 0.85
+  - Test Strategy Slice
 ---
 
 > You have Atomic Spec installed in one or more projects and want to refresh them with the latest framework files (knowledge stations, subagents, templates, slash commands, scripts).
@@ -33,6 +37,44 @@ keywords:
 | **Framework files in a project (PyPI path)** | `atomicspec init --here --force --ai <agent>` | Refresh templates, commands, scripts |
 | **Framework files in a project (clone path)** | `./init-project.sh /path/to/project --ai <agent>` (re-run) | Alternative if you cloned the repo |
 | **The Atomic Spec source clone** | `git pull origin main` inside your `Atomic-Spec/` checkout | Keep the source tree current before re-running `init-project.sh` |
+
+---
+
+## What Changed in v0.5.0? _(unreleased — ships after v0.4.1)_
+
+v0.5 closes the "testing is always Later" gap in AI-driven development. Every `/atomicspec.clarify` session for a web / mobile / desktop feature now asks one yes/no question — *"Do you want automated tests for this feature?"* — with app-specific rationale explaining why tests would save time. If yes, a new `/plan` sub-phase (Phase 0.85) derives per-layer Test Strategy autonomously from the pinned tech stack, presents a 7-column table for row-by-row HITL approval, and hands the resulting per-task slice to `/tasks` for Directive 8 embedding. **Zero derivation tokens spent without recorded consent.** Consumers who answer No are never re-asked. **Fully backwards compatible.** Feature closes G-002 in `docs/internal/known-gaps.md`.
+
+- **Registry `testing.enabled` field** — new primary field in the existing `testing:` block. Values: `null | true | false | "later"`. Controls whether Phase 0.85 runs. Value coercion enforced (only boolean/null/`"later"` accepted; string `"yes"`/`"1"` triggers a hard warning). Provenance tracked at `_provenance.testing.enabled` (`human | accepted_recommendation | migrated_v0.5`). The 6 existing `testing.*` fields (`unit_framework` etc.) become derivation outputs, no longer asked at `/clarify`.
+- **Registry `lifecycle.intent` field** — new field extending the existing `lifecycle:` block. Values: `production | prototype | throwaway | null`. When `production`, `suppress_when` anti-keywords are bypassed unconditionally — a "spike" in a production feature's spec cannot silently suppress the testing question.
+- **`suppress_when` trigger-schema field** — new optional predicate on triggers in `.specify/knowledge/triggers.yaml`. Soft-warning + `AskUserQuestion` (never silent skip) when the spec matches anti-keywords AND `lifecycle.intent != production`. Closes the "payment-spike" footgun.
+- **`testing.enabled` architectural lurker** — `.specify/knowledge/architectural-lurkers.yaml` gains a `must_decide` entry in the `web_with_api`, `mobile`, and `desktop` packs. `library` pack unchanged (already requires `testing.unit_framework` since v0.2).
+- **New `testing` keyword trigger** — fires on `test / TDD / coverage / regression / QA / CI / flake / quality gate / reliability SLO / P0 bug`.
+- **Phase 0 Testing-Consent Migration hook** — runs alongside the `interview_completed` genesis check, before Phase 0.5 begins. Fires exactly once when `testing.enabled` key is absent (v0.4-shaped registry). Non-interactive session skips silently.
+- **Phase 0.85 — Test Strategy Derivation (HITL #3.5)** — new sub-phase in `/atomicspec.plan` between Phase 0.8 and Phase 0.9. Six-branch consent gate, per-row HITL edit variant (copies Phase 0.7's per-warning pattern), 7-column Test Strategy table (`Layer | Test Type | Tool | Coverage | Task-Range Slot | Subagent / Source | Rationale`) with visible `MANUAL-CONFIGURE` fallback when no subagent matches.
+- **`## Test Strategy` section in `plan-template.md`** — placed between Tech Stack Validation and Frontend/UI Specifications.
+- **Test Strategy Slice embedding in `/atomicspec.tasks`** — new task-generation step slices `plan.md`'s Test Strategy per test-writing T-XXX file and embeds the row (framework, coverage, layer, rationale) into the task's Embedded Context. Implementer respects D3 Context Pinning without ever reading `plan.md`.
+- **12 testing subagents imported** into `.specify/subagents/testing/`: pytest, django-tdd, kotlin (kotest-mockk), cargo, go, googletest, springboot-tdd, laravel-tdd, playwright-webapp, playwright-e2e, android ADB verification, k6 load. Registered in `.specify/subagents/_index.md` under a new `## Testing` category.
+- **Directive 8 companion row** — new "Test Strategy Slice (v0.5+)" row in the Embedded Context table, immediately below "Efficiency Tier Hint (v0.4+)".
+- **Directive 6 rationale clarification** — one-sentence extended-scope note ("Derivation checkpoints for tech-stack subdomains inherit this directive's HITL contract"). Not an amendment — the 4-checkpoint floor stays.
+- **Full details**: see the [testing derivation guide](https://github.com/Chappygo-OS/Atomic-Spec/blob/main/docs/testing-derivation.md).
+
+### Deliberately scope-out for v0.5.x
+
+Twelve testing subagents ship in v0.5 — mostly backend + mobile + language-native. Stacks without derived support fall back to `MANUAL-CONFIGURE` (visible marker in the Test Strategy table, never silent): native iOS (XCTest), Electron/Tauri desktop, web frontend JS/TS unit (Vitest/Jest/RTL), web accessibility (axe / screen-reader), API security, Ruby/Rails, Node/TS backend unit, .NET/C#, Vue/Svelte/Angular frontend unit. Contract testing, visual regression, mutation testing all deferred to v0.6+. Users on those stacks see the fallback marker and configure manually; iterated in later releases.
+
+### Migration note
+
+**Fully backwards compatible.** Consumer projects on v0.4.x upgrade to v0.5.0 with no behavior change unless the user opts in at the migration prompt:
+
+1. Existing `registry.yaml` files without `testing.enabled` key continue to work. First `/atomicspec.plan` under v0.5 fires the Phase 0 migration hook exactly once, with Recommended: Yes and app-specific rationale.
+2. On **Yes**: writes `testing.enabled: true` with `_provenance: migrated_v0.5`. Phase 0.85 fires an inline confirm-migration prompt before deriving.
+3. On **No**: writes `testing.enabled: false` with `_provenance: human`. Phase 0.85 skips silently on every subsequent run. Never re-asks.
+4. Non-interactive session (`--no-review` or no TTY): skips migration silently. Phase 0.85 later skips too. No infinite loop.
+5. Contract test: v0.5-migrated consumer that answered No produces byte-identical v0.4.1 output on subsequent runs.
+
+To opt in immediately without waiting for the migration prompt:
+1. Edit `specs/_defaults/registry.yaml`: set `testing.enabled: true` and `_provenance.testing.enabled: human`.
+2. Run `/atomicspec.plan` — Phase 0.85 fires derivation directly.
 
 ---
 

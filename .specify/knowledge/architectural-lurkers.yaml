@@ -131,6 +131,12 @@ packs:
         default: opaque_uuid
         rationale: "No enumeration leak. Pair with database.primary_key_type for consistency."
 
+      - field: testing.enabled
+        prompt: "Do you want automated tests for this feature? [Y / N]"
+        options: [true, false]
+        default: true
+        rationale: "Web apps ship to real users — regression cost outpaces test authoring cost within 2 sprints. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
+
     can_defer:
       - field: api.versioning
         prompt: "API versioning strategy?"
@@ -228,6 +234,12 @@ packs:
         default: oauth2
         rationale: "Token-based is the mobile norm; sessions don't survive app suspend/resume cleanly."
 
+      - field: testing.enabled
+        prompt: "Do you want automated tests for this feature? [Y / N]"
+        options: [true, false]
+        default: true
+        rationale: "App store review cycles amplify regression cost; testing pays back on first rejection. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
+
     can_defer:
       - field: mobile.iap_framework
         prompt: "In-app purchases?"
@@ -272,6 +284,12 @@ packs:
         options: [static, paas, vps, containerized]
         default: static
         rationale: "For desktop, 'static' = signed app binaries on a CDN. Upgrade to PaaS if you have a backend."
+
+      - field: testing.enabled
+        prompt: "Do you want automated tests for this feature? [Y / N]"
+        options: [true, false]
+        default: true
+        rationale: "Desktop update rollouts are slow — bugs live in the wild for weeks. If yes, /plan Phase 0.85 derives per-layer strategy (framework, coverage, task placement) with HITL approval."
 
   # ====================================================================
   # library — a package shipped to other devs, not an app

@@ -99,6 +99,27 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **If the registry file is absent entirely**:
      - Instruct the user to run `/atomicspec.registry` first (it scaffolds the registry from project manifests), then return to plan. Do NOT call the gate's AskUserQuestion in this case; the user has different work to do first.
 
+3.5. **Testing-Consent Migration Check (v0.5+)** — Runs alongside the `interview_completed` genesis check above, BEFORE Phase 0.5 begins. Handles v0.3/v0.4 registries that pre-date the `testing.enabled` field. See `docs/testing-derivation.md`.
+
+   - Read `registry.testing.enabled` from the loaded registry.
+   - **If the key is present** (value is `null`, `true`, `false`, or `"later"`): skip this hook; the value is respected as-is. Phase 0.85 handles the branching later.
+   - **If the key is absent entirely** (v0.4-shaped registry, never seen this field):
+     - **In non-interactive session** (`--no-review` flag OR no TTY): skip silently with logged reason `testing_migration_skipped_non_interactive`. Phase 0.85 later hits branch #5 (null in non-interactive) and skips derivation. No infinite loop.
+     - **In interactive session**: use `AskUserQuestion`:
+       ```
+       Automated testing for this feature?
+
+         Yes → /plan Phase 0.85 will derive per-layer test strategy
+               (framework, coverage, task placement) with your row-by-row
+               approval. Test tasks scheduled alongside feature work.
+
+         No  → No test scaffolding, no derivation. This choice is
+               persisted; you will not be re-asked on subsequent runs.
+       ```
+     - **On Yes**: write `testing.enabled: true` to registry with `_provenance.testing.enabled: migrated_v0.5`. Phase 0.85 will fire branch #2 (inline confirm-migration) before deriving.
+     - **On No**: write `testing.enabled: false` with `_provenance.testing.enabled: human`. Log to `specs/_defaults/changelog.md`: `"YYYY-MM-DD: v0.5 migration — testing.enabled: false via user opt-out."` Never re-ask on subsequent runs; the presence of the key (even at `false`) suppresses re-prompt.
+   - This hook mirrors the `interview_completed` genesis-branch precedent above — it is intentionally NOT inside Phase 0.5, because Phase 0.5 already fires 4 `AskUserQuestion` calls; stacking a 5th mid-flow risks question-collision UX regression.
+
 4. **Initial Configuration (HITL)**: Use AskUserQuestion to gather preferences before starting work.
 
 5. **Execute plan workflow**: Follow the structure in IMPL_PLAN template with configured preferences.
@@ -1422,6 +1443,85 @@ Skip UI framework questions (Steps 3-8) if:
 **Note**: Platform detection itself is NEVER skipped - it happens in Phase 0.1 for ALL features. This phase (0.8) only handles UI framework specifics.
 
 **Output**: User-approved UI specifications recorded in plan.md with platform-specific registry keys
+
+### Phase 0.85: Test Strategy Derivation (HITL #3.5, v0.5+)
+
+**Per Constitution Article IX, Directive 6 (Extended Scope v0.5+) — this checkpoint inherits the D6 HITL contract; it does not replace or expand the 4-checkpoint floor.**
+
+Runs AFTER Phase 0.8 (Frontend/UI Specifications) and BEFORE Phase 0.9 (Registry Sync). By this point, `frontend.framework`, `backend.framework`, `backend.language`, `target_platform.mobile_framework`, `target_platform.mobile_platforms`, `target_platform.desktop_framework`, and `database.type` are pinned in `plan.md` (they get synced to `registry.yaml` at Phase 0.9).
+
+**Purpose**: derive per-layer Test Strategy from the tech stack — test types, tool choices, coverage targets, task-range assignments — and get user approval row-by-row. Test tasks then get scheduled alongside feature work in `/atomicspec.tasks` (see Directive 8 Test Strategy Slice embedding).
+
+#### 1. Consent gate (hard rule — blocks all token spend)
+
+Read `testing.enabled` from the loaded registry. Six branches:
+
+1. **`testing.enabled == true`, `_provenance ∈ {human, accepted_recommendation}`** → proceed to derivation (step 2).
+2. **`testing.enabled == true`, `_provenance == migrated_v0.5`** → inline `AskUserQuestion` ("Confirm migrated testing preference? [Recommended: Yes]"). On Yes: upgrade provenance to `human` and proceed to derivation. On No: write `testing.enabled: false` and skip.
+3. **`testing.enabled == true`, `_provenance` key absent entirely** (hand-edited v0.4 registry) → treat identically to branch #2 (fire inline confirm before deriving).
+4. **`testing.enabled == null` in interactive session** → this should have been handled by Phase 0's migration hook. If reached here, fire an inline `AskUserQuestion` with Recommended: Yes; write result with `_provenance: human`; then continue.
+5. **`testing.enabled == null` in non-interactive/auto-approve session** → skip Phase 0.85 with logged reason `phase_0_85_skipped_null_non_interactive`. Never silent, never infinite loop.
+6. **`testing.enabled == false | "later"`** → skip silent. Log skip reason `phase_0_85_skipped_user_opted_out`.
+
+**Value coercion rule** at gate entry: `testing.enabled` MUST be boolean `true`/`false`, `null`, or the literal string `"later"`. Any other value (string `"yes"`/`"true"`/`"1"`) triggers a hard warning + logged coercion attempt + fallback to branch #5. The registry-template comment `# true | false | later | null` is documentation; this gate is enforcement.
+
+#### 2. Derivation
+
+Inputs:
+- Registry tech-stack fields (as pinned in plan.md through Phase 0.8): `frontend.framework`, `backend.framework`, `backend.language`, `target_platform.mobile_framework`, `target_platform.mobile_platforms`, `target_platform.desktop_framework`, `database.type`.
+- Testing subagents at `.specify/subagents/testing/` (matched by semantic keyword against tech-stack fields per `_subagent-discovery.md` protocol).
+- Knowledge stations: Station 12 (`12-cicd-release.md`) test pyramid guidance.
+- Platform registry: `.specify/knowledge/_platform-registry.yaml`.
+
+Emit a **Test Strategy table** into `plan.md`'s `## Test Strategy` section (7 columns):
+
+```markdown
+| Layer | Test Type | Tool (default) | Coverage | Task-Range Slot | Subagent / Source | Rationale |
+```
+
+Rows correspond to the layers detected in the tech stack — typical set: `Frontend Unit`, `Backend Unit`, `Backend Integration`, `E2E`, `Cross-Cutting (a11y/perf/security)`. Rows collapse when no matching subagent exists — emit `tool: MANUAL-CONFIGURE — no subagent matched <keyword>` and `Subagent: (none — configure manually)`. This matches `_platform-registry.yaml` graceful-degradation at lines 159–183. Never silent.
+
+Task-range slot values reference the existing reservations in `tasks.md`:
+- Unit + integration tests: interleaved per feature (T-020+ per US, respecting P1/P2/P3 slice boundaries)
+- Wiring tests: T-037 / T-057 / T-077 (Wire USn slots)
+- Cross-cutting (a11y / perf / security): T-080–089
+- E2E: T-090–099
+
+If a feature already occupies T-080-089 or T-090-099 for non-test work, `/atomicspec.tasks` probes for collision and falls back to append-at-tail.
+
+#### 3. HITL variant — per-row edits (NOT approve/reject)
+
+**Copy Phase 0.7's per-warning pattern (see this file above, at the "Use AskUserQuestion for each warning" block)**. Do NOT copy Phase 0.5's coarse approve/change/reject pattern; row granularity matters for test-strategy adjustments.
+
+For each row in the emitted Test Strategy table, fire one `AskUserQuestion`:
+
+```
+Question: "Test Strategy row: [Layer] — [Test Type] — [Tool] @ [Coverage]. Accept?"
+Header: "[Layer]"
+Options:
+  - Label: "Accept (Recommended)"
+    Description: "Row applied as-shown"
+  - Label: "Change tool"
+    Description: "Pick a different testing framework/tool for this layer"
+  - Label: "Change coverage target"
+    Description: "Raise or lower the coverage percentage"
+  - Label: "Drop this layer"
+    Description: "Skip test scheduling for this layer entirely"
+```
+
+Handle responses:
+- "Accept" → row committed, continue to next row
+- "Change tool" → follow-up `AskUserQuestion` listing subagent alternatives that match the layer (or `MANUAL-CONFIGURE` write-in)
+- "Change coverage" → follow-up prompt for percentage (0-100)
+- "Drop this layer" → mark row as `dropped` in plan.md with reason; no test tasks generated for this layer
+
+Record all decisions in the `plan.md ## Test Strategy` section with `Approval:` / `Approved By:` / `Approved At:` fields (same shape as Tech Stack Approval).
+
+**Skip conditions** (checkpoint may be abbreviated, per D6 skip clause):
+- `testing.enabled == false | "later" | null` (handled by branches #5, #6 above)
+- User passes `--no-review` flag: apply all-Accept and log the auto-approval
+
+**Output**: `plan.md` `## Test Strategy` section populated + approval recorded + Phase 0.85 marker in Lifecycle Markers.
 
 ### Phase 0.9: Registry Sync Checkpoint (HITL #4)
 

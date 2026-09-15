@@ -119,6 +119,8 @@ After Phase 0 (Research) completes and before Phase 1 (Design) begins:
 
 **Violation**: Proceeding to Phase 1 without user confirmation is a Constitution violation.
 
+**Extended scope (v0.5+)**: Derivation checkpoints for tech-stack subdomains — testing (Phase 0.85), observability (Phase 0.86, reserved), etc. — inherit this directive's HITL contract. They do not replace or expand the 4-checkpoint floor; they compose alongside it under the same rules (pause, present, wait, record).
+
 **Skip conditions** (checkpoint may be abbreviated):
 - All Technical Context fields were explicit in spec (no assumptions)
 - User passes `--no-review` flag (expert mode, assumes full responsibility)
@@ -229,6 +231,7 @@ Every task file MUST include an "Embedded Context" section containing:
 | **Gate Criteria** | Subagent/Station gate checklists | When domain knowledge exists |
 | **Structural Decision Triggers** (v0.2+) | Directive 7 scope list | When the task may commit to containerization, deployment, framework, infrastructure provider, or domain primitive — so the implementer recognizes the AskUserQuestion trigger under Context Pinning |
 | **Efficiency Tier Hint** (v0.4+) | Derived at read time from `registry.efficiency.model_tiers` + task phase | Optional; defaults to `implementer` when unset. Advisory only — surfaces which tier the coordinator/implementer/HITL split would apply for this task's phase, without changing task selection or gate logic |
+| **Test Strategy Slice** (v0.5+) | Extracted from `plan.md` `## Test Strategy` table by `/tasks`, sliced per task | Required for test-writing tasks (Task Target ∈ `{unit_test, integration_test, e2e_test}`); optional embed for feature tasks with test-adjacency. Contains framework, coverage target, layer type, fixtures policy — so the implementer executes tests under Context Pinning without reading `plan.md` |
 
 **Graceful Degradation**:
 

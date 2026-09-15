@@ -35,6 +35,15 @@ lifecycle:
   # detection. Override if your team works in longer cycles.
   stale_threshold_days: 7
 
+  # Feature lifecycle intent (v0.5+): production | prototype | throwaway | null
+  # Controls whether suppress_when anti-keywords (see triggers.yaml) can
+  # silently skip governance prompts. When intent = production, suppress_when
+  # is bypassed unconditionally — a "spike" or "prototype" keyword in the
+  # spec cannot suppress the testing question, security question, etc.
+  # Default null means Phase 0.85 (and other derivation phases) infer intent
+  # from the feature's spec metadata or ask the user inline.
+  intent: null
+
 # ============================================================================
 # TARGET PLATFORM (What type of application is being built)
 # ============================================================================
@@ -513,6 +522,25 @@ error_handling:
 # TESTING CONFIGURATION
 # ============================================================================
 testing:
+  # Feature-level testing opt-in (v0.5+). Controls whether /plan Phase 0.85
+  # Test Strategy Derivation runs at all. See docs/testing-derivation.md.
+  #   true    = user opted in; derivation runs, HITL row-by-row approval fires
+  #   false   = user opted out; derivation is skipped silently (idempotent)
+  #   "later" = user deferred; treated as opt-out for this run, re-ask later
+  #   null    = never asked; migration hook at Phase 0 prompts on first /plan run
+  # Set via /clarify Phase 3 (testing.enabled lurker) or Phase 0 migration hook.
+  # Provenance tracked in _provenance.testing.enabled — human,
+  # accepted_recommendation, or migrated_v0.5. Value coercion: strings like
+  # "yes"/"true"/"1" are NOT accepted; only boolean true/false, null, or
+  # the literal string "later".
+  enabled: null
+
+  # The 6 fields below are DERIVATION OUTPUTS as of v0.5+, populated by
+  # Phase 0.85 from the tech stack — they are never asked at /clarify.
+  # If a v0.4-shaped registry has any of these already pinned (non-null),
+  # Phase 0.85 treats `enabled` as true with _provenance: migrated_v0.5 and
+  # confirms via HITL before deriving the remaining fields.
+
   # Unit test framework (e.g., "jest", "vitest", "pytest", "go-test")
   unit_framework: null
 
