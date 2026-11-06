@@ -31,7 +31,9 @@ const {
   hideBackground = false,
 } = Astro.props;
 
-const favicon = withBase('/favicon.svg');
+const favicon = withBase('/favicon-32.png');
+const favicon64 = withBase('/favicon-64.png');
+const appleIcon = withBase('/apple-touch-icon.png');
 const banner = withBase('/atomic-spec-banner.jpg');
 // Astro.site is configured in astro.config.mjs (https://chappygo-os.github.io)
 // so this is safe in production; in dev `Astro.site` may be undefined, in which
@@ -53,7 +55,9 @@ const ogImage = Astro.site
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#020617" />
 
-    <link rel="icon" type="image/svg+xml" href={favicon} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon} />
+    <link rel="icon" type="image/png" sizes="64x64" href={favicon64} />
+    <link rel="apple-touch-icon" sizes="180x180" href={appleIcon} />
     <link rel="canonical" href={canonical} />
 
     <!-- Fonts: preconnect first, then load. Inline <link> beats @import for

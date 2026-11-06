@@ -24,6 +24,7 @@
  * Static Astro. No JS, no npm deps added.
  */
 import { Icon } from 'astro-icon/components';
+import { withBase } from '../../lib/url';
 
 type CodeKind = 'comment' | 'file' | 'blocked' | 'key' | 'value' | 'plain';
 
@@ -195,7 +196,7 @@ function toneFor(kind: CodeKind | undefined): string {
         The AI proposes. Humans approve.
       </p>
       <a
-        href="/docs/atomic-traceability-model"
+        href={withBase('/docs/atomic-traceability-model')}
         class="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary-soft transition-colors duration-[var(--dur-state)] ease-[var(--ease-fluid)] hover:text-text"
       >
         See the full pipeline docs
