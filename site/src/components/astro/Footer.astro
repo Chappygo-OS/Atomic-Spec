@@ -26,12 +26,17 @@ interface FooterColumn {
 }
 
 const docs = withBase('/docs');
-const manual = withBase('/docs/manual');
-const subagents = withBase('/docs/subagents');
-const constitution = withBase('/docs/constitution');
+// Footer links repointed to real published doc slugs — the earlier
+// manual/subagents/constitution/license slugs never shipped and 404'd live:
+//   Manual       -> quickstart                (the hands-on usage manual)
+//   Subagents    -> prime-directives          (defines + routes subagents, Directive 8)
+//   Constitution -> atomic-traceability-model (the constitution/governance model, Articles I–X)
+//   License      -> removed (no license doc; MIT attribution is in the bottom bar below)
+const manual = withBase('/docs/quickstart');
+const subagents = withBase('/docs/prime-directives');
+const constitution = withBase('/docs/atomic-traceability-model');
 const contributing = withBase('/docs/contributing');
 const support = withBase('/docs/support');
-const license = withBase('/docs/license');
 
 const columns: FooterColumn[] = [
   {
@@ -63,7 +68,6 @@ const columns: FooterColumn[] = [
     links: [
       { label: 'Contributing', href: contributing },
       { label: 'Support', href: support },
-      { label: 'License', href: license },
       {
         // Chappygo is the company entity stewarding the fork; personal
         // maintainer profiles live in the Built-by strip below, not here.

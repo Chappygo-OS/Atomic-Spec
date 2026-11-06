@@ -1,0 +1,31 @@
+# Atomic Spec
+
+> Atomic Spec is a governance framework for spec-driven development with AI coding agents — a hardened fork of the GitHub Spec Kit ecosystem that constrains AI through Nine Prime Directives, four human-in-the-loop checkpoints, and atomic, context-pinned task files. Every URL below is the canonical, absolute address on GitHub Pages (base path /Atomic-Spec/).
+
+## Getting Started
+
+- [Installation](https://chappygo-os.github.io/Atomic-Spec/docs/installation/): Install the Atomic Spec CLI from PyPI or run the local init scripts to drop the framework into a new or existing project.
+- [Quick Start](https://chappygo-os.github.io/Atomic-Spec/docs/quickstart/): Bootstrap a project with Atomic Spec in six steps — from constitution to implementation, driven by slash commands inside your AI agent.
+- [Upgrade Guide](https://chappygo-os.github.io/Atomic-Spec/docs/upgrade/): Refresh the Atomic Spec CLI and pull the latest framework files into existing projects without losing customizations.
+
+## Guides
+
+- [Platform-Aware Verification Commands](https://chappygo-os.github.io/Atomic-Spec/docs/verification-commands-guide/): How the task generator picks platform-correct verification commands for every atomic task — registry-driven, with fallbacks.
+- [Verification Fallback Logic](https://chappygo-os.github.io/Atomic-Spec/docs/verification-fallback-logic/): The three-tier fallback strategy — primary, alternative, language-native — that keeps every atomic task verifiable.
+
+## Concepts
+
+- [The Atomic Traceability Model](https://chappygo-os.github.io/Atomic-Spec/docs/atomic-traceability-model/): The requirements-traceability governance model behind spec-driven development — Nine Prime Directives, Knowledge Stations, and Context Pinning.
+- [The Nine Prime Directives](https://chappygo-os.github.io/Atomic-Spec/docs/prime-directives/): Article IX of the Atomic Spec constitution — the nine non-negotiable rules that turn AI agents into a governed assembly line.
+
+## Community
+
+- [Contributing](https://chappygo-os.github.io/Atomic-Spec/docs/contributing/): How to propose changes to Atomic Spec — local setup, testing template changes, and the AI-disclosure rules for pull requests.
+- [Local Development](https://chappygo-os.github.io/Atomic-Spec/docs/local-development/): Iterate on the Atomic Spec CLI locally — module entrypoints, editable installs, and a rapid edit loop.
+- [Support](https://chappygo-os.github.io/Atomic-Spec/docs/support/): How to file issues, request a new AI agent, and recover from failed releases, plus the two-tier agent support policy.
+
+## More
+
+- [Atomic Spec home](https://chappygo-os.github.io/Atomic-Spec/): Project overview and landing page.
+- [Documentation index](https://chappygo-os.github.io/Atomic-Spec/docs/): All guides, grouped by category.
+- [Source on GitHub](https://github.com/chappygo-os/Atomic-Spec): Repository, issues, and release history.
