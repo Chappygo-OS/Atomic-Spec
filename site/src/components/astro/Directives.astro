@@ -19,6 +19,7 @@
  * of the global @media (prefers-reduced-motion) rule in global.css.
  */
 import { Icon } from 'astro-icon/components';
+import { withBase } from '../../lib/url';
 
 interface Directive {
   number: string;   // zero-padded (01..09) — shown in monospace badge
@@ -162,7 +163,7 @@ const directives: Directive[] = [
 
     <div class="mt-14 text-center">
       <a
-        href="/docs/prime-directives"
+        href={withBase('/docs/prime-directives')}
         class="inline-flex items-center gap-2 font-mono text-sm text-primary-soft transition-colors hover:text-primary"
       >
         Read the full text of Article IX
